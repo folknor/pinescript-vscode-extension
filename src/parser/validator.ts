@@ -109,7 +109,7 @@ export class PineScriptValidator {
 			}
 
 			return { name, parameters, returns: item.returns };
-		} catch (e) {
+		} catch (_e) {
 			return null;
 		}
 	}
@@ -253,7 +253,7 @@ export class PineScriptValidator {
 		}
 
 		// Check if too many positional arguments
-		const requiredParams = signature.parameters.filter(
+		const _requiredParams = signature.parameters.filter(
 			(p) => !p.optional,
 		).length;
 		const totalParams = signature.parameters.length;
@@ -306,7 +306,7 @@ export class PineScriptValidator {
 		}
 
 		// Check for invalid named parameters
-		for (const [name, arg] of providedArgs.entries()) {
+		for (const [name, _arg] of providedArgs.entries()) {
 			const validParam = signature.parameters.find((p) => p.name === name);
 			if (!validParam) {
 				this.addError(

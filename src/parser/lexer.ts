@@ -89,7 +89,7 @@ const KEYWORDS = new Set([
 	"to",
 ]);
 
-const BUILTIN_FUNCTIONS = new Set([
+const _BUILTIN_FUNCTIONS = new Set([
 	"indicator",
 	"strategy",
 	"library",
@@ -132,8 +132,8 @@ export class Lexer {
 	}
 
 	private scanToken(): void {
-		const start = this.pos;
-		const startColumn = this.column;
+		const _start = this.pos;
+		const _startColumn = this.column;
 		const char = this.advance();
 
 		switch (char) {
@@ -270,7 +270,7 @@ export class Lexer {
 
 	private scanComment(): void {
 		const start = this.pos - 1;
-		const startColumn = this.column - 1;
+		const _startColumn = this.column - 1;
 
 		// Advance past the second '/'
 		this.advance();

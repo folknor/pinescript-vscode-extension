@@ -13,8 +13,8 @@
 
 const { test } = require("node:test");
 const assert = require("node:assert");
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // Create vscode mock
 const vscodeModulePath = path.join(__dirname, "..", "node_modules", "vscode");
@@ -234,7 +234,7 @@ test("Database contains both namespaced and type names (root cause verification)
 
 	// These might exist (types - should be skipped by validator)
 	const hasTypeEntries =
-		PINE_FUNCTIONS_MERGED["bool"] || PINE_FUNCTIONS_MERGED["color"];
+		PINE_FUNCTIONS_MERGED.bool || PINE_FUNCTIONS_MERGED.color;
 
 	if (hasTypeEntries) {
 		console.log("⚠️  Database contains type entries (bool, color, etc.)");

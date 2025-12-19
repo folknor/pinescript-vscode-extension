@@ -17,9 +17,9 @@ try {
 	console.log("Statements:", ast.body.length);
 	ast.body.forEach((stmt, i) => {
 		console.log(
-			i + 1 + ".",
+			`${i + 1}.`,
 			stmt.type,
-			stmt.type === "VariableDeclaration" ? "- " + stmt.name : "",
+			stmt.type === "VariableDeclaration" ? `- ${stmt.name}` : "",
 		);
 	});
 } catch (e) {

@@ -1,5 +1,5 @@
 const { Parser } = require("./dist/src/parser/parser");
-const fs = require("fs");
+const fs = require("node:fs");
 
 const code = fs.readFileSync("examples/demo/tun-satiroglu.pine", "utf8");
 

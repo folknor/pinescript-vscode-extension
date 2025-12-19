@@ -125,7 +125,7 @@ export class Parser {
 		// int name = expr
 		// float name = expr
 		if (this.match([TokenType.KEYWORD, ["var", "varip", "const"]])) {
-			const varKeyword = this.previous().value as any;
+			const varKeyword = this.previous().value as "var" | "varip" | "const";
 			let typeAnnotation: string | undefined;
 
 			// Check if next token is also a type keyword (e.g., var float x = 1.0)
@@ -215,7 +215,7 @@ export class Parser {
 							nameToken.column,
 						);
 					}
-				} catch (e) {
+				} catch (_e) {
 					// Not a function definition (parsing params failed), backtrack
 					this.current = checkpoint;
 				}
@@ -253,7 +253,7 @@ export class Parser {
 			}
 			// Not an assignment, backtrack
 			this.current = checkpoint;
-		} catch (e) {
+		} catch (_e) {
 			this.current = checkpoint;
 		}
 
@@ -306,7 +306,7 @@ export class Parser {
 
 		// Parse the consequent block using indentation tracking
 		// Track the indentation of the if statement and its body
-		const baseIndent = this.peek().indent || 0;
+		const _baseIndent = this.peek().indent || 0;
 		let consequentIndent: number | null = null;
 
 		while (!this.isAtEnd() && !this.check([TokenType.KEYWORD, ["else"]])) {
@@ -488,7 +488,7 @@ export class Parser {
 		const body: AST.Statement[] = [];
 
 		// Get the base indentation (indentation of the function declaration line)
-		const baseIndent = this.peek().indent || 0;
+		const _baseIndent = this.peek().indent || 0;
 
 		// Check if next token is on a new line with deeper indentation
 		const nextToken = this.peek();
@@ -502,7 +502,7 @@ export class Parser {
 					line: expr.line,
 					column: expr.column,
 				} as AST.ReturnStatement);
-			} catch (e) {
+			} catch (_e) {
 				// Error parsing expression - function may be incomplete
 			}
 		} else {
@@ -537,7 +537,7 @@ export class Parser {
 					} else {
 						break;
 					}
-				} catch (e) {
+				} catch (_e) {
 					// Error parsing statement - try to recover
 					break;
 				}

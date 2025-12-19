@@ -1,8 +1,7 @@
-import * as http from "http";
-import * as https from "https";
+import * as http from "node:http";
+import * as https from "node:https";
 import * as vscode from "vscode";
 import {
-	createCompletionItem,
 	getAllCompletions,
 	getConstantCompletions,
 	getHoverInfo,
@@ -10,9 +9,6 @@ import {
 	getParameterCompletions,
 } from "./completions";
 import { AccurateValidator } from "./parser/accurateValidator";
-import { ComprehensiveValidator } from "./parser/comprehensiveValidator";
-import { Parser } from "./parser/parser";
-import { PineScriptValidator } from "./parser/validator";
 import { createSignatureHelpProvider } from "./signatureHelp";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -134,7 +130,7 @@ export function activate(context: vscode.ExtensionContext) {
 							const afterParen = beforeCursor.substring(lastOpenParen + 1);
 							// Simple check: if there are no more commas than open parens, we are in the first level of arguments
 							const commaCount = (afterParen.match(/,/g) || []).length;
-							const nestedParenCount = (afterParen.match(/\(/g) || []).length;
+							const _nestedParenCount = (afterParen.match(/\(/g) || []).length;
 
 							if (commaCount >= 0) {
 								const paramItems = getParameterCompletions(functionName);
@@ -355,8 +351,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// 7) plotshape with wrong parameter name (shape= instead of style=)
 		const plotshapeShapeMatch = /plotshape\s*\([^)]*\bshape\s*=/g;
-		let match;
-		while ((match = plotshapeShapeMatch.exec(text)) !== null) {
+		let match: RegExpExecArray | null;
+
+		match = plotshapeShapeMatch.exec(text);
+		while (match !== null) {
 			const pos = doc.positionAt(match.index + match[0].indexOf("shape="));
 			const endPos = pos.translate(0, 6); // length of "shape="
 			diags.push(
@@ -366,11 +364,13 @@ export function activate(context: vscode.ExtensionContext) {
 					vscode.DiagnosticSeverity.Error,
 				),
 			);
+			match = plotshapeShapeMatch.exec(text);
 		}
 
 		// 8) plotchar with wrong parameter name (shape= instead of char=)
 		const plotcharShapeMatch = /plotchar\s*\([^)]*\bshape\s*=/g;
-		while ((match = plotcharShapeMatch.exec(text)) !== null) {
+		match = plotcharShapeMatch.exec(text);
+		while (match !== null) {
 			const pos = doc.positionAt(match.index + match[0].indexOf("shape="));
 			const endPos = pos.translate(0, 6);
 			diags.push(
@@ -380,12 +380,14 @@ export function activate(context: vscode.ExtensionContext) {
 					vscode.DiagnosticSeverity.Error,
 				),
 			);
+			match = plotcharShapeMatch.exec(text);
 		}
 
 		// 9) timeframe_gaps without timeframe parameter in indicator/strategy
 		const indicatorMatch =
 			/(indicator|strategy)\s*\([^)]*timeframe_gaps\s*=\s*true[^)]*\)/g;
-		while ((match = indicatorMatch.exec(text)) !== null) {
+		match = indicatorMatch.exec(text);
+		while (match !== null) {
 			const fullCall = match[0];
 			// Check if "timeframe" parameter is present in the call
 			if (!/\btimeframe\s*=/.test(fullCall)) {
@@ -401,11 +403,13 @@ export function activate(context: vscode.ExtensionContext) {
 					),
 				);
 			}
+			match = indicatorMatch.exec(text);
 		}
 
 		// 10) alertcondition with too many arguments (should be 3: condition, title, message)
 		const alertCondMatch = /alertcondition\s*\(([^)]+)\)/g;
-		while ((match = alertCondMatch.exec(text)) !== null) {
+		match = alertCondMatch.exec(text);
+		while (match !== null) {
 			const args = match[1].split(",").map((a) => a.trim());
 			if (args.length > 3) {
 				const pos = doc.positionAt(match.index);
@@ -418,11 +422,13 @@ export function activate(context: vscode.ExtensionContext) {
 					),
 				);
 			}
+			match = alertCondMatch.exec(text);
 		}
 
 		// 11) input.string() without required defval parameter
 		const inputStringMatch = /input\.string\s*\(\s*\)/g;
-		while ((match = inputStringMatch.exec(text)) !== null) {
+		match = inputStringMatch.exec(text);
+		while (match !== null) {
 			const pos = doc.positionAt(match.index);
 			const endPos = pos.translate(0, 12); // length of "input.string"
 			diags.push(
@@ -432,6 +438,7 @@ export function activate(context: vscode.ExtensionContext) {
 					vscode.DiagnosticSeverity.Error,
 				),
 			);
+			match = inputStringMatch.exec(text);
 		}
 
 		diagCollection.set(doc.uri, diags);

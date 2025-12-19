@@ -7,16 +7,22 @@ import type {
 import { PINE_FUNCTIONS_MERGED } from "../../v6/parameter-requirements-merged";
 import { type PineItem, V6_FUNCTIONS, V6_NAMESPACES } from "../../v6/v6-manual";
 import type {
+	BinaryExpression,
 	CallArgument,
 	CallExpression,
 	Expression,
+	FunctionDeclaration,
 	Identifier,
+	IndexExpression,
 	Literal,
+	MemberExpression,
 	Program,
 	Statement,
+	TernaryExpression,
+	UnaryExpression,
 } from "./ast";
 import { type Symbol as SymbolInfo, SymbolTable } from "./symbolTable";
-import { type PineType, TypeChecker, TypeInfo } from "./typeSystem";
+import { type PineType, TypeChecker } from "./typeSystem";
 
 export enum DiagnosticSeverity {
 	Error = 0,
@@ -355,7 +361,7 @@ export class ComprehensiveValidator {
 				parameters,
 				returns: spec.returns || undefined,
 			};
-		} catch (e) {
+		} catch (_e) {
 			return null;
 		}
 	}
@@ -394,7 +400,7 @@ export class ComprehensiveValidator {
 			}
 
 			return { name, parameters, returns: item.returns };
-		} catch (e) {
+		} catch (_e) {
 			return null;
 		}
 	}
@@ -522,7 +528,7 @@ export class ComprehensiveValidator {
 	}
 
 	private validateStatement(statement: Statement): void {
-		const prevBlockDepth = this.blockDepth;
+		const _prevBlockDepth = this.blockDepth;
 		switch (statement.type) {
 			case "VariableDeclaration":
 				if (statement.init) {
@@ -773,7 +779,7 @@ export class ComprehensiveValidator {
 		this.symbolTable.markUsed(identifier.name);
 	}
 
-	private validateBinaryExpression(expr: any): void {
+	private validateBinaryExpression(expr: BinaryExpression): void {
 		const leftType = this.inferExpressionType(expr.left);
 		const rightType = this.inferExpressionType(expr.right);
 
@@ -854,7 +860,7 @@ export class ComprehensiveValidator {
 		}
 
 		// Check argument count
-		const requiredCount = signature.parameters.filter(
+		const _requiredCount = signature.parameters.filter(
 			(p) => !p.optional,
 		).length;
 		const totalCount = signature.parameters.length;
@@ -1024,7 +1030,7 @@ export class ComprehensiveValidator {
 		return typeMap[returnTypeStr.toLowerCase()] || "unknown";
 	}
 
-	private inferFunctionReturnType(func: any): PineType {
+	private inferFunctionReturnType(func: FunctionDeclaration): PineType {
 		// func is FunctionDeclaration from AST
 		if (!func.body || func.body.length === 0) {
 			return "unknown";
@@ -1053,7 +1059,8 @@ export class ComprehensiveValidator {
 	private inferExpressionType(expr: Expression): PineType {
 		// Check cache
 		if (this.expressionTypes.has(expr)) {
-			return this.expressionTypes.get(expr)!;
+			const cached = this.expressionTypes.get(expr);
+			if (cached) return cached;
 		}
 
 		let type: PineType = "unknown";
@@ -1090,7 +1097,7 @@ export class ComprehensiveValidator {
 
 				// Then check function signatures for built-ins
 				const signature = this.functionSignatures.get(funcName);
-				if (signature && signature.returns) {
+				if (signature?.returns) {
 					// Map the return type string to PineType
 					type = this.mapReturnTypeToPineType(signature.returns);
 					break;
@@ -1105,7 +1112,7 @@ export class ComprehensiveValidator {
 			}
 
 			case "BinaryExpression": {
-				const binaryExpr = expr as any;
+				const binaryExpr = expr as BinaryExpression;
 				const leftType = this.inferExpressionType(binaryExpr.left);
 				const rightType = this.inferExpressionType(binaryExpr.right);
 				type = TypeChecker.getBinaryOpType(
@@ -1117,7 +1124,7 @@ export class ComprehensiveValidator {
 			}
 
 			case "UnaryExpression": {
-				const unaryExpr = expr as any;
+				const unaryExpr = expr as UnaryExpression;
 				// 'not' operator always returns bool
 				if (unaryExpr.operator === "not") {
 					type = "bool";
@@ -1132,7 +1139,7 @@ export class ComprehensiveValidator {
 
 			case "TernaryExpression": {
 				// Phase C - Session 5: Enhanced ternary expression type inference
-				const ternaryExpr = expr as any;
+				const ternaryExpr = expr as TernaryExpression;
 				const conseqType = this.inferExpressionType(ternaryExpr.consequent);
 				const altType = this.inferExpressionType(ternaryExpr.alternate);
 
@@ -1186,7 +1193,7 @@ export class ComprehensiveValidator {
 
 			case "IndexExpression": {
 				// Phase B - Session 5: Infer type from array/series element access
-				const indexExpr = expr as any;
+				const indexExpr = expr as IndexExpression;
 				const arrayType = this.inferExpressionType(indexExpr.object);
 
 				// Handle series<T>[index] → T
@@ -1212,7 +1219,7 @@ export class ComprehensiveValidator {
 			case "MemberExpression": {
 				// Phase D - Session 5: Check for namespace properties first
 				// Session 9: Add deprecation warnings and unknown property detection
-				const memberExpr = expr as any;
+				const memberExpr = expr as MemberExpression;
 
 				// Try to get namespace.property full name
 				if (

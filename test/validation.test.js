@@ -6,7 +6,7 @@
 
 const { describe, it } = require("node:test");
 const assert = require("node:assert");
-const path = require("path");
+const _path = require("node:path");
 const {
 	ALL_FUNCTION_SIGNATURES,
 } = require("../dist/v6/parameter-requirements.js");
@@ -17,7 +17,7 @@ const {
 describe("Parameter Requirements Validation", () => {
 	describe("Manual Functions (100% Accuracy)", () => {
 		it("indicator() should have only title as required", () => {
-			const spec = ALL_FUNCTION_SIGNATURES["indicator"];
+			const spec = ALL_FUNCTION_SIGNATURES.indicator;
 			assert.ok(spec, "indicator function should exist");
 			assert.deepStrictEqual(
 				spec.requiredParams,
@@ -35,7 +35,7 @@ describe("Parameter Requirements Validation", () => {
 		});
 
 		it("alertcondition() should have condition required, title/message optional", () => {
-			const spec = ALL_FUNCTION_SIGNATURES["alertcondition"];
+			const spec = ALL_FUNCTION_SIGNATURES.alertcondition;
 			assert.ok(spec, "alertcondition function should exist");
 			assert.deepStrictEqual(
 				spec.requiredParams,
@@ -67,7 +67,7 @@ describe("Parameter Requirements Validation", () => {
 		});
 
 		it("plot() should have series as required", () => {
-			const spec = ALL_FUNCTION_SIGNATURES["plot"];
+			const spec = ALL_FUNCTION_SIGNATURES.plot;
 			assert.ok(spec, "plot function should exist");
 			assert.deepStrictEqual(
 				spec.requiredParams,
@@ -85,7 +85,7 @@ describe("Parameter Requirements Validation", () => {
 		});
 
 		it("plotshape() should have series as required, style not shape", () => {
-			const spec = ALL_FUNCTION_SIGNATURES["plotshape"];
+			const spec = ALL_FUNCTION_SIGNATURES.plotshape;
 			assert.ok(spec, "plotshape function should exist");
 			assert.deepStrictEqual(
 				spec.requiredParams,
@@ -103,7 +103,7 @@ describe("Parameter Requirements Validation", () => {
 		});
 
 		it("strategy() should have title as required", () => {
-			const spec = ALL_FUNCTION_SIGNATURES["strategy"];
+			const spec = ALL_FUNCTION_SIGNATURES.strategy;
 			assert.ok(spec, "strategy function should exist");
 			assert.deepStrictEqual(
 				spec.requiredParams,
@@ -148,7 +148,7 @@ describe("Parameter Requirements Validation", () => {
 		});
 
 		it("should have alert() function", () => {
-			const spec = PINE_FUNCTIONS["alert"];
+			const spec = PINE_FUNCTIONS.alert;
 			assert.ok(spec, "alert function should exist in generated");
 			assert.ok(spec.syntax, "alert should have syntax");
 			assert.ok(spec.parameters, "alert should have parameters");
@@ -172,8 +172,8 @@ describe("Parameter Requirements Validation", () => {
 
 	describe("Manual Overrides", () => {
 		it("manual indicator() should override generated", () => {
-			const manual = ALL_FUNCTION_SIGNATURES["indicator"];
-			const generated = PINE_FUNCTIONS["indicator"];
+			const manual = ALL_FUNCTION_SIGNATURES.indicator;
+			const generated = PINE_FUNCTIONS.indicator;
 
 			assert.ok(manual, "Manual indicator should exist");
 			assert.ok(generated, "Generated indicator should exist");
@@ -238,7 +238,7 @@ describe("Parameter Requirements Validation", () => {
 		it("should detect alertcondition with too many arguments (line 238 issue)", () => {
 			// Example: alertcondition(shortSig,333,tetette,333,333)
 			// Should be: alertcondition(condition, title?, message?)
-			const spec = ALL_FUNCTION_SIGNATURES["alertcondition"];
+			const spec = ALL_FUNCTION_SIGNATURES.alertcondition;
 			const requiredCount = spec.requiredParams.length; // 1 (condition)
 			const totalCount =
 				spec.requiredParams.length + spec.optionalParams.length; // 3
@@ -279,7 +279,7 @@ describe("Parameter Requirements Validation", () => {
 
 		it("should NOT falsely flag valid indicator() calls", () => {
 			// Example: indicator("Title", overlay=true) should be VALID
-			const spec = ALL_FUNCTION_SIGNATURES["indicator"];
+			const spec = ALL_FUNCTION_SIGNATURES.indicator;
 
 			// Provided: title, overlay
 			const providedArgs = ["title", "overlay"];
@@ -301,7 +301,7 @@ describe("Parameter Requirements Validation", () => {
 		it("should NOT falsely flag plotshape with style parameter", () => {
 			// plotshape(..., style=shape.circle) should be VALID
 			// plotshape(..., shape=...) should be ERROR (wrong param name)
-			const spec = ALL_FUNCTION_SIGNATURES["plotshape"];
+			const spec = ALL_FUNCTION_SIGNATURES.plotshape;
 
 			assert.ok(
 				spec.optionalParams.includes("style"),

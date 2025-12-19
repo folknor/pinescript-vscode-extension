@@ -15,8 +15,8 @@
 
 const { test } = require("node:test");
 const assert = require("node:assert");
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // Create vscode mock
 const vscodeModulePath = path.join(__dirname, "..", "node_modules", "vscode");

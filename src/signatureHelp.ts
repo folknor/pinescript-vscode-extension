@@ -45,7 +45,7 @@ function parseParameters(syntax: string): ParsedParameter[] {
 function parseParameter(param: string): ParsedParameter {
 	// Remove default values and type annotations for display
 	const cleanParam = param.split("=")[0].trim();
-	const paramName = cleanParam.split(":")[0].trim();
+	const _paramName = cleanParam.split(":")[0].trim();
 
 	return {
 		label: param,
@@ -82,7 +82,7 @@ function findFunctionName(line: string, character: number): string | null {
 
 export function createSignatureHelpProvider(): vscode.SignatureHelpProvider {
 	return {
-		provideSignatureHelp(document, position, token, context) {
+		provideSignatureHelp(document, position, _token, _context) {
 			const line = document.lineAt(position.line).text;
 			const functionName = findFunctionName(line, position.character);
 

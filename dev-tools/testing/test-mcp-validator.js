@@ -5,9 +5,9 @@
  * Tests the MCP server's validate_pine_script tool
  */
 
-const { spawn } = require("child_process");
-const path = require("path");
-const fs = require("fs");
+const { spawn } = require("node:child_process");
+const path = require("node:path");
+const _fs = require("node:fs");
 
 const MCP_SERVER = path.join(__dirname, "mcp/validator-server.js");
 const TEST_FILE = path.join(__dirname, "examples/global-liquidity.v6.pine");
@@ -78,14 +78,14 @@ const tests = [
 
 			const tool = response.tools[0].function_declarations[0];
 			if (tool.name !== "validate_pine_script") {
-				throw new Error("Wrong tool name: " + tool.name);
+				throw new Error(`Wrong tool name: ${tool.name}`);
 			}
 
 			console.log("  ✅ MCP server initialized");
 			console.log("  📦 Tool:", tool.name);
 			console.log(
 				"  📝 Description:",
-				tool.description.substring(0, 60) + "...",
+				`${tool.description.substring(0, 60)}...`,
 			);
 		},
 	},
@@ -129,7 +129,7 @@ const tests = [
 
 			const result = response.content[0];
 			if (result.type !== "text") {
-				throw new Error("Wrong content type: " + result.type);
+				throw new Error(`Wrong content type: ${result.type}`);
 			}
 
 			const errors = JSON.parse(result.text);
@@ -178,7 +178,7 @@ function handleResponse(response) {
 }
 
 function sendRequest(request) {
-	const message = JSON.stringify(request) + "\n";
+	const message = `${JSON.stringify(request)}\n`;
 	server.stdin.write(message);
 }
 

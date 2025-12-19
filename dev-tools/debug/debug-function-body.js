@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-const fs = require("fs");
-const { Lexer } = require("./dist/src/parser/lexer");
+const fs = require("node:fs");
 const { Parser } = require("./dist/src/parser/parser");
 
 const code = fs.readFileSync("./examples/global-liquidity.v6.pine", "utf-8");

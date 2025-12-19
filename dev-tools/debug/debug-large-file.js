@@ -2,7 +2,7 @@ const { Parser } = require("./dist/src/parser/parser");
 const {
 	ComprehensiveValidator,
 } = require("./dist/src/parser/comprehensiveValidator");
-const fs = require("fs");
+const fs = require("node:fs");
 
 // Test with tun-satiroglu.pine to understand why variables aren't found
 const code = fs.readFileSync("examples/demo/tun-satiroglu.pine", "utf8");

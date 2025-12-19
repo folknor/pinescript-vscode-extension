@@ -341,7 +341,7 @@ export function getHoverInfo(symbol: string): vscode.Hover | undefined {
 	if (item.description) {
 		const desc =
 			mode === "summary"
-				? item.description.split(".")[0] + "."
+				? `${item.description.split(".")[0]}.`
 				: item.description;
 		md.appendMarkdown(desc);
 	}

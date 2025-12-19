@@ -1,5 +1,5 @@
 const { Parser } = require("./dist/src/parser/parser.js");
-const fs = require("fs");
+const fs = require("node:fs");
 
 const code = fs.readFileSync("./examples/global-liquidity.v6.pine", "utf-8");
 const lines = code.split("\n");
@@ -13,8 +13,8 @@ const parser = new Parser(code);
 const ast = parser.parse();
 
 console.log("\n=== Variable Declarations ===");
-ast.body.forEach((stmt, i) => {
+ast.body.forEach((stmt, _i) => {
 	if (stmt.type === "VariableDeclaration") {
-		console.log("Line " + stmt.line + ":", stmt.name);
+		console.log(`Line ${stmt.line}:`, stmt.name);
 	}
 });

@@ -1,4 +1,4 @@
-const fs = require("fs");
+const _fs = require("node:fs");
 const { Parser } = require("../../dist/src/parser/parser.js");
 const {
 	ComprehensiveValidator,

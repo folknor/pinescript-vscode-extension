@@ -28,12 +28,12 @@ export type PineType =
 export interface TypeInfo {
 	type: PineType;
 	isOptional?: boolean;
-	defaultValue?: any;
+	defaultValue?: unknown;
 }
 
-export class TypeChecker {
+export namespace TypeChecker {
 	// Check if type1 is assignable to type2
-	static isAssignable(from: PineType, to: PineType): boolean {
+	export function isAssignable(from: PineType, to: PineType): boolean {
 		if (from === to) return true;
 		if (to === "unknown" || from === "unknown") return true;
 		if (from === "na") return true; // na is assignable to any type
@@ -53,7 +53,7 @@ export class TypeChecker {
 	}
 
 	// Infer type from literal value
-	static inferLiteralType(value: any): PineType {
+	export function inferLiteralType(value: unknown): PineType {
 		if (typeof value === "number") {
 			return Number.isInteger(value) ? "int" : "float";
 		}
@@ -64,7 +64,7 @@ export class TypeChecker {
 	}
 
 	// Get result type of binary operation
-	static getBinaryOpType(
+	export function getBinaryOpType(
 		left: PineType,
 		right: PineType,
 		operator: string,
@@ -104,22 +104,22 @@ export class TypeChecker {
 	}
 
 	// Check if types are compatible for operation
-	static areTypesCompatible(
+	export function areTypesCompatible(
 		left: PineType,
 		right: PineType,
 		operator: string,
 	): boolean {
 		// Arithmetic operators require numeric types
 		if (["+", "-", "*", "/", "%"].includes(operator)) {
-			const leftNumeric = TypeChecker.isNumericType(left);
-			const rightNumeric = TypeChecker.isNumericType(right);
+			const leftNumeric = isNumericType(left);
+			const rightNumeric = isNumericType(right);
 			return leftNumeric && rightNumeric;
 		}
 
 		// Comparison operators
 		if (["<", ">", "<=", ">="].includes(operator)) {
-			const leftNumeric = TypeChecker.isNumericType(left);
-			const rightNumeric = TypeChecker.isNumericType(right);
+			const leftNumeric = isNumericType(left);
+			const rightNumeric = isNumericType(right);
 			return leftNumeric && rightNumeric;
 		}
 
@@ -129,26 +129,23 @@ export class TypeChecker {
 			if (left === right) return true;
 
 			// Allow series<T> == T (Pine Script auto-promotes T to series<T>)
-			if (TypeChecker.areCompatibleForComparison(left, right)) return true;
-			if (TypeChecker.areCompatibleForComparison(right, left)) return true;
+			if (areCompatibleForComparison(left, right)) return true;
+			if (areCompatibleForComparison(right, left)) return true;
 
 			// Allow assignability in either direction
-			return (
-				TypeChecker.isAssignable(left, right) ||
-				TypeChecker.isAssignable(right, left)
-			);
+			return isAssignable(left, right) || isAssignable(right, left);
 		}
 
 		// Logical operators require bool
 		if (["and", "or"].includes(operator)) {
-			return TypeChecker.isBoolType(left) && TypeChecker.isBoolType(right);
+			return isBoolType(left) && isBoolType(right);
 		}
 
 		return false;
 	}
 
 	// Helper to check if series<T> and T are compatible for comparison
-	private static areCompatibleForComparison(
+	function areCompatibleForComparison(
 		seriesType: PineType,
 		simpleType: PineType,
 	): boolean {
@@ -161,7 +158,7 @@ export class TypeChecker {
 		return false;
 	}
 
-	static isNumericType(type: PineType): boolean {
+	export function isNumericType(type: PineType): boolean {
 		return (
 			type === "int" ||
 			type === "float" ||
@@ -170,18 +167,18 @@ export class TypeChecker {
 		);
 	}
 
-	static isBoolType(type: PineType): boolean {
+	export function isBoolType(type: PineType): boolean {
 		return type === "bool" || type === "series<bool>";
 	}
 
-	static isStringType(type: PineType): boolean {
+	export function isStringType(type: PineType): boolean {
 		return type === "string" || type === "series<string>";
 	}
 
 	// Map Pine Script function return types
-	static getBuiltinReturnType(
+	export function getBuiltinReturnType(
 		functionName: string,
-		args: PineType[],
+		_args: PineType[],
 	): PineType {
 		// Common patterns
 		const builtinTypes: Record<string, PineType> = {
@@ -266,9 +263,9 @@ export class TypeChecker {
 	}
 
 	// Validate literal values
-	static validateLiteral(
+	export function validateLiteral(
 		type: PineType,
-		value: any,
+		value: unknown,
 	): { valid: boolean; message?: string } {
 		switch (type) {
 			case "int":

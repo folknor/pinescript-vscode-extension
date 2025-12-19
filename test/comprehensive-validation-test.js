@@ -6,8 +6,8 @@
  * to identify root causes of false positives and false negatives
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // Create vscode mock module file
 const vscodeModulePath = path.join(__dirname, "..", "node_modules", "vscode");
@@ -226,7 +226,7 @@ const expectedErrors = [
 ];
 
 console.log("\n✓ Expected errors:");
-expectedErrors.forEach((expected, idx) => {
+expectedErrors.forEach((expected, _idx) => {
 	const foundError = invalidErrors.find(
 		(e) => e.line === expected.line && expected.pattern.test(e.message),
 	);
@@ -286,7 +286,7 @@ console.log(
 
 const falsePositives = validErrors.length;
 const falseNegatives = expectedErrors.filter(
-	(expected, idx) => !invalidErrors.some((e) => e.line === expected.line),
+	(expected, _idx) => !invalidErrors.some((e) => e.line === expected.line),
 ).length;
 
 // Get version from package.json

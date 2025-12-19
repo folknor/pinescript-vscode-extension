@@ -428,7 +428,14 @@ export const V6_FUNCTIONS: Record<string, PineItem> = {
 	},
 };
 
-export const V6_NAMESPACES: Record<string, any> = {
+export interface PineNamespace {
+	description: string;
+	functions?: Record<string, PineItem>;
+	variables?: Record<string, PineItem>;
+	constants?: Record<string, string>;
+}
+
+export const V6_NAMESPACES: Record<string, PineNamespace> = {
 	ta: {
 		description: "Technical Analysis functions",
 		functions: {
@@ -1381,7 +1388,7 @@ export function getAllCompletionItems(): {
 	const allFuncs = { ...V6_FUNCTIONS };
 
 	// Add namespace functions
-	Object.entries(V6_NAMESPACES).forEach(([ns, data]: [string, any]) => {
+	Object.entries(V6_NAMESPACES).forEach(([ns, data]) => {
 		if (data.functions) {
 			Object.entries(data.functions).forEach(([name, item]) => {
 				allFuncs[`${ns}.${name}`] = item as PineItem;

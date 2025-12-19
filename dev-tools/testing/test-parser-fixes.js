@@ -23,7 +23,9 @@ if (mathRoundErrors.length === 0) {
 	console.log("   ✅ PASS: math.round(close, 2) validates correctly");
 } else {
 	console.log("   ❌ FAIL: math.round still has errors:");
-	mathRoundErrors.forEach((e) => console.log(`      ${e.message}`));
+	mathRoundErrors.forEach((e) => {
+		console.log(`      ${e.message}`);
+	});
 }
 
 // Test 2: strategy.position_size
@@ -45,7 +47,9 @@ if (positionSizeErrors.length === 0) {
 	console.log("   ✅ PASS: strategy.position_size validates correctly");
 } else {
 	console.log("   ❌ FAIL: strategy.position_size still has errors:");
-	positionSizeErrors.forEach((e) => console.log(`      ${e.message}`));
+	positionSizeErrors.forEach((e) => {
+		console.log(`      ${e.message}`);
+	});
 }
 
 // Test 3: Other strategy variables
@@ -66,10 +70,12 @@ if (strategyErrors.length === 0) {
 	);
 } else {
 	console.log("   ❌ FAIL: Some strategy variables still have errors:");
-	strategyErrors.forEach((e) => console.log(`      ${e.message}`));
+	strategyErrors.forEach((e) => {
+		console.log(`      ${e.message}`);
+	});
 }
 
-console.log("\n" + "━".repeat(60));
+console.log(`\n${"━".repeat(60)}`);
 const totalErrors =
 	mathRoundErrors.length + positionSizeErrors.length + strategyErrors.length;
 if (totalErrors === 0) {

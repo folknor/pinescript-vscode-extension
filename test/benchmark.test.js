@@ -5,8 +5,8 @@
 
 const { describe, it } = require("node:test");
 const assert = require("node:assert");
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 describe("Validation Benchmark - Real Code", () => {
 	const validFixture = path.join(__dirname, "fixtures/valid.pine");
@@ -235,7 +235,7 @@ describe("Validation Benchmark - Real Code", () => {
 			);
 
 			// Save this count for v7 comparison
-			const expectedErrors = {
+			const _expectedErrors = {
 				v6: {
 					missingRequiredParams: 4,
 					tooManyParams: 2,

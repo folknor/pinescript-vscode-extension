@@ -9,9 +9,7 @@ import { PINE_FUNCTIONS_MERGED as ALL_FUNCTION_SIGNATURES } from "../../v6/param
 import {
 	FUNCTION_NAMESPACES,
 	isBuiltInVariable as isBuiltIn,
-	isKnownNamespace,
 	KEYWORDS,
-	STANDALONE_BUILTINS,
 	TYPE_NAMES,
 	VARIABLE_NAMESPACES,
 } from "../../v6/pine-builtins-complete";
@@ -114,11 +112,11 @@ export class AccurateValidator {
 		return line
 			.replace(
 				/"((?:[^"\\]|\\.)*)"/g,
-				(match, p1) => `"${"_".repeat(p1.length)}"`,
+				(_match, p1) => `"${"_".repeat(p1.length)}"`,
 			)
 			.replace(
 				/'((?:[^'\\]|\\.)*)'/g,
-				(match, p1) => `'${"_".repeat(p1.length)}'`,
+				(_match, p1) => `'${"_".repeat(p1.length)}'`,
 			);
 	}
 
@@ -161,8 +159,10 @@ export class AccurateValidator {
 		// Match namespace.member patterns
 		const namespacePattern =
 			/\b([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_]*)/g;
-		let match;
-		while ((match = namespacePattern.exec(line)) !== null) {
+		let match: RegExpExecArray | null;
+
+		match = namespacePattern.exec(line);
+		while (match !== null) {
 			const namespace = match[1];
 			const member = match[2];
 			const column = match.index;
@@ -241,6 +241,7 @@ export class AccurateValidator {
 					}
 				}
 			}
+			match = namespacePattern.exec(line);
 		}
 	}
 
@@ -248,9 +249,10 @@ export class AccurateValidator {
 		// Match patterns like "namespace." followed by nothing, whitespace, or end of line
 		// This catches cases like "plot.styl" where "styl" is incomplete
 		const incompletePattern = /\b([a-z]+)\.\s*($|[^a-zA-Z0-9_])/g;
-		let match;
+		let match: RegExpExecArray | null;
 
-		while ((match = incompletePattern.exec(line)) !== null) {
+		match = incompletePattern.exec(line);
+		while (match !== null) {
 			const namespace = match[1];
 			const column = match.index;
 
@@ -272,6 +274,7 @@ export class AccurateValidator {
 					);
 				}
 			}
+			match = incompletePattern.exec(line);
 		}
 	}
 
@@ -283,9 +286,10 @@ export class AccurateValidator {
 
 		const invalidVarPattern =
 			/\b(var|varip)\s+(int|float|bool|string|color)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*[^,\n]+,\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=/g;
-		let match;
+		let match: RegExpExecArray | null;
 
-		while ((match = invalidVarPattern.exec(line)) !== null) {
+		match = invalidVarPattern.exec(line);
+		while (match !== null) {
 			const declarationMode = match[1]; // var or varip
 			const type = match[2]; // int, float, etc.
 			const firstVar = match[3];
@@ -299,6 +303,7 @@ export class AccurateValidator {
 				`Invalid comma-separated variable declaration. Pine Script v6 requires separate declarations:\n${declarationMode} ${type} ${firstVar} = ...\n${declarationMode} ${type} ${secondVar} = ...`,
 				vscode.DiagnosticSeverity.Error,
 			);
+			match = invalidVarPattern.exec(line);
 		}
 	}
 
@@ -323,8 +328,10 @@ export class AccurateValidator {
 	private checkUndefinedFunctions(line: string, lineNum: number): void {
 		// Match function calls: funcName(...)
 		const funcPattern = /\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
-		let match;
-		while ((match = funcPattern.exec(line)) !== null) {
+		let match: RegExpExecArray | null;
+
+		match = funcPattern.exec(line);
+		while (match !== null) {
 			const funcName = match[1];
 			const column = match.index;
 
@@ -362,6 +369,7 @@ export class AccurateValidator {
 					);
 				}
 			}
+			match = funcPattern.exec(line);
 		}
 	}
 
@@ -396,6 +404,7 @@ export class AccurateValidator {
 		line: string,
 		lineNum: number,
 		functionName: string,
+		// biome-ignore lint/suspicious/noExplicitAny: spec is complex
 		spec: any,
 	): void {
 		// Skip type names - they're not functions
@@ -409,8 +418,10 @@ export class AccurateValidator {
 		const escapedName = functionName.replace(/\./g, "\\.");
 		const regex = new RegExp(`(?<![a-zA-Z0-9_\\.])${escapedName}\\s*\\(`, "g");
 
-		let match;
-		while ((match = regex.exec(line)) !== null) {
+		let match: RegExpExecArray | null;
+
+		match = regex.exec(line);
+		while (match !== null) {
 			const startParenIndex = match.index + match[0].length - 1;
 			const argsString = this.getBalancedContent(line, startParenIndex);
 			if (argsString === null) continue;
@@ -429,7 +440,7 @@ export class AccurateValidator {
 				(spec.optionalParams ? spec.optionalParams.length : 0);
 
 			// Check if function is variadic (signature contains "...")
-			const isVariadic = spec.signature && spec.signature.includes("...");
+			const isVariadic = spec.signature?.includes("...");
 
 			// Only validate parameter counts for well-defined specs
 			// Skip if:
@@ -476,6 +487,7 @@ export class AccurateValidator {
 
 			// Special validations
 			this.validateSpecialCases(line, lineNum, column, functionName, args);
+			match = regex.exec(line);
 		}
 	}
 
@@ -550,9 +562,9 @@ export class AccurateValidator {
 	private validateSpecialCases(
 		line: string,
 		lineNum: number,
-		column: number,
+		_column: number,
 		functionName: string,
-		args: string[],
+		_args: string[],
 	): void {
 		// plotshape: check for "shape=" parameter (should be "style=")
 		if (functionName === "plotshape" && line.includes("shape=")) {

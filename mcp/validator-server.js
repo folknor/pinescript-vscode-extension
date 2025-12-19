@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const readline = require("readline");
+const readline = require("node:readline");
 const { validatePineScript } = require("../test-comprehensive-validator.js");
-const fs = require("fs");
+const fs = require("node:fs");
 
 // 1. Discovery Phase: Announce the tools this server provides.
 const discovery = {

@@ -1,5 +1,5 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const {
 	comprehensiveValidatePineScript,
 } = require("./dist/src/parser/comprehensiveValidator");
@@ -12,9 +12,9 @@ const files = fs.readdirSync(examplesDir).filter((f) => f.endsWith(".pine"));
 
 console.log(`Found ${files.length} Pine Script files\n`);
 
-const totalFilesBefore = 0;
+const _totalFilesBefore = 0;
 let totalFilesAfter = 0;
-const totalErrorsBefore = 0;
+const _totalErrorsBefore = 0;
 let totalErrorsAfter = 0;
 
 const fileDetails = [];
@@ -51,7 +51,7 @@ files.forEach((file) => {
 				} else if (msg.includes("expected") || msg.includes("unexpected")) {
 					errorsByType["parsing-error"].push(error);
 				} else {
-					errorsByType["other"].push(error);
+					errorsByType.other.push(error);
 				}
 			});
 
@@ -62,7 +62,7 @@ files.forEach((file) => {
 					undefinedVars: errorsByType["undefined-variable"].length,
 					typeMismatches: errorsByType["type-mismatch"].length,
 					parsingErrors: errorsByType["parsing-error"].length,
-					other: errorsByType["other"].length,
+					other: errorsByType.other.length,
 				},
 				sampleErrors: {
 					undefinedVars: errorsByType["undefined-variable"]
@@ -94,18 +94,24 @@ fileDetails.forEach((detail) => {
 	console.log(`  Other: ${detail.breakdown.other}`);
 
 	if (detail.sampleErrors.undefinedVars.length > 0) {
-		console.log(`  Sample undefined vars:`);
-		detail.sampleErrors.undefinedVars.forEach((e) => console.log(`    ${e}`));
+		console.log("  Sample undefined vars:");
+		detail.sampleErrors.undefinedVars.forEach((e) => {
+			console.log(`    ${e}`);
+		});
 	}
 
 	if (detail.sampleErrors.typeMismatches.length > 0) {
-		console.log(`  Sample type mismatches:`);
-		detail.sampleErrors.typeMismatches.forEach((e) => console.log(`    ${e}`));
+		console.log("  Sample type mismatches:");
+		detail.sampleErrors.typeMismatches.forEach((e) => {
+			console.log(`    ${e}`);
+		});
 	}
 
 	if (detail.sampleErrors.parsingErrors.length > 0) {
-		console.log(`  Sample parsing errors:`);
-		detail.sampleErrors.parsingErrors.forEach((e) => console.log(`    ${e}`));
+		console.log("  Sample parsing errors:");
+		detail.sampleErrors.parsingErrors.forEach((e) => {
+			console.log(`    ${e}`);
+		});
 	}
 
 	console.log("");
@@ -129,7 +135,7 @@ const totalParsing = fileDetails.reduce(
 );
 const totalOther = fileDetails.reduce((sum, f) => sum + f.breakdown.other, 0);
 
-console.log(`\nBy Category:`);
+console.log("\nBy Category:");
 console.log(
 	`  Undefined variables: ${totalUndefined} (${((totalUndefined / totalErrorsAfter) * 100).toFixed(1)}%)`,
 );

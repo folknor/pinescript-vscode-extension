@@ -1,5 +1,5 @@
 const { validatePineScript } = require("./test-comprehensive-validator.js");
-const fs = require("fs");
+const fs = require("node:fs");
 
 const code = fs.readFileSync("./examples/global-liquidity.v6.pine", "utf-8");
 const errors = validatePineScript(code);
@@ -21,10 +21,10 @@ realErrors.forEach((e) => {
 });
 
 Object.entries(errorGroups).forEach(([msg, count]) => {
-	console.log("[" + count + "x] " + msg);
+	console.log(`[${count}x] ${msg}`);
 });
 
 console.log("\n=== FIRST 10 ERRORS WITH LINES ===");
 realErrors.slice(0, 10).forEach((err) => {
-	console.log("Line " + err.line + ": " + err.message);
+	console.log(`Line ${err.line}: ${err.message}`);
 });

@@ -1,7 +1,7 @@
-const { Lexer, TokenType } = require("./dist/src/parser/lexer");
+const { Lexer } = require("./dist/src/parser/lexer");
 
 // Test what tokens are generated for "color = color.gray"
-const code = `color = color.gray`;
+const code = "color = color.gray";
 
 console.log("=== Testing token generation for named argument ===\n");
 console.log(`Code: ${code}\n`);
@@ -17,7 +17,8 @@ tokens.forEach((token, i) => {
 });
 
 // Now test the actual problematic line from tun-satiroglu
-const problematicLine = `plot(enableWaveTrend ? 0 : na, color = color.gray, title = 'WaveTrend - Zero Line')`;
+const problematicLine =
+	"plot(enableWaveTrend ? 0 : na, color = color.gray, title = 'WaveTrend - Zero Line')";
 
 console.log("\n\n=== Testing problematic plot() call ===\n");
 console.log(`Code: ${problematicLine}\n`);

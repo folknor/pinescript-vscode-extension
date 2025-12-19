@@ -10,25 +10,21 @@
  * - Zero false positives on valid v6 code
  */
 
-const fs = require("fs");
-const path = require("path");
+const _fs = require("node:fs");
+const _path = require("node:path");
 
 // Load official v6 data
 const v6Data = require("../v6/raw/v6-language-constructs.json");
 
 // Load our implementation
 const { AccurateValidator } = require("../dist/src/parser/accurateValidator");
-const {
-	NAMESPACE_CONSTANTS,
-	CONSTANT_NAMESPACES,
-} = require("../dist/v6/pine-constants-complete");
+const { CONSTANT_NAMESPACES } = require("../dist/v6/pine-constants-complete");
 const {
 	STANDALONE_BUILTINS,
 	VARIABLE_NAMESPACES,
 	FUNCTION_NAMESPACES,
 	KEYWORDS,
 	OPERATORS,
-	TYPE_NAMES,
 } = require("../dist/v6/pine-builtins-complete");
 
 console.log("🔍 v0.4.0 SELF-TEST - Complete v6 Language Coverage\n");
@@ -184,7 +180,7 @@ const previouslyMissing = [
 ];
 
 for (const testCase of previouslyMissing) {
-	const code = `//@version=6\\nindicator("Test")\\nx = ${testCase}`;
+	const code = `//@version=6\nindicator("Test")\nx = ${testCase}`;
 	const errors = validator.validate(code);
 
 	if (errors.length > 0) {
@@ -250,7 +246,7 @@ if (missingFuncNs.length > 0) {
 //──────────────────────────────────────────────────────────
 // FINAL SUMMARY
 //──────────────────────────────────────────────────────────
-console.log("\n" + "=".repeat(60));
+console.log(`\n${"=".repeat(60)}`);
 console.log("📊 FINAL SCORE");
 console.log("=".repeat(60));
 
@@ -271,14 +267,14 @@ tests.forEach((test) => {
 	console.log(`${test.passed ? "✅" : "❌"} ${test.name}`);
 });
 
-console.log("\\n" + "=".repeat(60));
+console.log(`\n${"=".repeat(60)}`);
 console.log(
 	`RESULT: ${passedTests}/${totalTests} tests passed (${Math.round((passedTests / totalTests) * 100)}%)`,
 );
 
 if (passedTests === totalTests) {
-	console.log("\\n🎉 v0.4.0 ACHIEVED 100% LANGUAGE CONSTRUCT COVERAGE!");
-	console.log("\\n✅ Production Ready:");
+	console.log("\n🎉 v0.4.0 ACHIEVED 100% LANGUAGE CONSTRUCT COVERAGE!");
+	console.log("\n✅ Production Ready:");
 	console.log("   - All 31 constant namespaces recognized");
 	console.log("   - All 27 standalone built-ins recognized");
 	console.log("   - All 15 keywords recognized");
@@ -288,6 +284,6 @@ if (passedTests === totalTests) {
 	console.log("   - Zero false positives on valid v6 code");
 	process.exit(0);
 } else {
-	console.log("\\n⚠️  Some tests failed - review above for details");
+	console.log("\n⚠️  Some tests failed - review above for details");
 	process.exit(1);
 }

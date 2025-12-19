@@ -12,8 +12,8 @@
  */
 
 const { validatePineScript } = require("./test-comprehensive-validator.js");
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // ANSI color codes
 const colors = {
@@ -146,7 +146,7 @@ function main() {
 						results.push(fullPath);
 					}
 				}
-			} catch (err) {
+			} catch (_err) {
 				// Skip directories we can't read
 			}
 			return results;
@@ -179,7 +179,7 @@ function main() {
 	const results = filesToValidate.map(validateFile);
 
 	// Print summary
-	console.log(colorize("\n" + "=".repeat(80), colors.blue));
+	console.log(colorize(`\n${"=".repeat(80)}`, colors.blue));
 	console.log(colorize("  Validation Summary", colors.bold));
 	console.log(colorize("=".repeat(80), colors.blue));
 
@@ -203,7 +203,7 @@ function main() {
 			});
 	}
 
-	console.log(colorize("\n" + "=".repeat(80), colors.blue));
+	console.log(colorize(`\n${"=".repeat(80)}`, colors.blue));
 
 	if (failed === 0) {
 		console.log(

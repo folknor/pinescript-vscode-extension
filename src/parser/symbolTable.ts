@@ -305,7 +305,7 @@ export class SymbolTable {
 	getScopeDepth(): number {
 		let depth = 0;
 		let scope: Scope | null = this.currentScope;
-		while (scope && scope.getParent()) {
+		while (scope?.getParent()) {
 			depth++;
 			scope = scope.getParent();
 		}

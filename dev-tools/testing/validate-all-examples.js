@@ -3,8 +3,8 @@
  * Validate all example Pine Script files
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const { AccurateValidator } = require("./dist/src/parser/accurateValidator");
 
 const examplesDir = path.join(__dirname, "examples");

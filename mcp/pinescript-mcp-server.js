@@ -15,8 +15,8 @@ const {
 	CallToolRequestSchema,
 	ListToolsRequestSchema,
 } = require("@modelcontextprotocol/sdk/types.js");
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 // Import the validator
 const { validatePineScript } = require("../test-comprehensive-validator.js");

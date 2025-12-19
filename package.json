@@ -2,7 +2,7 @@
 	"name": "pinescript-v6-extension",
 	"displayName": "Pine Script v6 IDE Tools",
 	"description": "Unofficial Pine Script v6 support for VS Code — IntelliSense, hover docs, and real-time validation with 100% language coverage.",
-	"publisher": "jpantsjoha",
+	"publisher": "folknor",
 	"author": {
 		"name": "Jaroslav Pantsjoha",
 		"url": "https://github.com/jpantsjoha"
@@ -11,12 +11,8 @@
 	"icon": "images/pinescript-extension.png",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/jpantsjoha/pinescript-vscode-extension.git"
+		"url": "https://github.com/folknor/pinescript-vscode-extension.git"
 	},
-	"bugs": {
-		"url": "https://github.com/jpantsjoha/pinescript-vscode-extension/issues"
-	},
-	"homepage": "https://github.com/jpantsjoha/pinescript-vscode-extension#readme",
 	"license": "MIT",
 	"engines": {
 		"vscode": "^1.108.0"
@@ -122,6 +118,8 @@
 		"build": "tsc -p . && chmod +x dist/src/cli.js",
 		"build:cli": "tsc -p . && chmod +x dist/src/cli.js",
 		"watch": "tsc -w -p .",
+		"lint": "pnpm exec biome check",
+		"check": "pnpm exec biome check",
 		"test": "pnpm run build && node --test test/*.test.js",
 		"test:validation": "pnpm run build && node --test test/validation.test.js",
 		"test:benchmark": "node --test test/benchmark.test.js",
@@ -133,7 +131,8 @@
 		"rebuild:skip-tests": "pnpm run clean && pnpm run build && pnpm run package",
 		"crawl": "node v6/scripts/crawl-docs.js",
 		"generate": "node v6/scripts/generate-builtins.js",
-		"scrape": "node v6/scripts/scrape-builtins.js"
+		"scrape": "node v6/scripts/scrape-builtins.js",
+		"prepare": "husky"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.10",
@@ -141,6 +140,7 @@
 		"@types/node": "^25.0.3",
 		"@types/vscode": "^1.107.0",
 		"cheerio": "^1.1.2",
+		"husky": "^9.1.7",
 		"playwright": "^1.57.0",
 		"typescript": "^5.9.3"
 	},
