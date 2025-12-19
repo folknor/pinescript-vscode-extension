@@ -19,7 +19,7 @@
   "homepage": "https://github.com/jpantsjoha/pinescript-vscode-extension#readme",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.88.0"
+    "vscode": "^1.108.0"
   },
   "galleryBanner": {
     "color": "#0E1626",
@@ -118,28 +118,29 @@
     "clean": "rm -rf dist && rm -f build/*.vsix",
     "build": "tsc -p .",
     "watch": "tsc -w -p .",
-    "test": "npm run build && node --test test/*.test.js",
-    "test:validation": "npm run build && node --test test/validation.test.js",
+    "test": "pnpm run build && node --test test/*.test.js",
+    "test:validation": "pnpm run build && node --test test/validation.test.js",
     "test:benchmark": "node --test test/benchmark.test.js",
-    "qa:pinescript": "npm run build && node qa-validate-pinescript.js",
-    "qa:pinescript:watch": "npm run build && node qa-validate-pinescript.js --watch",
-    "test:mcp": "npm run build && node test-mcp-server.js",
+    "qa:pinescript": "pnpm run build && node qa-validate-pinescript.js",
+    "qa:pinescript:watch": "pnpm run build && node qa-validate-pinescript.js --watch",
+    "test:mcp": "pnpm run build && node test-mcp-server.js",
     "package": "vsce package --out build/",
-    "rebuild": "npm run clean && npm run build && npm test && npm run package",
-    "rebuild:skip-tests": "npm run clean && npm run build && npm run package",
+    "rebuild": "pnpm run clean && pnpm run build && pnpm test && pnpm run package",
+    "rebuild:skip-tests": "pnpm run clean && pnpm run build && pnpm run package",
     "crawl": "node v6/scripts/crawl-docs.js",
     "generate": "node v6/scripts/generate-builtins.js",
     "scrape": "node v6/scripts/scrape-builtins.js"
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.19.1",
-    "@types/node": "^20.11.30",
-    "@types/vscode": "^1.88.0",
+    "@biomejs/biome": "^2.3.10",
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "@types/node": "^25.0.3",
+    "@types/vscode": "^1.107.0",
     "cheerio": "^1.1.2",
-    "playwright": "^1.48.0",
-    "typescript": "^5.4.5"
+    "playwright": "^1.57.0",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "glob": "^11.0.3"
+    "glob": "^13.0.0"
   }
 }
