@@ -47,6 +47,9 @@
 		"onLanguage:pine"
 	],
 	"main": "./dist/src/extension.js",
+	"bin": {
+		"pine-validate": "./dist/src/cli.js"
+	},
 	"contributes": {
 		"commands": [
 			{
@@ -116,7 +119,8 @@
 	},
 	"scripts": {
 		"clean": "rm -rf dist && rm -f build/*.vsix",
-		"build": "tsc -p .",
+		"build": "tsc -p . && chmod +x dist/src/cli.js",
+		"build:cli": "tsc -p . && chmod +x dist/src/cli.js",
 		"watch": "tsc -w -p .",
 		"test": "pnpm run build && node --test test/*.test.js",
 		"test:validation": "pnpm run build && node --test test/validation.test.js",
