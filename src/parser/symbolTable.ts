@@ -236,6 +236,16 @@ export class SymbolTable {
     return this.globalScope.getUnusedSymbols();
   }
 
+  getScopeDepth(): number {
+    let depth = 0;
+    let scope: Scope | null = this.currentScope;
+    while (scope && scope.getParent()) {
+      depth++;
+      scope = scope.getParent();
+    }
+    return depth;
+  }
+
   // Find similar symbol names (for typo suggestions)
   findSimilarSymbols(name: string, threshold: number = 2): string[] {
     const allSymbols = this.getAllSymbolNames();

@@ -40,6 +40,14 @@ export class ComprehensiveValidator {
   private symbolTable: SymbolTable;
   private functionSignatures: Map<string, FunctionSignature> = new Map();
   private expressionTypes: Map<Expression, PineType> = new Map();
+  private blockDepth: number = 0;
+
+  private topLevelOnlyFunctions = new Set([
+    'indicator', 'strategy', 'library',
+    'plot', 'plotshape', 'plotchar', 'plotcandle', 'plotbar',
+    'hline', 'bgcolor', 'barcolor', 'fill',
+    'alertcondition'
+  ]);
 
   constructor() {
     this.symbolTable = new SymbolTable();
@@ -153,6 +161,27 @@ export class ComprehensiveValidator {
     // chart namespace properties
     'chart.bg_color': 'color',
     'chart.fg_color': 'color',
+
+    // color namespace constants
+    'color.white': 'color',
+    'color.black': 'color',
+    'color.red': 'color',
+    'color.green': 'color',
+    'color.blue': 'color',
+    'color.yellow': 'color',
+    'color.orange': 'color',
+    'color.aqua': 'color',
+    'color.fuchsia': 'color',
+    'color.gray': 'color',
+    'color.grey': 'color',
+    'color.lime': 'color',
+    'color.maroon': 'color',
+    'color.navy': 'color',
+    'color.olive': 'color',
+    'color.purple': 'color',
+    'color.silver': 'color',
+    'color.teal': 'color',
+    'color.transparent': 'color',
     'chart.left_visible_bar_time': 'series<int>',
     'chart.right_visible_bar_time': 'series<int>',
   };
@@ -459,6 +488,7 @@ export class ComprehensiveValidator {
   }
 
   private validateStatement(statement: Statement): void {
+    const prevBlockDepth = this.blockDepth;
     switch (statement.type) {
       case 'VariableDeclaration':
         if (statement.init) {
@@ -472,6 +502,7 @@ export class ComprehensiveValidator {
 
       case 'FunctionDeclaration':
         this.symbolTable.enterScope();
+        this.blockDepth++;
 
         // Add function parameters to scope
         for (const param of statement.params) {
@@ -496,6 +527,7 @@ export class ComprehensiveValidator {
           this.validateStatement(stmt);
         }
         this.symbolTable.exitScope();
+        this.blockDepth--;
         break;
 
       case 'IfStatement':
@@ -516,23 +548,28 @@ export class ComprehensiveValidator {
         for (const stmt of statement.consequent) {
           this.collectDeclarations(stmt);
         }
+        this.blockDepth++;
         for (const stmt of statement.consequent) {
           this.validateStatement(stmt);
         }
+        this.blockDepth--;
 
         if (statement.alternate) {
+          this.blockDepth++;
           for (const stmt of statement.alternate) {
             this.collectDeclarations(stmt);
           }
           for (const stmt of statement.alternate) {
             this.validateStatement(stmt);
           }
+          this.blockDepth--;
         }
         break;
 
       case 'ForStatement':
         // For loops create a new scope and define the iterator variable
         this.symbolTable.enterScope();
+        this.blockDepth++;
 
         // Add the iterator variable to the scope (always int type)
         if ('iterator' in statement) {
@@ -565,6 +602,7 @@ export class ComprehensiveValidator {
         }
 
         this.symbolTable.exitScope();
+        this.blockDepth--;
         break;
 
       case 'WhileStatement':
@@ -572,10 +610,12 @@ export class ComprehensiveValidator {
           this.validateExpression(statement.condition);
         }
         this.symbolTable.enterScope();
+        this.blockDepth++;
         for (const stmt of statement.body) {
           this.validateStatement(stmt);
         }
         this.symbolTable.exitScope();
+        this.blockDepth--;
         break;
 
       case 'ReturnStatement':
@@ -694,6 +734,18 @@ export class ComprehensiveValidator {
 
     // Get function signature
     const signature = this.functionSignatures.get(functionName);
+
+    // Check for top-level only functions in local scope
+    if (this.topLevelOnlyFunctions.has(functionName) && this.blockDepth > 0) {
+      this.addError(
+        call.line,
+        call.column,
+        functionName.length,
+        `Function '${functionName}' cannot be called from a local scope. It must be called from the global scope.`,
+        DiagnosticSeverity.Error
+      );
+    }
+
     if (!signature) {
       // Unknown function - could be user-defined
       return;
