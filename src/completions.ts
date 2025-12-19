@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { V6_VARIABLES, V6_FUNCTIONS, V6_NAMESPACES, PineItem } from '../v6/v6-manual';
+import { PINE_FUNCTIONS_MERGED } from '../v6/parameter-requirements-merged';
+import { NAMESPACE_CONSTANTS } from '../v6/pine-constants-complete';
 
 // Keywords for Pine Script v6
 export const V6_KEYWORDS = [
@@ -167,6 +169,53 @@ export function getAllCompletions(): vscode.CompletionItem[] {
     };
     items.push(item);
   });
+
+  return items;
+}
+
+// Get completions for function parameters
+export function getParameterCompletions(functionName: string): vscode.CompletionItem[] {
+  const items: vscode.CompletionItem[] = [];
+  const spec = PINE_FUNCTIONS_MERGED[functionName];
+  if (!spec) return items;
+
+  const params = [...(spec.requiredParams || []), ...(spec.optionalParams || [])];
+  params.forEach(param => {
+    const item = new vscode.CompletionItem(param, vscode.CompletionItemKind.Field);
+    item.insertText = new vscode.SnippetString(`${param} = $0`);
+    item.detail = `Parameter for ${functionName}`;
+    items.push(item);
+  });
+
+  return items;
+}
+
+// Get completions for constants based on parameter name
+export function getConstantCompletions(functionName: string, paramName: string): vscode.CompletionItem[] {
+  const items: vscode.CompletionItem[] = [];
+
+  // Map common parameter names to constant namespaces
+  const paramToNamespace: Record<string, string> = {
+    'location': 'location',
+    'color': 'color',
+    'textcolor': 'color',
+    'wickcolor': 'color',
+    'bordercolor': 'color',
+    'size': 'size',
+    'format': 'format',
+    'timeframe': 'timeframe',
+    'session': 'session',
+    'style': functionName === 'plotshape' ? 'shape' : (functionName === 'plot' ? 'plot' : (functionName === 'label.new' ? 'label' : 'plot')),
+  };
+
+  const ns = paramToNamespace[paramName];
+  if (ns && NAMESPACE_CONSTANTS[ns]) {
+    NAMESPACE_CONSTANTS[ns].forEach(constant => {
+      const item = new vscode.CompletionItem(`${ns}.${constant}`, vscode.CompletionItemKind.Constant);
+      item.detail = `Constant for ${ns}`;
+      items.push(item);
+    });
+  }
 
   return items;
 }

@@ -5,7 +5,9 @@ import {
   getAllCompletions,
   getNamespaceCompletions,
   getHoverInfo,
-  createCompletionItem
+  createCompletionItem,
+  getParameterCompletions,
+  getConstantCompletions
 } from './completions';
 import { createSignatureHelpProvider } from './signatureHelp';
 import { Parser } from './parser/parser';
@@ -74,13 +76,56 @@ export function activate(context: vscode.ExtensionContext) {
           const line = document.lineAt(position.line).text;
           const beforeCursor = line.substring(0, position.character);
 
-          // Check if we're completing after a namespace dot
+          // 1. Check if we're completing after a named parameter assignment (e.g., style=)
+          const namedParamMatch = beforeCursor.match(/([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*$/);
+          if (namedParamMatch) {
+            const paramName = namedParamMatch[1];
+            // Find the function name by looking back for the last open paren
+            const lastOpenParen = beforeCursor.lastIndexOf('(');
+            if (lastOpenParen !== -1) {
+              const beforeParen = beforeCursor.substring(0, lastOpenParen).trim();
+              const funcMatch = beforeParen.match(/([a-zA-Z_][a-zA-Z0-9_.]*)$/);
+              if (funcMatch) {
+                const functionName = funcMatch[1];
+                const constantItems = getConstantCompletions(functionName, paramName);
+                if (constantItems.length > 0) {
+                  return constantItems;
+                }
+              }
+            }
+          }
+
+          // 2. Check if we're completing after a namespace dot (e.g., ta.)
           const namespaceMatch = beforeCursor.match(/([a-z]+)\.\s*$/);
           if (namespaceMatch) {
             const namespace = namespaceMatch[1];
             const nsItems = getNamespaceCompletions(namespace);
             if (nsItems.length > 0) {
               return nsItems;
+            }
+          }
+
+          // 3. Check if we're inside a function call and should suggest parameters
+          const lastOpenParen = beforeCursor.lastIndexOf('(');
+          if (lastOpenParen !== -1) {
+            // Check if there's a function name before it
+            const beforeParen = beforeCursor.substring(0, lastOpenParen).trim();
+            const funcMatch = beforeParen.match(/([a-zA-Z_][a-zA-Z0-9_.]*)$/);
+            if (funcMatch) {
+              const functionName = funcMatch[1];
+              // Check if we are after a comma or just after the paren
+              const afterParen = beforeCursor.substring(lastOpenParen + 1);
+              // Simple check: if there are no more commas than open parens, we are in the first level of arguments
+              const commaCount = (afterParen.match(/,/g) || []).length;
+              const nestedParenCount = (afterParen.match(/\(/g) || []).length;
+              
+              if (commaCount >= 0) {
+                const paramItems = getParameterCompletions(functionName);
+                if (paramItems.length > 0) {
+                  // Combine with all completions for better UX
+                  return [...paramItems, ...getAllCompletions()];
+                }
+              }
             }
           }
 
