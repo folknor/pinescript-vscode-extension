@@ -444,6 +444,17 @@ export class ComprehensiveValidator {
       };
 
       this.symbolTable.define(symbol);
+    } else if (statement.type === 'TypeDeclaration' || statement.type === 'EnumDeclaration') {
+      const symbol: SymbolInfo = {
+        name: statement.name,
+        type: 'unknown',
+        line: statement.line,
+        column: statement.column,
+        used: false,
+        kind: 'variable', // Treat as variable/namespace for now
+        declaredWith: null,
+      };
+      this.symbolTable.define(symbol);
     }
   }
 
@@ -568,6 +579,11 @@ export class ComprehensiveValidator {
         break;
 
       case 'ReturnStatement':
+        this.validateExpression(statement.value);
+        break;
+
+      case 'AssignmentStatement':
+        this.validateExpression(statement.target);
         this.validateExpression(statement.value);
         break;
     }

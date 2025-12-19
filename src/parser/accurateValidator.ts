@@ -121,6 +121,15 @@ export class AccurateValidator {
         this.declaredVariables.add(funcName);
       }
     }
+
+    // Match enum and type declarations (Pine Script v6)
+    const typeDeclarations = line.matchAll(/\b(enum|type)\s+([a-zA-Z_][a-zA-Z0-9_]*)/g);
+    for (const match of typeDeclarations) {
+      const typeName = match[2];
+      if (typeName) {
+        this.declaredVariables.add(typeName);
+      }
+    }
   }
 
   private checkUndefinedNamespaces(line: string, lineNum: number): void {

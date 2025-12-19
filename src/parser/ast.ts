@@ -18,7 +18,27 @@ export type Statement =
   | IfStatement
   | ForStatement
   | WhileStatement
-  | ReturnStatement;
+  | ReturnStatement
+  | TypeDeclaration
+  | EnumDeclaration
+  | AssignmentStatement;
+
+export interface TypeDeclaration extends ASTNode {
+  type: 'TypeDeclaration';
+  name: string;
+}
+
+export interface EnumDeclaration extends ASTNode {
+  type: 'EnumDeclaration';
+  name: string;
+}
+
+export interface AssignmentStatement extends ASTNode {
+  type: 'AssignmentStatement';
+  target: Expression;
+  operator: string;
+  value: Expression;
+}
 
 export interface VariableDeclaration extends ASTNode {
   type: 'VariableDeclaration';

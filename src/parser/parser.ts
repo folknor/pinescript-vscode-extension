@@ -67,6 +67,46 @@ export class Parser {
       return this.returnStatement();
     }
 
+    // Type or Enum declaration (Pine Script v6)
+    if (this.match([TokenType.KEYWORD, ['type', 'enum']])) {
+      const kind = this.previous().value;
+      const nameToken = this.consume(TokenType.IDENTIFIER, `Expected ${kind} name`);
+
+      // Skip the body of the type/enum (indented block)
+      // We use indentation tracking to skip the block
+      const startToken = this.previous();
+
+      // Skip newlines after name
+      while (this.check(TokenType.NEWLINE)) {
+        this.advance();
+      }
+
+      const firstBodyToken = this.peek();
+      if (firstBodyToken.line > startToken.line) {
+        const bodyIndent = firstBodyToken.indent || 0;
+        const baseIndent = startToken.indent || 0;
+
+        if (bodyIndent > baseIndent) {
+          while (!this.isAtEnd()) {
+            const currentToken = this.peek();
+            const currentIndent = currentToken.indent || 0;
+
+            if (currentToken.line > startToken.line && currentIndent < bodyIndent) {
+              break;
+            }
+            this.advance();
+          }
+        }
+      }
+
+      return {
+        type: kind === 'type' ? 'TypeDeclaration' : 'EnumDeclaration',
+        name: nameToken.value,
+        line: nameToken.line,
+        column: nameToken.column,
+      } as AST.Statement;
+    }
+
     // Variable declaration with optional type annotation:
     // var name = expr
     // varip name = expr
@@ -130,6 +170,28 @@ export class Parser {
     // Check if it's an identifier followed by = (variable declaration without var)
     if (this.check(TokenType.IDENTIFIER) && this.peekNext()?.type === TokenType.ASSIGN) {
       return this.variableDeclaration(null);
+    }
+
+    // Check for assignment: target := expr or target = expr
+    const checkpoint = this.current;
+    try {
+      const target = this.expression();
+      if (this.match(TokenType.ASSIGN)) {
+        const operator = this.previous().value;
+        const value = this.expression();
+        return {
+          type: 'AssignmentStatement',
+          target,
+          operator,
+          value,
+          line: target.line,
+          column: target.column,
+        };
+      }
+      // Not an assignment, backtrack
+      this.current = checkpoint;
+    } catch (e) {
+      this.current = checkpoint;
     }
 
     // Expression statement (function calls, etc.)

@@ -131,7 +131,7 @@
         },
         {
           "name": "keyword.other.pine",
-          "match": "\\b(method|type)\\b"
+          "match": "\\b(method|type|enum)\\b"
         }
       ]
     },
@@ -295,7 +295,7 @@
         },
         {
           "name": "meta.method-call.input.pine",
-          "match": "\\b(input)\\.(int|float|bool|string|timeframe|symbol|session|source|color|price|time|text_area)\\s*(?=\\()",
+          "match": "\\b(input)\\.(int|float|bool|string|timeframe|symbol|session|source|color|price|time|text_area|enum)\\s*(?=\\()",
           "captures": {
             "1": { "name": "support.namespace.input.pine" },
             "2": { "name": "entity.name.function.input.pine" }

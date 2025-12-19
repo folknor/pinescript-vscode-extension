@@ -54,7 +54,7 @@ const KEYWORDS = new Set([
   'na',
   'export', 'import', 'as',
   'switch', 'case', 'default',
-  'type',  // Pine Script v6 custom type definitions
+  'type', 'enum', // Pine Script v6 custom type and enum definitions
   'and', 'or', 'not',
   'int', 'float', 'bool', 'string', 'color', 'line', 'label',
   'box', 'table', 'array', 'matrix', 'map',
