@@ -66,24 +66,30 @@ export class AccurateValidator {
         continue;
       }
 
-      // Remove string literals to avoid false positives on content inside strings
-      const lineWithoutStrings = this.removeStringLiterals(line);
+      // Remove string literals and comments to avoid false positives
+      // We use a cleaned line for most checks to avoid false positives in strings/comments,
+      // but we preserve the length to keep column offsets accurate.
+      let cleanLine = this.removeStringLiterals(line);
+      const commentIndex = cleanLine.indexOf('//');
+      if (commentIndex !== -1) {
+        cleanLine = cleanLine.substring(0, commentIndex) + ' '.repeat(line.length - commentIndex);
+      }
 
       // Check undefined namespaces (e.g., ssss.adas)
-      this.checkUndefinedNamespaces(lineWithoutStrings, lineNum);
+      this.checkUndefinedNamespaces(cleanLine, lineNum);
 
       // Check incomplete references (e.g., plot.styl, plot.)
-      this.checkIncompleteReferences(lineWithoutStrings, lineNum);
+      this.checkIncompleteReferences(cleanLine, lineNum);
 
       // Check undefined function calls (e.g., sometin())
-      this.checkUndefinedFunctions(lineWithoutStrings, lineNum);
+      this.checkUndefinedFunctions(cleanLine, lineNum);
 
       // Check invalid comma-separated var declarations (e.g., var float a = na, b = na)
-      this.checkInvalidVarDeclarations(line, lineNum);  // Keep original for this check
+      this.checkInvalidVarDeclarations(cleanLine, lineNum);
 
-      // Check each registered function (use original line for parameter extraction)
+      // Check each registered function
       for (const [funcName, spec] of Object.entries(ALL_FUNCTION_SIGNATURES)) {
-        this.validateFunctionCall(line, lineNum, funcName, spec);
+        this.validateFunctionCall(cleanLine, lineNum, funcName, spec);
       }
     }
 
@@ -91,9 +97,10 @@ export class AccurateValidator {
   }
 
   private removeStringLiterals(line: string): string {
-    // Replace all string literals with empty strings to avoid validating their content
-    // Handles both single and double quoted strings
-    return line.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '""');
+    // Replace string literal content with underscores to avoid false positives
+    // while preserving quotes and length for accurate parameter counting and offsets.
+    return line.replace(/"((?:[^"\\]|\\.)*)"/g, (match, p1) => `"${'_'.repeat(p1.length)}"`)
+               .replace(/'((?:[^'\\]|\\.)*)'/g, (match, p1) => `'${'_'.repeat(p1.length)}'`);
   }
 
   private collectDeclaredVariables(line: string): void {
