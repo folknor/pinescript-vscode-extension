@@ -1,0 +1,7 @@
+{
+	"blockedCommands": [
+		"npm",
+		"npx",
+		"yarn"
+	]
+}

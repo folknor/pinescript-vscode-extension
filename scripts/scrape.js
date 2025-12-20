@@ -1,19 +1,21 @@
 #!/usr/bin/env node
 
 /**
- * Pine Script v6 Documentation Scraper
+ * Pine Script v6 Documentation Scraper (Puppeteer Version)
  *
  * This script scrapes detailed information for each Pine Script v6 function,
  * including parameters, return types, descriptions, and examples.
+ *
+ * Uses Puppeteer for lightweight browser automation.
  *
  * Usage: node scripts/scrape.js [input-file] [output-file]
  * Default input: v6/raw/v6-language-constructs.json
  * Default output: v6/raw/complete-v6-details.json
  */
 
-const { chromium } = require("playwright");
-const fs = require("node:fs");
-const path = require("node:path");
+const puppeteer = require("puppeteer");
+const fs = require("fs");
+const path = require("path");
 
 const BASE_URL = "https://www.tradingview.com/pine-script-reference/v6/";
 const INPUT_FILE =
@@ -80,18 +82,42 @@ async function scrapeFunctionDetails(functionName, useCache = true) {
 		}
 	}
 
-	const browser = await chromium.launch({ headless: true });
-	const context = await browser.newContext();
-	const page = await context.newPage();
-
+	let browser;
 	try {
+		// Launch Puppeteer with optimized settings
+		browser = await puppeteer.launch({
+			headless: true,
+			args: [
+				"--no-sandbox",
+				"--disable-setuid-sandbox",
+				"--disable-dev-shm-usage",
+				"--disable-web-security",
+				"--disable-features=IsolateOrigins,site-per-process",
+			],
+		});
+
+		const page = await browser.newPage();
+
+		// Optimize page for speed
+		await page.setRequestInterception(true);
+		page.on("request", (request) => {
+			const resourceType = request.resourceType();
+			if (["image", "stylesheet", "font", "media"].includes(resourceType)) {
+				request.abort();
+			} else {
+				request.continue();
+			}
+		});
+
 		// Construct function URL (e.g., https://www.tradingview.com/pine-script-reference/v6/fun_ta_sma.html)
 		const functionUrl = `${BASE_URL}fun_${functionName.replace(".", "_").replace(/[()]/g, "")}.html`;
 
 		console.log(`🔍 Scraping: ${functionName} -> ${functionUrl}`);
 
-		await page.goto(functionUrl, { waitUntil: "networkidle", timeout: 30000 });
-		await page.waitForTimeout(1000);
+		await page.goto(functionUrl, {
+			waitUntil: "networkidle2",
+			timeout: 30000,
+		});
 
 		const details = await page.evaluate(() => {
 			const result = {
@@ -218,7 +244,7 @@ async function scrapeFunctionDetails(functionName, useCache = true) {
 
 			// If no explicit return type found, try to extract from syntax
 			if (!result.returns && result.syntax.includes("→")) {
-				const match = result.syntax.match(/→\s*([^\\n]+)/);
+				const match = result.syntax.match(/→\s*([^\n]+)/);
 				if (match) {
 					result.returns = match[1].trim();
 				}
@@ -260,7 +286,7 @@ async function scrapeFunctionDetails(functionName, useCache = true) {
 
 			for (const selector of categoryElements) {
 				const element = document.querySelector(selector);
-				if (element?.textContent?.trim()) {
+				if (element && element.textContent?.trim()) {
 					result.category = element.textContent.trim();
 					break;
 				}
@@ -279,13 +305,17 @@ async function scrapeFunctionDetails(functionName, useCache = true) {
 		return details;
 	} catch (error) {
 		console.log(`⚠️  Failed to scrape ${functionName}: ${error.message}`);
-		await browser.close();
+		if (browser) {
+			await browser.close();
+		}
 		return null;
 	}
 }
 
 async function scrapeAllFunctions(forceRefresh = false) {
-	console.log("🚀 Starting Pine Script v6 function details scrape...");
+	console.log(
+		"🚀 Starting Pine Script v6 function details scrape (Puppeteer)...",
+	);
 	console.log(`📁 Input: ${INPUT_FILE}`);
 	console.log(`📁 Output: ${OUTPUT_FILE}`);
 	console.log(`📁 Cache: ${CACHE_DIR}`);
@@ -340,6 +370,7 @@ async function scrapeAllFunctions(forceRefresh = false) {
 			failedScrapes: 0,
 			cachedResults: functionsFromCache.length,
 			forceRefresh,
+			method: "Puppeteer",
 		},
 		functions: {},
 	};
@@ -358,15 +389,16 @@ async function scrapeAllFunctions(forceRefresh = false) {
 	if (functionsToScrape.length > 0) {
 		console.log("🔍 Scraping new/updated functions...");
 
-		// Scrape functions in batches to avoid being blocked
-		const batchSize = 10;
+		// Scrape functions in smaller batches to avoid memory issues
+		const batchSize = 5; // Smaller batch size for Puppeteer
 		for (let i = 0; i < functionsToScrape.length; i += batchSize) {
 			const batch = functionsToScrape.slice(i, i + batchSize);
 			console.log(
 				`📦 Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(functionsToScrape.length / batchSize)}`,
 			);
 
-			const batchPromises = batch.map(async (funcName) => {
+			// Process batch sequentially to avoid resource conflicts
+			for (const funcName of batch) {
 				const details = await scrapeFunctionDetails(funcName, !forceRefresh);
 				if (details) {
 					allDetails.functions[funcName] = details;
@@ -375,13 +407,12 @@ async function scrapeAllFunctions(forceRefresh = false) {
 					allDetails.metadata.failedScrapes++;
 				}
 				// Add delay between requests
-				await new Promise((resolve) => setTimeout(resolve, 500));
-			});
-
-			await Promise.all(batchPromises);
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+			}
 
 			// Longer delay between batches
-			await new Promise((resolve) => setTimeout(resolve, 2000));
+			console.log("  Waiting 3 seconds between batches...");
+			await new Promise((resolve) => setTimeout(resolve, 3000));
 		}
 	}
 
@@ -403,6 +434,7 @@ async function scrapeAllFunctions(forceRefresh = false) {
 	);
 	console.log(`   Successful: ${allDetails.metadata.successfulScrapes}`);
 	console.log(`   Failed: ${allDetails.metadata.failedScrapes}`);
+	console.log(`   Method: ${allDetails.metadata.method}`);
 	console.log(`💾 Saved to: ${OUTPUT_FILE}`);
 }
 

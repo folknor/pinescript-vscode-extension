@@ -1,18 +1,20 @@
 #!/usr/bin/env node
 
 /**
- * Pine Script v6 Documentation Crawler
+ * Pine Script v6 Documentation Crawler (Puppeteer Version)
  *
- * This script crawls the official TradingView Pine Script v6 reference
+ * This script crawls official TradingView Pine Script v6 reference
  * and extracts all language constructs (functions, constants, variables, etc.).
+ *
+ * Uses Puppeteer for lightweight browser automation.
  *
  * Usage: node scripts/crawl.js [output-file]
  * Default output: v6/raw/v6-language-constructs.json
  */
 
-const { chromium } = require("playwright");
-const fs = require("node:fs");
-const path = require("node:path");
+const puppeteer = require("puppeteer");
+const fs = require("fs");
+const path = require("path");
 
 const BASE_URL = "https://www.tradingview.com/pine-script-reference/v6/";
 const OUTPUT_FILE =
@@ -20,21 +22,43 @@ const OUTPUT_FILE =
 	path.join(__dirname, "../v6/raw/v6-language-constructs.json");
 
 async function crawlPineScriptReference() {
-	console.log("🚀 Starting Pine Script v6 documentation crawl...");
+	console.log("🚀 Starting Pine Script v6 documentation crawl (Puppeteer)...");
 	console.log(`📍 Source: ${BASE_URL}`);
 	console.log(`📁 Output: ${OUTPUT_FILE}`);
 
-	const browser = await chromium.launch({ headless: true });
-	const context = await browser.newContext({
-		userAgent:
-			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-	});
-	const page = await context.newPage();
-
+	let browser;
 	try {
+		// Launch Puppeteer with optimized settings
+		browser = await puppeteer.launch({
+			headless: true,
+			args: [
+				"--no-sandbox",
+				"--disable-setuid-sandbox",
+				"--disable-dev-shm-usage",
+				"--disable-web-security",
+				"--disable-features=IsolateOrigins,site-per-process",
+			],
+		});
+
+		const page = await browser.newPage();
+
+		// Optimize page loading
+		await page.setRequestInterception(true);
+		page.on("request", (request) => {
+			const resourceType = request.resourceType();
+			if (["image", "stylesheet", "font", "media"].includes(resourceType)) {
+				request.abort();
+			} else {
+				request.continue();
+			}
+		});
+
 		// Navigate to the main reference page
 		console.log("📖 Loading main reference page...");
-		await page.goto(BASE_URL, { waitUntil: "networkidle" });
+		await page.goto(BASE_URL, {
+			waitUntil: "networkidle2",
+			timeout: 30000,
+		});
 		await page.waitForTimeout(2000); // Allow JavaScript to render
 
 		// Extract all language constructs
@@ -55,37 +79,7 @@ async function crawlPineScriptReference() {
 				types: { count: 0, items: [] },
 			};
 
-			// Helper function to extract items from sections
-			const _extractSectionItems = (sectionName) => {
-				const items = [];
-				const selectors = [
-					`[data-section="${sectionName}"] .item`,
-					`.${sectionName}-section .item`,
-					`#${sectionName} .item`,
-					`.js-${sectionName}-container .item`,
-					`a[href*="${sectionName}"]`,
-					`.reference-list a[href*="/fun_"]`,
-					`.reference-list a[href*="/const_"]`,
-					`.reference-list a[href*="/var_"]`,
-				];
-
-				for (const selector of selectors) {
-					const elements = document.querySelectorAll(selector);
-					if (elements.length > 0) {
-						elements.forEach((el) => {
-							const text = el.textContent?.trim();
-							const _href = el.getAttribute("href");
-							if (text && !items.includes(text)) {
-								items.push(text);
-							}
-						});
-						break;
-					}
-				}
-				return items;
-			};
-
-			// Extract keywords (language keywords)
+			// Extract keywords (language keywords) - these are built into language
 			result.keywords.items = [
 				"and",
 				"enum",
@@ -104,7 +98,7 @@ async function crawlPineScriptReference() {
 				"while",
 			];
 
-			// Extract operators
+			// Extract operators (language operators) - also built into language
 			result.operators.items = [
 				"!=",
 				"%",
@@ -212,7 +206,7 @@ async function crawlPineScriptReference() {
 			return result;
 		});
 
-		// If the main page extraction didn't work well, try to navigate to specific sections
+		// If main page extraction didn't work well, try to navigate to specific sections
 		if (constructs.functions.count < 100) {
 			console.log("🔍 Main extraction incomplete, trying detailed approach...");
 
@@ -284,7 +278,9 @@ async function crawlPineScriptReference() {
 		console.error("❌ Crawl failed:", error.message);
 		process.exit(1);
 	} finally {
-		await browser.close();
+		if (browser) {
+			await browser.close();
+		}
 	}
 }
 
