@@ -259,14 +259,18 @@ Ran comparison of our CLI against TradingView's `pine-lint` on 176 Pine Script f
   - Scraper now parses ALL overloads to capture additional optional parameters
   - Regenerated `pine-data/v6/functions.ts` from raw data
 
-**Remaining False Positives (141 files out of 176, 80.1% mismatch rate):**
+**Remaining Discrepancies (141 files out of 176, 80.1% mismatch rate):**
 | Error Type | Files | Occurrences | Notes |
 |------------|-------|-------------|-------|
 | Unexpected token errors | 149 | ~406 | EOF handling (302), commas (61), brackets (12), `=>` (11) |
-| Multiline string parsing | 47 | ~358 | `mismatched character '\n'` - lexer issue (double: 202, single: 156) |
 | Type mismatch errors | 85 | ~200+ | Type inference gaps, 'unknown' cascading, operator/arg mismatches |
 | Undefined variable | 30 | ~30+ | Scope issues (e.g., 'src' param not in scope) |
 | Missing required param | 13 | ~11 | `line.new` width param, etc. |
+
+**NOT False Positives (correctly reported errors):**
+| Error Type | Files | Notes |
+|------------|-------|-------|
+| Multiline string errors | 47 | Pine Script doesn't support multiline strings - these are REAL errors. pine-lint stops at first error, we continue. Both agree files are invalid. |
 
 **Error Pattern Breakdown:**
 - `Unexpected token: ` (blank/EOF): 302
