@@ -43,6 +43,9 @@ async function main() {
 		// Get lexer errors first (string validation, etc.)
 		const lexerErrors = parser.getLexerErrors();
 
+		// Get parser errors (syntax errors during parsing)
+		const parserErrors = parser.getParserErrors();
+
 		// Get detected version for version-aware validation
 		const detectedVersion = parser.getDetectedVersion() || "6"; // Default to v6 if not detected
 
@@ -67,6 +70,13 @@ async function main() {
 			message: e.message,
 		}));
 
+		// Convert parser errors to pine-lint format
+		const parserPineLintErrors: PineLintError[] = parserErrors.map((e) => ({
+			start: { line: e.line, column: e.column },
+			end: { line: e.line, column: e.column + 1 },
+			message: e.message,
+		}));
+
 		// Convert validation errors to pine-lint format (only errors, not warnings)
 		const validationPineLintErrors: PineLintError[] = validationErrors
 			.filter((e) => e.severity === DiagnosticSeverity.Error)
@@ -85,9 +95,10 @@ async function main() {
 				message: w.message,
 			}));
 
-		// Combine all errors (lexer errors first)
+		// Combine all errors (lexer errors first, then parser, then validation)
 		const errors: PineLintError[] = [
 			...lexerPineLintErrors,
+			...parserPineLintErrors,
 			...validationPineLintErrors,
 		];
 

@@ -3,11 +3,18 @@
 import type * as AST from "./ast";
 import { Lexer, type LexerError, type Token, TokenType } from "./lexer";
 
+export interface ParserError {
+	line: number;
+	column: number;
+	message: string;
+}
+
 export class Parser {
 	private tokens: Token[] = [];
 	private current: number = 0;
 	private parenDepth: number = 0; // Track parenthesis nesting depth
 	private lexerErrors: LexerError[] = [];
+	private parserErrors: ParserError[] = [];
 	private detectedVersion: string | null = null;
 
 	constructor(source: string) {
@@ -25,6 +32,10 @@ export class Parser {
 		return this.lexerErrors;
 	}
 
+	getParserErrors(): ParserError[] {
+		return this.parserErrors;
+	}
+
 	getDetectedVersion(): string | null {
 		return this.detectedVersion;
 	}
@@ -37,7 +48,15 @@ export class Parser {
 				const stmt = this.statement();
 				if (stmt) body.push(stmt);
 			} catch (e) {
-				// Skip to next statement on error (silently - errors are collected separately)
+				// Collect parser error
+				const token = this.peek();
+				const errorMsg = e instanceof Error ? e.message : String(e);
+				this.parserErrors.push({
+					line: token.line,
+					column: token.column,
+					message: errorMsg,
+				});
+				// Skip to next statement on error
 				this.synchronize();
 			}
 		}
