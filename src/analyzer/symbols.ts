@@ -5,7 +5,7 @@ import {
 	FUNCTIONS_BY_NAME,
 	PineV6,
 } from "../../pine-data/v6";
-import type { PineType } from "./typeSystem";
+import type { PineType } from "./types";
 
 export interface Symbol {
 	name: string;

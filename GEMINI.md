@@ -7,7 +7,7 @@ This is a VS Code extension providing Pine Script v6 support (IntelliSense, vali
 ### Directory Structure
 
 ```
-pine-data/                   # NEW DATA LAYER (LSP-optimized, version-aware)
+pine-data/                   # DATA LAYER (LSP-optimized, version-aware)
 ├── schema/
 │   └── types.ts             # Unified type definitions for all versions
 ├── v6/                      # Pine Script v6 data
@@ -30,17 +30,37 @@ scripts/                     # GENERATION PIPELINE
 ├── scrape.js                # Puppeteer: fetches detailed specs per function
 └── generate-pine-data.js    # Generates pine-data/ from raw scraped data
 
-src/                         # CODE LAYER (uses pine-data/ imports)
-├── parser/
-│   ├── lexer.ts
-│   ├── parser.ts
-│   ├── ast.ts
-│   ├── symbolTable.ts       # Uses FUNCTIONS_BY_NAME, VARIABLES_BY_NAME
-│   └── unifiedValidator.ts  # Uses FUNCTIONS_BY_NAME, CONSTANTS_BY_NAME
-├── completions.ts           # Uses pine-data/v6 exports
-├── signatureHelp.ts         # Uses FUNCTIONS_BY_NAME
-├── extension.ts
-└── cli.ts
+src/                         # CODE LAYER (modular architecture)
+├── parser/                  # Pure parsing (syntax only)
+│   ├── ast.ts               # AST node definitions
+│   ├── lexer.ts             # Tokenization
+│   ├── parser.ts            # AST building from tokens
+│   ├── astExtractor.ts      # Function/variable extraction
+│   ├── semanticAnalyzer.ts  # Legacy semantic analysis
+│   ├── typeSystem.ts        # Re-exports from analyzer/types
+│   ├── symbolTable.ts       # Re-exports from analyzer/symbols
+│   └── unifiedValidator.ts  # Re-exports from analyzer/checker
+│
+├── analyzer/                # Semantic analysis (meaning) - NEW
+│   ├── types.ts             # Type system (PineType, TypeChecker)
+│   ├── symbols.ts           # Symbol table (Scope, SymbolTable)
+│   ├── builtins.ts          # Built-in data (namespaces, properties)
+│   ├── checker.ts           # Type checking (UnifiedPineValidator)
+│   └── index.ts             # Module exports
+│
+├── languageService/         # LSP features - NEW
+│   ├── completions.ts       # IntelliSense
+│   ├── signatures.ts        # Signature help
+│   └── index.ts             # Module exports
+│
+├── common/                  # Shared utilities - NEW
+│   ├── errors.ts            # Error types and DiagnosticSeverity
+│   └── index.ts             # Module exports
+│
+├── completions.ts           # Re-exports from languageService/
+├── signatureHelp.ts         # Re-exports from languageService/
+├── extension.ts             # VS Code extension entry point
+└── cli.ts                   # CLI validation tool
 ```
 
 ### Architecture Principle: Data vs Syntax
@@ -320,9 +340,11 @@ Ran comparison of our CLI against TradingView's `pine-lint` on 176 Pine Script f
 **Remaining False Positives (133 files):**
 | Error Type | Count | Notes |
 |------------|-------|-------|
-| Type mismatch (unknown type) | ~45 | Type inference still returning "unknown" in some cases |
-| Cannot assign X to Y | ~10 | False positive type errors |
-| Undefined local variables | ~8 | Scope tracking issues |
+| Multiline string parsing | ~400 | `mismatched character '\n' expecting '"'` - lexer issue |
+| Missing required 'title' param | ~42 | hline/plot title param - may be optional in some versions |
+| Type mismatch with unknown | ~100 | Type inference gaps (unknown operand types) |
+| Undefined variable 'src' | ~21 | Common param name not in scope |
+| str.format too many args | ~10 | Similar to str.tostring - needs overload fix |
 
 **Comparison Tool:**
 ```bash
@@ -344,8 +366,8 @@ These issues were identified while fixing test files. All skipped tests have `//
 |-------|--------|--------|
 | Empty `parameters[]` in auto-generated specs | All parameter validation fails | ✅ **FIXED** - scraper working |
 | Variadic functions (math.max, str.format) | Incorrect "too many params" errors | ✅ **FIXED** - marked in metadata |
-| Built-in variables not recognized | False "undefined variable" errors | ❌ **NOT FIXED** - validator issue |
-| Missing strategy.*, shape.*, location.* | False "unknown constant" errors | ❌ Needs investigation |
+| Built-in variables not recognized | False "undefined variable" errors | ✅ **FIXED** - added to symbol table |
+| Missing strategy.*, shape.*, location.* | False "unknown constant" errors | ✅ **FIXED** - no errors found (2025-12-23) |
 
 **Reference Manual Location:** `/home/folk/Programs/trading-strategies/pinescriptv6/`
 - `pinescriptv6_complete_reference.md` - 14,142 lines, complete reference
@@ -431,6 +453,76 @@ Modify `src/parser/unifiedValidator.ts`:
 ### Step 5: Refactor Code Layer
 
 Remove hardcoded data from `src/` files and import from `v6/` (as originally planned).
+
+---
+
+## Architecture Restructuring (2025-12-23) ✅ COMPLETED
+
+### Goal: Modular Parser Architecture (pyright-inspired)
+
+The previous `src/parser/` folder was a monolith with `unifiedValidator.ts` at 1511 lines and mixed responsibilities. This restructuring follows LSP best practices inspired by pyright's architecture.
+
+### Previous Structure (Problems)
+```
+src/
+├── parser/
+│   ├── unifiedValidator.ts  # 1511 lines - MONOLITH (validation + builtins + type checking)
+│   ├── parser.ts            # 1488 lines - Parser
+│   ├── astExtractor.ts      # 695 lines
+│   ├── lexer.ts             # 553 lines
+│   ├── semanticAnalyzer.ts  # 513 lines - Overlaps with unifiedValidator
+│   ├── typeSystem.ts        # 355 lines
+│   ├── symbolTable.ts       # 279 lines
+│   └── ast.ts               # 197 lines
+├── completions.ts           # LSP feature - wrong location
+├── signatureHelp.ts         # LSP feature - wrong location
+├── extension.ts
+└── cli.ts
+```
+
+### New Structure (Implemented)
+```
+src/
+├── parser/                  # Pure parsing (syntax only)
+│   ├── ast.ts               # AST node definitions
+│   ├── lexer.ts             # Tokenization
+│   └── parser.ts            # AST building from tokens
+
+├── analyzer/                # Semantic analysis (meaning)
+│   ├── types.ts             # Type system (merged from typeSystem.ts)
+│   ├── symbols.ts           # Symbol table (from symbolTable.ts)
+│   ├── binder.ts            # Variable/function binding (from astExtractor.ts)
+│   ├── checker.ts           # Type checking (from unifiedValidator.ts core)
+│   └── builtins.ts          # Built-in validation (from unifiedValidator.ts)
+
+├── languageService/         # LSP features
+│   ├── diagnostics.ts       # Error reporting
+│   ├── completions.ts       # IntelliSense (moved from src/)
+│   └── signatures.ts        # Signature help (moved from src/)
+
+├── common/                  # Shared utilities
+│   └── errors.ts            # Error types and codes
+
+├── extension.ts             # VS Code entry point
+└── cli.ts                   # CLI entry point
+```
+
+### Key Benefits
+1. **Single Responsibility**: Each module has one clear purpose
+2. **Testability**: Smaller modules are easier to unit test
+3. **Maintainability**: Changes to validation don't affect parsing
+4. **Discoverability**: File names indicate their purpose
+5. **LSP Compliance**: Follows standard language server patterns
+
+### Implementation Status (All Complete ✅)
+1. ✅ Create new directories (`analyzer/`, `languageService/`, `common/`)
+2. ✅ Split `unifiedValidator.ts` into `checker.ts` + `builtins.ts`
+3. ✅ Move `completions.ts` and `signatureHelp.ts` to `languageService/`
+4. ✅ Create `analyzer/types.ts` (type system)
+5. ✅ Create `analyzer/symbols.ts` (symbol table)
+6. ✅ Create `common/errors.ts` for shared error types
+7. ✅ Update all imports with backward-compatible re-exports
+8. ⏳ Rename `astExtractor.ts` → `binder.ts` (future work)
 
 ---
 

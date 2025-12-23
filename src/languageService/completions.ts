@@ -9,7 +9,7 @@ import {
 	VARIABLES_BY_NAMESPACE,
 	CONSTANTS_BY_NAMESPACE,
 	PineV6,
-} from "../pine-data/v6";
+} from "../../pine-data/v6";
 
 // Keywords for Pine Script v6
 export const V6_KEYWORDS = [

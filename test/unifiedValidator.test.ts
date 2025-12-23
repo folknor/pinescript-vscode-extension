@@ -17,7 +17,7 @@ import type { Program, Statement } from "../src/parser/ast";
 import {
 	DiagnosticSeverity,
 	UnifiedPineValidator,
-} from "../src/parser/unifiedValidator";
+} from "../src/analyzer/checker";
 
 // Create vscode mock
 const vscodeModulePath = path.join(__dirname, "..", "node_modules", "vscode");

@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import {
 	type PineFunction,
 	FUNCTIONS_BY_NAME,
-} from "../pine-data/v6";
+} from "../../pine-data/v6";
 
 interface ParsedParameter {
 	label: string;

@@ -1,13 +1,6 @@
-// Unified Pine Script Validator with Type Checking and Scope Analysis
-// This is the single validator for the extension, combining all validation logic.
+// Pine Script Type Checker and Validator
+// Performs semantic analysis and type checking on the AST
 
-import {
-	type PineFunction,
-	type PineParameter,
-	FUNCTIONS_BY_NAME,
-	CONSTANTS_BY_NAME,
-	VARIABLES_BY_NAME,
-} from "../../pine-data/v6";
 import type {
 	ArrayExpression,
 	BinaryExpression,
@@ -15,6 +8,7 @@ import type {
 	CallExpression,
 	Expression,
 	ExpressionStatement,
+	FunctionParam,
 	Identifier,
 	IndexExpression,
 	Literal,
@@ -26,64 +20,39 @@ import type {
 	TernaryExpression,
 	TupleDeclaration,
 	UnaryExpression,
-} from "./ast";
-import { type Symbol as SymbolInfo, SymbolTable } from "./symbolTable";
-import { type PineType, TypeChecker } from "./typeSystem";
+} from "../parser/ast";
+import { type Symbol as SymbolInfo, SymbolTable } from "./symbols";
+import { type PineType, TypeChecker } from "./types";
+import {
+	type ValidationError,
+	DiagnosticSeverity,
+} from "../common/errors";
+import {
+	type FunctionSignature,
+	TOP_LEVEL_ONLY_FUNCTIONS,
+	DEPRECATED_V5_CONSTANTS,
+	NAMESPACE_PROPERTIES,
+	KNOWN_NAMESPACES,
+	buildFunctionSignatures,
+	mapToPineType,
+	mapReturnTypeToPineType,
+	isVariadicFunction,
+	getMinArgsForVariadic,
+} from "./builtins";
 
-export enum DiagnosticSeverity {
-	Error = 0,
-	Warning = 1,
-	Information = 2,
-	Hint = 3,
-}
-
-export interface ValidationError {
-	line: number;
-	column: number;
-	length: number;
-	message: string;
-	severity: DiagnosticSeverity;
-}
-
-interface FunctionSignature {
-	name: string;
-	parameters: ParameterInfo[];
-	returns?: string;
-}
-
-interface ParameterInfo {
-	name: string;
-	type?: PineType;
-	optional?: boolean;
-	defaultValue?: string;
-}
+// Re-export for backward compatibility
+export { DiagnosticSeverity, type ValidationError } from "../common/errors";
 
 export class UnifiedPineValidator {
 	private errors: ValidationError[] = [];
 	private symbolTable: SymbolTable;
-	private functionSignatures: Map<string, FunctionSignature> = new Map();
+	private functionSignatures: Map<string, FunctionSignature>;
 	private expressionTypes: Map<Expression, PineType> = new Map();
 	private blockDepth: number = 0;
 
-	private topLevelOnlyFunctions = new Set([
-		"indicator",
-		"strategy",
-		"library",
-		"plot",
-		"plotshape",
-		"plotchar",
-		"plotcandle",
-		"plotbar",
-		"hline",
-		"bgcolor",
-		"barcolor",
-		"fill",
-		"alertcondition",
-	]);
-
 	constructor() {
 		this.symbolTable = new SymbolTable();
-		this.buildFunctionSignatures();
+		this.functionSignatures = buildFunctionSignatures();
 	}
 
 	validate(ast: Program, version: string = "6"): ValidationError[] {
@@ -105,203 +74,6 @@ export class UnifiedPineValidator {
 		return this.errors;
 	}
 
-	private buildFunctionSignatures(): void {
-		// Build from FUNCTIONS_BY_NAME which has accurate parameter requirements
-		// Return types are already included in the generated data
-		for (const [name, func] of FUNCTIONS_BY_NAME) {
-			const sig = this.buildSignatureFromPineFunction(name, func);
-			if (sig) {
-				this.functionSignatures.set(name, sig);
-			}
-		}
-	}
-
-	// Phase D - Session 5: Namespace properties for property access type inference
-	// Session 9: Track deprecated v5 constants for migration warnings
-	private deprecatedV5Constants: Record<string, string> = {
-		"plot.style_dashed": "plot.style_linebr",
-		"plot.style_circles": "plot.style_circles", // Actually valid, but often confused
-	};
-
-	// Namespace properties for property access type inference
-	private namespaceProperties: Record<string, PineType> = {
-		// Build from CONSTANTS_BY_NAME at initialization time
-		...(() => {
-			const props: Record<string, PineType> = {};
-			for (const [name, constant] of CONSTANTS_BY_NAME) {
-				props[name] = constant.type as PineType;
-			}
-			// Also include variables
-			for (const [name, variable] of VARIABLES_BY_NAME) {
-				if (name.includes(".")) {
-					props[name] = variable.type as PineType;
-				}
-			}
-			return props;
-		})(),
-
-		// v4/v5 input type constants (for backward compatibility - not in v6 data)
-		"input.source": "string",
-		"input.resolution": "string",
-		"input.bool": "string",
-		"input.integer": "string",
-		"input.float": "string",
-		"input.string": "string",
-		"input.color": "string",
-		"input.timeframe": "string",
-		"input.symbol": "string",
-		"input.session": "string",
-		"input.price": "string",
-		"input.time": "string",
-
-		// Namespace VARIABLES (not constants - these are runtime values, not in scraped data)
-		// syminfo namespace
-		"syminfo.tickerid": "simple<string>",
-		"syminfo.ticker": "simple<string>",
-		"syminfo.prefix": "simple<string>",
-		"syminfo.type": "simple<string>",
-		"syminfo.session": "simple<string>",
-		"syminfo.timezone": "simple<string>",
-		"syminfo.currency": "simple<string>",
-		"syminfo.basecurrency": "simple<string>",
-		"syminfo.root": "simple<string>",
-		"syminfo.pointvalue": "simple<float>",
-		"syminfo.mintick": "simple<float>",
-		"syminfo.description": "simple<string>",
-		"syminfo.sector": "simple<string>",
-		"syminfo.industry": "simple<string>",
-		"syminfo.country": "simple<string>",
-		"syminfo.volumetype": "simple<string>",
-
-		// barstate namespace
-		"barstate.isfirst": "series<bool>",
-		"barstate.islast": "series<bool>",
-		"barstate.isrealtime": "series<bool>",
-		"barstate.isnew": "series<bool>",
-		"barstate.isconfirmed": "series<bool>",
-		"barstate.ishistory": "series<bool>",
-		"barstate.islastconfirmedhistory": "series<bool>",
-
-		// timeframe namespace
-		"timeframe.period": "simple<string>",
-		"timeframe.multiplier": "simple<int>",
-		"timeframe.isseconds": "simple<bool>",
-		"timeframe.isminutes": "simple<bool>",
-		"timeframe.isdaily": "simple<bool>",
-		"timeframe.isweekly": "simple<bool>",
-		"timeframe.ismonthly": "simple<bool>",
-		"timeframe.isdwm": "simple<bool>",
-		"timeframe.isintraday": "simple<bool>",
-
-		// chart namespace
-		"chart.bg_color": "color",
-		"chart.fg_color": "color",
-		"chart.left_visible_bar_time": "series<int>",
-		"chart.right_visible_bar_time": "series<int>",
-		"chart.is_heikinashi": "simple<bool>",
-		"chart.is_kagi": "simple<bool>",
-		"chart.is_linebreak": "simple<bool>",
-		"chart.is_pnf": "simple<bool>",
-		"chart.is_range": "simple<bool>",
-		"chart.is_renko": "simple<bool>",
-		"chart.is_standard": "simple<bool>",
-
-		// session namespace
-		"session.ismarket": "series<bool>",
-		"session.ispremarket": "series<bool>",
-		"session.ispostmarket": "series<bool>",
-		"session.isfirstbar": "series<bool>",
-		"session.islastbar": "series<bool>",
-		"session.isfirstbar_regular": "series<bool>",
-		"session.islastbar_regular": "series<bool>",
-
-		// strategy namespace
-		"strategy.position_size": "series<float>",
-		"strategy.position_avg_price": "series<float>",
-		"strategy.equity": "series<float>",
-		"strategy.openprofit": "series<float>",
-		"strategy.netprofit": "series<float>",
-		"strategy.grossprofit": "series<float>",
-		"strategy.grossloss": "series<float>",
-		"strategy.max_drawdown": "series<float>",
-		"strategy.closedtrades": "series<int>",
-		"strategy.opentrades": "series<int>",
-		"strategy.wintrades": "series<int>",
-		"strategy.losstrades": "series<int>",
-		"strategy.eventrades": "series<int>",
-		"strategy.initial_capital": "simple<float>",
-
-		// color.grey alias (British spelling, not in TradingView docs)
-		"color.grey": "color",
-		"color.transparent": "color",
-	};
-
-	private buildSignatureFromPineFunction(
-		name: string,
-		func: PineFunction,
-	): FunctionSignature | null {
-		try {
-			const parameters: ParameterInfo[] = [];
-
-			// Use the parameters array from PineFunction
-			for (const param of func.parameters) {
-				parameters.push({
-					name: param.name,
-					type: this.mapToPineType(param.type),
-					optional: !param.required,
-					defaultValue: param.default,
-				});
-			}
-
-			return {
-				name,
-				parameters,
-				returns: func.returns || undefined,
-			};
-		} catch (_e) {
-			return null;
-		}
-	}
-
-	private splitParameters(paramsString: string): string[] {
-		const params: string[] = [];
-		let current = "";
-		let depth = 0;
-
-		for (const char of paramsString) {
-			if (char === "(" || char === "[") depth++;
-			else if (char === ")" || char === "]") depth--;
-			else if (char === "," && depth === 0) {
-				if (current.trim()) params.push(current.trim());
-				current = "";
-				continue;
-			}
-			current += char;
-		}
-
-		if (current.trim()) params.push(current.trim());
-		return params;
-	}
-
-	private mapToPineType(typeStr?: string): PineType {
-		if (!typeStr) return "unknown";
-
-		const typeMap: Record<string, PineType> = {
-			int: "int",
-			float: "float",
-			bool: "bool",
-			string: "string",
-			color: "color",
-			"series int": "series<int>",
-			"series float": "series<float>",
-			"series bool": "series<bool>",
-			"series string": "series<string>",
-			"series color": "series<color>",
-		};
-
-		return typeMap[typeStr.toLowerCase()] || "unknown";
-	}
-
 	private collectDeclarations(
 		statement: Statement,
 		version: string = "6",
@@ -319,7 +91,7 @@ export class UnifiedPineValidator {
 
 			// Use type annotation if present, otherwise infer from initialization
 			if (statement.typeAnnotation) {
-				symbol.type = this.mapToPineType(statement.typeAnnotation.name);
+				symbol.type = mapToPineType(statement.typeAnnotation.name);
 			} else if (statement.init) {
 				const initType = this.inferExpressionType(statement.init, version);
 				symbol.type = initType;
@@ -331,8 +103,6 @@ export class UnifiedPineValidator {
 			const tupleDecl = statement as TupleDeclaration;
 
 			// Try to infer types from the init expression
-			// For request.security with array arg: [a, b, c] = request.security(sym, tf, [open, high, low])
-			// The types come from the array elements (built-in variables)
 			const elementTypes: PineType[] = [];
 
 			if (tupleDecl.init.type === "CallExpression") {
@@ -405,7 +175,7 @@ export class UnifiedPineValidator {
 		const _prevBlockDepth = this.blockDepth;
 		switch (statement.type) {
 			case "VariableDeclaration": {
-				// First, register the variable in the symbol table (like collectDeclarations does)
+				// First, register the variable in the symbol table
 				const symbol: SymbolInfo = {
 					name: statement.name,
 					type: "unknown",
@@ -418,7 +188,7 @@ export class UnifiedPineValidator {
 
 				// Use type annotation if present, otherwise infer from initialization
 				if (statement.typeAnnotation) {
-					symbol.type = this.mapToPineType(statement.typeAnnotation.name);
+					symbol.type = mapToPineType(statement.typeAnnotation.name);
 				} else if (statement.init) {
 					const initType = this.inferExpressionType(statement.init, version);
 					symbol.type = initType;
@@ -440,7 +210,6 @@ export class UnifiedPineValidator {
 					) {
 						if (!TypeChecker.isAssignable(initType, varSymbol.type)) {
 							// Check if this is a type promotion case (simple -> series)
-							// In Pine Script, simple types can be promoted to series types
 							if (this.canPromoteType(varSymbol.type, initType)) {
 								// Promote variable type in symbol table
 								varSymbol.type = initType;
@@ -465,7 +234,6 @@ export class UnifiedPineValidator {
 				const tupleDecl = statement as TupleDeclaration;
 
 				// Try to infer types from the init expression
-				// For request.security with array arg: [a, b, c] = request.security(sym, tf, [open, high, low])
 				const elementTypes: PineType[] = [];
 
 				if (tupleDecl.init.type === "CallExpression") {
@@ -520,17 +288,13 @@ export class UnifiedPineValidator {
 
 			case "FunctionDeclaration": {
 				// First, infer the function return type from the body
-				// We need to do this before entering scope since calls to this function
-				// elsewhere need to know the return type
 				let returnType: PineType = "unknown";
 
 				if (statement.returnType) {
 					// Use explicit return type annotation if present
-					returnType = this.mapToPineType(statement.returnType.name);
+					returnType = mapToPineType(statement.returnType.name);
 				} else {
 					// Infer return type from function body
-					// For arrow functions, body contains a single ReturnStatement
-					// For block functions, look at all return statements
 					returnType = this.inferFunctionReturnType(
 						statement.body,
 						version,
@@ -553,14 +317,13 @@ export class UnifiedPineValidator {
 				this.blockDepth++;
 
 				// Add function parameters to scope with proper type inference
-				// Use the same logic as collectDeclarations for consistency
 				for (let i = 0; i < statement.params.length; i++) {
 					const param = statement.params[i];
 					let paramType: PineType = "unknown";
 
 					// Infer parameter type based on name and position
 					if (i === 0) {
-						// First parameter is often series data (price, src, val, etc.)
+						// First parameter is often series data
 						const paramName = param.name.toLowerCase();
 						if (
 							paramName.includes("price") ||
@@ -658,7 +421,6 @@ export class UnifiedPineValidator {
 				}
 
 				// Note: In Pine Script, if statements do NOT create new scopes
-				// Variables assigned inside if blocks persist in the outer scope
 				for (const stmt of statement.consequent) {
 					this.collectDeclarations(stmt, version);
 				}
@@ -746,8 +508,7 @@ export class UnifiedPineValidator {
 				const valueType = this.inferExpressionType(statement.value, version);
 				if (targetType !== "unknown" && valueType !== "unknown") {
 					if (!TypeChecker.isAssignable(valueType, targetType)) {
-						// Check if this is a type promotion case (simple -> series)
-						// In Pine Script, simple types can be promoted to series types
+						// Check if this is a type promotion case
 						if (this.canPromoteType(targetType, valueType)) {
 							// Promote variable type in symbol table
 							if (statement.target.type === "Identifier") {
@@ -819,7 +580,6 @@ export class UnifiedPineValidator {
 			case "SwitchExpression": {
 				// Validate all cases in the switch expression
 				const switchExpr = expr as SwitchExpression;
-				// Validate discriminant if present (e.g., "switch pos")
 				if (switchExpr.discriminant) {
 					this.validateExpression(switchExpr.discriminant, version);
 				}
@@ -838,14 +598,11 @@ export class UnifiedPineValidator {
 		const symbol = this.symbolTable.lookup(identifier.name);
 
 		if (!symbol) {
-			// Check if it's a namespace member access (we'll handle this in member expression)
+			// Check if it's a namespace member access
 			if (identifier.name.includes(".")) {
 				return;
 			}
 
-			// RE-ENABLED: Fixed function parameter scope tracking
-			// Function parameters are now properly registered in the symbol table
-			// during both collectDeclarations and validateStatement phases
 			const similar = this.symbolTable.findSimilarSymbols(identifier.name, 2);
 			let message = `Undefined variable '${identifier.name}'`;
 			if (similar.length > 0) {
@@ -904,7 +661,7 @@ export class UnifiedPineValidator {
 		const signature = this.functionSignatures.get(functionName);
 
 		// Check for top-level only functions in local scope
-		if (this.topLevelOnlyFunctions.has(functionName) && this.blockDepth > 0) {
+		if (TOP_LEVEL_ONLY_FUNCTIONS.has(functionName) && this.blockDepth > 0) {
 			this.addError(
 				call.line,
 				call.column,
@@ -958,13 +715,8 @@ export class UnifiedPineValidator {
 		).length;
 		const totalCount = signature.parameters.length;
 
-		// Check if function is variadic (accepts variable arguments)
-		// Functions like math.max(...), math.min(...) have empty parameters array but accept multiple args
-		const isVariadic =
-			totalCount === 0 &&
-			functionName.match(
-				/^(math\.(max|min|avg|sum)|array\.(concat|covariance|avg|min|max|sum))/,
-			);
+		// Check if function is variadic
+		const isVariadic = isVariadicFunction(functionName);
 
 		if (!isVariadic && positionalArgs.length > totalCount) {
 			this.addError(
@@ -978,7 +730,7 @@ export class UnifiedPineValidator {
 
 		// For variadic functions, require at least minimum number of arguments
 		if (isVariadic) {
-			const minArgs = functionName.match(/^math\.(max|min)/) ? 2 : 1;
+			const minArgs = getMinArgsForVariadic(functionName);
 			if (positionalArgs.length < minArgs) {
 				this.addError(
 					call.line,
@@ -1099,16 +851,11 @@ export class UnifiedPineValidator {
 
 	/**
 	 * Infer the return type of a user-defined function from its body.
-	 * For arrow functions (single expression), the body contains a single ReturnStatement.
-	 * For block functions, we analyze all return statements.
-	 *
-	 * NOTE: This is called BEFORE we enter the function scope, so we need to
-	 * temporarily collect declarations from the body to resolve local variables.
 	 */
 	private inferFunctionReturnType(
 		body: Statement[],
 		version: string,
-		params?: import("./ast").FunctionParam[],
+		params?: FunctionParam[],
 	): PineType {
 		// Enter a temporary scope for type inference
 		this.symbolTable.enterScope();
@@ -1116,7 +863,6 @@ export class UnifiedPineValidator {
 		// Add function parameters to temporary scope
 		if (params) {
 			for (const param of params) {
-				// Use a generic type for parameters during inference
 				this.symbolTable.define({
 					name: param.name,
 					type: "series<float>", // Default assumption for UDF params
@@ -1139,7 +885,6 @@ export class UnifiedPineValidator {
 		// Look for return statements in the function body
 		for (const stmt of body) {
 			if (stmt.type === "ReturnStatement") {
-				// For ReturnStatement, infer type from the returned expression
 				const returnStmt = stmt as ReturnStatement;
 				returnType = this.inferExpressionType(returnStmt.value, version);
 				break;
@@ -1159,38 +904,6 @@ export class UnifiedPineValidator {
 		this.symbolTable.exitScope();
 
 		return returnType;
-	}
-
-	private mapReturnTypeToPineType(returnTypeStr: string): PineType {
-		// Map common return type strings from function signatures to PineType
-		const typeMap: Record<string, PineType> = {
-			int: "int",
-			float: "float",
-			bool: "bool",
-			string: "string",
-			color: "color",
-			"series float": "series<float>",
-			"series int": "series<int>",
-			"series bool": "series<bool>",
-			"series string": "series<string>",
-			"series color": "series<color>",
-			"const int": "int",
-			"const float": "float",
-			"const bool": "bool",
-			"const string": "string",
-			"simple int": "int",
-			"simple float": "float",
-			"simple bool": "bool",
-			"simple string": "string",
-			// Input types (from input.* functions)
-			"input int": "int",
-			"input float": "float",
-			"input bool": "bool",
-			"input string": "string",
-			"input color": "color",
-		};
-
-		return typeMap[returnTypeStr.toLowerCase()] || "unknown";
 	}
 
 	private inferExpressionType(
@@ -1229,11 +942,8 @@ export class UnifiedPineValidator {
 				}
 
 				// Special handling for request.security with non-tuple returns
-				// When 3rd argument is not an array, the return type matches the expression type
-				// e.g., request.security(sym, tf, ta.atr(14)) returns series<float>
 				if (funcName === "request.security" && callExpr.arguments.length >= 3) {
 					const exprArg = callExpr.arguments[2].value;
-					// Only handle non-array cases (array cases are handled in tuple destructuring)
 					if (exprArg.type !== "ArrayExpression") {
 						type = this.inferExpressionType(exprArg, version);
 						break;
@@ -1241,11 +951,9 @@ export class UnifiedPineValidator {
 				}
 
 				// First check function signatures for built-ins
-				// (These have accurate return type information)
 				const signature = this.functionSignatures.get(funcName);
 				if (signature?.returns) {
-					// Map the return type string to PineType
-					type = this.mapReturnTypeToPineType(signature.returns);
+					type = mapReturnTypeToPineType(signature.returns);
 					break;
 				}
 
@@ -1278,11 +986,9 @@ export class UnifiedPineValidator {
 
 			case "UnaryExpression": {
 				const unaryExpr = expr as UnaryExpression;
-				// 'not' operator always returns bool
 				if (unaryExpr.operator === "not") {
 					type = "bool";
 				} else if (unaryExpr.operator === "-") {
-					// Unary minus preserves numeric type
 					type = this.inferExpressionType(unaryExpr.argument, version);
 				} else {
 					type = this.inferExpressionType(unaryExpr.argument, version);
@@ -1291,7 +997,6 @@ export class UnifiedPineValidator {
 			}
 
 			case "TernaryExpression": {
-				// Phase C - Session 5: Enhanced ternary expression type inference
 				const ternaryExpr = expr as TernaryExpression;
 				const conseqType = this.inferExpressionType(
 					ternaryExpr.consequent,
@@ -1302,13 +1007,11 @@ export class UnifiedPineValidator {
 					version,
 				);
 
-				// If both unknown, return unknown
 				if (conseqType === "unknown" && altType === "unknown") {
 					type = "unknown";
 					break;
 				}
 
-				// If one is unknown, try to use the known type
 				if (conseqType === "unknown" && altType !== "unknown") {
 					type = altType;
 					break;
@@ -1318,7 +1021,7 @@ export class UnifiedPineValidator {
 					break;
 				}
 
-				// Handle na ? na : value pattern - common in Pine Script
+				// Handle na ? na : value pattern
 				if (conseqType === "na") {
 					type = altType;
 				} else if (altType === "na") {
@@ -1344,39 +1047,34 @@ export class UnifiedPineValidator {
 								: "int";
 					}
 				} else {
-					// Keep unknown only if truly incompatible
 					type = "unknown";
 				}
 				break;
 			}
 
 			case "IndexExpression": {
-				// Phase B - Session 5: Infer type from array/series element access
 				const indexExpr = expr as IndexExpression;
 				const arrayType = this.inferExpressionType(indexExpr.object, version);
 
 				// Handle series<T>[index] → T
 				const seriesMatch = arrayType.match(/^series<(.+)>$/);
 				if (seriesMatch) {
-					type = seriesMatch[1] as PineType; // Return inner type (e.g., series<float> → float)
+					type = seriesMatch[1] as PineType;
 					break;
 				}
 
 				// Handle array<T>[index] → T
 				const arrayMatch = arrayType.match(/^array<(.+)>$/);
 				if (arrayMatch) {
-					type = arrayMatch[1] as PineType; // Return element type
+					type = arrayMatch[1] as PineType;
 					break;
 				}
 
-				// For unknown array type, return unknown
-				// For known non-array/series type, assume it's indexable and return same type
 				type = arrayType === "unknown" ? "unknown" : arrayType;
 				break;
 			}
 
 			case "SwitchExpression": {
-				// Infer type from the first case result (all cases should return same type)
 				const switchExpr = expr as SwitchExpression;
 				if (switchExpr.cases.length > 0) {
 					type = this.inferExpressionType(switchExpr.cases[0].result, version);
@@ -1385,8 +1083,6 @@ export class UnifiedPineValidator {
 			}
 
 			case "MemberExpression": {
-				// Phase D - Session 5: Check for namespace properties first
-				// Session 9: Add deprecation warnings and unknown property detection
 				const memberExpr = expr as MemberExpression;
 
 				// Try to get namespace.property full name
@@ -1397,9 +1093,9 @@ export class UnifiedPineValidator {
 					const propertyName = `${memberExpr.object.name}.${memberExpr.property.name}`;
 					const namespaceName = memberExpr.object.name;
 
-					// Session 9: Check for deprecated v5 constants (only warn in v6)
-					if (version === "6" && propertyName in this.deprecatedV5Constants) {
-						const replacement = this.deprecatedV5Constants[propertyName];
+					// Check for deprecated v5 constants (only warn in v6)
+					if (version === "6" && propertyName in DEPRECATED_V5_CONSTANTS) {
+						const replacement = DEPRECATED_V5_CONSTANTS[propertyName];
 						this.addError(
 							memberExpr.line || 0,
 							memberExpr.column || 0,
@@ -1407,39 +1103,19 @@ export class UnifiedPineValidator {
 							`Deprecated Pine Script v5 constant '${propertyName}'. Use '${replacement}' instead.`,
 							DiagnosticSeverity.Warning,
 						);
-						// Still infer type as string (it might work, but warn user)
 						type = "string";
 						break;
 					}
 
-					// Check if it's a known namespace property (all versions)
-					if (propertyName in this.namespaceProperties) {
-						type = this.namespaceProperties[propertyName];
+					// Check if it's a known namespace property
+					if (propertyName in NAMESPACE_PROPERTIES) {
+						type = NAMESPACE_PROPERTIES[propertyName];
 						break;
 					}
 
-					// Session 9: Check if namespace exists but property doesn't (v6 only)
+					// Check if namespace exists but property doesn't (v6 only)
 					if (version === "6") {
-						const knownNamespaces = [
-							"plot",
-							"color",
-							"shape",
-							"size",
-							"location",
-							"barstate",
-							"timeframe",
-							"syminfo",
-							"chart",
-							"position",
-							"scale",
-							"display",
-							"format",
-							"xloc",
-							"yloc",
-							"input", // v4/v5 input namespace for backward compatibility
-						];
-						if (knownNamespaces.includes(namespaceName)) {
-							// Known namespace but unknown property - likely an error
+						if (KNOWN_NAMESPACES.includes(namespaceName)) {
 							this.addError(
 								memberExpr.line || 0,
 								memberExpr.column || 0,
@@ -1451,7 +1127,6 @@ export class UnifiedPineValidator {
 					}
 				}
 
-				// For namespace.function calls, return unknown (will be resolved in call expression)
 				type = "unknown";
 				break;
 			}
@@ -1476,24 +1151,15 @@ export class UnifiedPineValidator {
 
 	private canPromoteType(from: PineType, to: PineType): boolean {
 		// In Pine Script, simple types can be promoted to series types
-		// but not the other way around
-
-		// float -> series<float>
 		if (from === "float" && to === "series<float>") return true;
-		// int -> series<int>
 		if (from === "int" && to === "series<int>") return true;
-		// bool -> series<bool>
 		if (from === "bool" && to === "series<bool>") return true;
-		// string -> series<string>
 		if (from === "string" && to === "series<string>") return true;
-		// color -> series<color>
 		if (from === "color" && to === "series<color>") return true;
 
 		// int -> float (numeric promotion)
 		if (from === "int" && to === "float") return true;
-		// int -> series<float> (int to series<float> promotion)
 		if (from === "int" && to === "series<float>") return true;
-		// series<int> -> series<float> (series int to series float promotion)
 		if (from === "series<int>" && to === "series<float>") return true;
 
 		return false;

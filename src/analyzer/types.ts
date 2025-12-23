@@ -1,4 +1,6 @@
 // Pine Script Type System
+// Defines type representations and type checking utilities
+
 export type PineType =
 	| "int"
 	| "float"

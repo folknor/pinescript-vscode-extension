@@ -12,7 +12,7 @@ import { SemanticAnalyzer } from "./parser/semanticAnalyzer";
 import {
 	DiagnosticSeverity,
 	UnifiedPineValidator,
-} from "./parser/unifiedValidator";
+} from "./analyzer/checker";
 
 async function main() {
 	const args = process.argv.slice(2);

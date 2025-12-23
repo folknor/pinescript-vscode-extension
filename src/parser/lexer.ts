@@ -347,6 +347,7 @@ export class Lexer {
 		const start = this.pos - 1;
 		const startLine = this.line;
 		const startColumn = this.column - 1;
+		let hasError = false;
 
 		while (this.peek() !== quote && !this.isAtEnd()) {
 			if (this.peek() === "\\") {
@@ -358,15 +359,21 @@ export class Lexer {
 				}
 			} else if (this.peek() === "\n") {
 				// Unescaped newline inside string literal - this is an error
-				const value = this.source.substring(start, this.pos);
-				this.addToken(TokenType.STRING, value, value.length);
-				// Add lexer error for unterminated string (newline)
-				this.lexerErrors.push({
-					line: startLine,
-					column: startColumn + value.length,
-					message: `mismatched character '\\n' expecting '${quote}'`,
-				});
-				return;
+				// But we'll try to recover by looking for the closing quote
+				if (!hasError) {
+					// Report the error for this string (one per malformed string)
+					this.lexerErrors.push({
+						line: startLine,
+						column: this.column,
+						message: `mismatched character '\\n' expecting '${quote}'`,
+					});
+					hasError = true;
+				}
+				// Continue scanning - try to find the closing quote for error recovery
+				// This prevents cascading errors by consuming the whole "intended" string
+				this.line++;
+				this.column = 0;
+				this.advance(); // consume the newline
 			} else {
 				this.advance();
 			}
@@ -374,14 +381,15 @@ export class Lexer {
 
 		if (this.isAtEnd()) {
 			// Unterminated string - reached end of file without closing quote
+			if (!hasError) {
+				this.lexerErrors.push({
+					line: startLine,
+					column: startColumn + (this.pos - start),
+					message: `mismatched character '<EOF>' expecting '${quote}'`,
+				});
+			}
 			const value = this.source.substring(start, this.pos);
 			this.addToken(TokenType.STRING, value, value.length);
-			// Add lexer error for unterminated string (EOF)
-			this.lexerErrors.push({
-				line: startLine,
-				column: startColumn + value.length,
-				message: `mismatched character '<EOF>' expecting '${quote}'`,
-			});
 			return;
 		}
 

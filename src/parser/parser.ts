@@ -37,11 +37,7 @@ export class Parser {
 				const stmt = this.statement();
 				if (stmt) body.push(stmt);
 			} catch (e) {
-				// DEBUG: Log parsing errors to understand what's being skipped
-				const errorMsg = e instanceof Error ? e.message : String(e);
-				console.error(`[PARSER ERROR] Line ${this.peek().line}: ${errorMsg}`);
-
-				// Skip to next statement on error
+				// Skip to next statement on error (silently - errors are collected separately)
 				this.synchronize();
 			}
 		}
