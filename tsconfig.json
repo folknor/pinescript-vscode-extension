@@ -23,7 +23,7 @@
 		"paths": {
 			"@/*": ["src/*"],
 			"@test/*": ["test/*"],
-			"@v6/*": ["v6/*"]
+			"@pine-data/*": ["pine-data/*"]
 		},
 
 		// Strict type checking (balanced)
@@ -61,7 +61,7 @@
 	"include": [
 		"src/**/*.ts",
 		"test/**/*.ts",
-		"v6/**/*.ts",
+		"pine-data/**/*.ts",
 		"dev-tools/**/*.ts"
 	],
 	"exclude": [
