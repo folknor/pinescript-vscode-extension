@@ -1,8 +1,10 @@
 // Symbol Table for tracking variables, functions, and scopes
 
-import { V6_BUILTIN_VARIABLES } from "../../v6/v6-builtin-variables";
-import { V6_FUNCTIONS } from "../../v6/v6-manual";
-import { NAMESPACE_NAMES } from "../../v6/v6-namespaces";
+import {
+	VARIABLES_BY_NAME,
+	FUNCTIONS_BY_NAME,
+	PineV6,
+} from "../../pine-data/v6";
 import type { PineType } from "./typeSystem";
 
 export interface Symbol {
@@ -78,14 +80,14 @@ export class SymbolTable {
 	}
 
 	private initializeBuiltins(): void {
-		// Built-in variables - from v6/ data layer
-		for (const [name, typeStr] of Object.entries(V6_BUILTIN_VARIABLES)) {
+		// Built-in variables - from pine-data layer
+		for (const [name, variable] of VARIABLES_BY_NAME) {
 			// Skip namespaced variables (they're accessed via namespace)
 			if (name.includes(".")) continue;
 
 			this.globalScope.define({
 				name,
-				type: typeStr as PineType,
+				type: variable.type as PineType,
 				line: 0,
 				column: 0,
 				used: false,
@@ -93,8 +95,8 @@ export class SymbolTable {
 			});
 		}
 
-		// Built-in functions - from v6/ data layer
-		for (const name of Object.keys(V6_FUNCTIONS)) {
+		// Built-in functions - from pine-data layer
+		for (const [name] of FUNCTIONS_BY_NAME) {
 			// Skip namespaced functions (they're accessed via namespace)
 			if (name.includes(".")) continue;
 
@@ -145,8 +147,8 @@ export class SymbolTable {
 			});
 		}
 
-		// Namespaces - from v6/ data layer
-		for (const name of NAMESPACE_NAMES) {
+		// Namespaces - from pine-data layer
+		for (const name of PineV6.getAllNamespaces()) {
 			this.globalScope.define({
 				name,
 				type: "unknown",

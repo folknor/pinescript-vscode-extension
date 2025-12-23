@@ -247,16 +247,30 @@ async function scrapeFunctionDetails(functionName, useCache = true) {
 					res.name = headerEl.textContent?.trim() || "";
 				}
 
-				// Extract syntax (contains signature like "ta.sma(source, length) → series float")
-				const syntaxEl = element.querySelector(
+				// Extract ALL syntaxes (there may be multiple overloads)
+				// e.g., str.tostring has 5 overloads with different signatures
+				const syntaxEls = element.querySelectorAll(
 					".tv-pine-reference-item__syntax",
 				);
-				if (syntaxEl) {
-					res.syntax = syntaxEl.textContent?.trim() || "";
+				const allSyntaxes = [];
+				syntaxEls.forEach((syntaxEl) => {
+					const syntaxText = syntaxEl.textContent?.trim() || "";
+					if (syntaxText) {
+						allSyntaxes.push(syntaxText);
+					}
+				});
+
+				// Use the first syntax as the primary one
+				if (allSyntaxes.length > 0) {
+					res.syntax = allSyntaxes[0];
 					// Extract return type from syntax
 					const returnMatch = res.syntax.match(/→\s*(.+)$/);
 					if (returnMatch) {
 						res.returns = returnMatch[1].trim();
+					}
+					// Store all syntaxes for overload analysis
+					if (allSyntaxes.length > 1) {
+						res.overloads = allSyntaxes;
 					}
 				}
 
@@ -312,8 +326,69 @@ async function scrapeFunctionDetails(functionName, useCache = true) {
 					}
 				});
 
-				// If no parameters found from arg-type elements, try to extract from syntax
-				// This handles variadic functions like math.max(number0, number1, ...) → const int
+				// Extract parameters from ALL overloads to get complete parameter list
+				// This handles functions like str.tostring that have overloads with additional params
+				const paramsByName = new Map();
+
+				// Helper to parse params from a syntax string
+				const parseParamsFromSyntax = (syntaxStr, isFirstOverload = false) => {
+					const syntaxMatch = syntaxStr.match(/^[^(]+\(([^)]+)\)/);
+					if (syntaxMatch) {
+						const paramsStr = syntaxMatch[1];
+						const parts = paramsStr.split(/,\s*/);
+						parts.forEach((part, index) => {
+							const trimmed = part.trim();
+							if (trimmed === "...") {
+								res.variadic = true;
+							} else if (trimmed) {
+								const existingParam = paramsByName.get(trimmed);
+								if (!existingParam) {
+									// Parameter not seen yet - add it
+									// If it's not in the first overload, it's optional
+									paramsByName.set(trimmed, {
+										name: trimmed,
+										type: "unknown",
+										description: "",
+										optional: !isFirstOverload || trimmed.startsWith("[") || trimmed.endsWith("?"),
+										required: isFirstOverload && !trimmed.startsWith("[") && !trimmed.endsWith("?"),
+									});
+								}
+							}
+						});
+					}
+				};
+
+				// Parse first syntax (primary)
+				if (res.syntax) {
+					parseParamsFromSyntax(res.syntax, true);
+				}
+
+				// Parse additional overloads
+				if (res.overloads) {
+					res.overloads.slice(1).forEach((overload) => {
+						parseParamsFromSyntax(overload, false);
+					});
+				}
+
+				// If we found params from syntax and arg-type elements are limited,
+				// merge the information
+				if (paramsByName.size > res.parameters.length) {
+					// Merge: use arg-type info where available, syntax info otherwise
+					const mergedParams = [];
+					for (const [name, syntaxParam] of paramsByName) {
+						const argTypeParam = res.parameters.find((p) => p.name === name);
+						if (argTypeParam) {
+							// Use the richer arg-type info
+							mergedParams.push(argTypeParam);
+						} else {
+							// Use syntax-derived info
+							mergedParams.push(syntaxParam);
+						}
+					}
+					res.parameters = mergedParams;
+				}
+
+				// If still no parameters, fall back to basic syntax parsing
 				if (res.parameters.length === 0 && res.syntax) {
 					const syntaxMatch = res.syntax.match(/^[^(]+\(([^)]+)\)/);
 					if (syntaxMatch) {

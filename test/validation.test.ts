@@ -6,127 +6,126 @@
 
 import assert from "node:assert";
 import { describe, it } from "vitest";
-import { ALL_FUNCTION_SIGNATURES } from "../v6/parameter-requirements.js";
-import type { FunctionSignatureSpec } from "../v6/parameter-requirements-generated";
-import { PINE_FUNCTIONS } from "../v6/parameter-requirements-generated.js";
+import { FUNCTIONS_BY_NAME, type PineFunction } from "../pine-data/v6";
+
+// Helper to get required params from new structure
+function getRequiredParams(func: PineFunction): string[] {
+	return func.parameters.filter((p) => p.required).map((p) => p.name);
+}
+
+// Helper to get optional params from new structure
+function getOptionalParams(func: PineFunction): string[] {
+	return func.parameters.filter((p) => !p.required).map((p) => p.name);
+}
+
+// Helper to get all params
+function getAllParams(func: PineFunction): string[] {
+	return func.parameters.map((p) => p.name);
+}
 
 describe("Parameter Requirements Validation", () => {
-	describe("Manual Functions (100% Accuracy)", () => {
+	describe("Core Functions", () => {
 		it("indicator() should have only title as required", () => {
-			const spec = ALL_FUNCTION_SIGNATURES.indicator;
-			assert.ok(spec, "indicator function should exist");
+			const func = FUNCTIONS_BY_NAME.get("indicator");
+			assert.ok(func, "indicator function should exist");
+			const required = getRequiredParams(func);
+			const optional = getOptionalParams(func);
+
 			assert.deepStrictEqual(
-				spec.requiredParams,
+				required,
 				["title"],
 				"Only title should be required",
 			);
+			assert.ok(optional.includes("overlay"), "overlay should be optional");
 			assert.ok(
-				spec.optionalParams.includes("overlay"),
-				"overlay should be optional",
-			);
-			assert.ok(
-				spec.optionalParams.includes("max_bars_back"),
+				optional.includes("max_bars_back"),
 				"max_bars_back should be optional",
 			);
 		});
 
 		it("alertcondition() should have condition required, title/message optional", () => {
-			const spec = ALL_FUNCTION_SIGNATURES.alertcondition;
-			assert.ok(spec, "alertcondition function should exist");
+			const func = FUNCTIONS_BY_NAME.get("alertcondition");
+			assert.ok(func, "alertcondition function should exist");
+			const required = getRequiredParams(func);
+			const optional = getOptionalParams(func);
+
 			assert.deepStrictEqual(
-				spec.requiredParams,
+				required,
 				["condition"],
 				"Only condition should be required",
 			);
-			assert.ok(
-				spec.optionalParams.includes("title"),
-				"title should be optional",
-			);
-			assert.ok(
-				spec.optionalParams.includes("message"),
-				"message should be optional",
-			);
+			assert.ok(optional.includes("title"), "title should be optional");
+			assert.ok(optional.includes("message"), "message should be optional");
 		});
 
 		it("input.string() should have defval as required", () => {
-			const spec = ALL_FUNCTION_SIGNATURES["input.string"];
-			assert.ok(spec, "input.string function should exist");
-			assert.deepStrictEqual(
-				spec.requiredParams,
-				["defval"],
-				"defval should be required",
-			);
-			assert.ok(
-				spec.optionalParams.includes("title"),
-				"title should be optional",
-			);
+			const func = FUNCTIONS_BY_NAME.get("input.string");
+			assert.ok(func, "input.string function should exist");
+			const required = getRequiredParams(func);
+			const optional = getOptionalParams(func);
+
+			assert.deepStrictEqual(required, ["defval"], "defval should be required");
+			assert.ok(optional.includes("title"), "title should be optional");
 		});
 
 		it("plot() should have series as required", () => {
-			const spec = ALL_FUNCTION_SIGNATURES.plot;
-			assert.ok(spec, "plot function should exist");
-			assert.deepStrictEqual(
-				spec.requiredParams,
-				["series"],
-				"series should be required",
-			);
-			assert.ok(
-				spec.optionalParams.includes("title"),
-				"title should be optional",
-			);
-			assert.ok(
-				spec.optionalParams.includes("color"),
-				"color should be optional",
-			);
+			const func = FUNCTIONS_BY_NAME.get("plot");
+			assert.ok(func, "plot function should exist");
+			const required = getRequiredParams(func);
+			const optional = getOptionalParams(func);
+
+			assert.deepStrictEqual(required, ["series"], "series should be required");
+			assert.ok(optional.includes("title"), "title should be optional");
+			assert.ok(optional.includes("color"), "color should be optional");
 		});
 
 		it("plotshape() should have series as required, style not shape", () => {
-			const spec = ALL_FUNCTION_SIGNATURES.plotshape;
-			assert.ok(spec, "plotshape function should exist");
-			assert.deepStrictEqual(
-				spec.requiredParams,
-				["series"],
-				"series should be required",
-			);
+			const func = FUNCTIONS_BY_NAME.get("plotshape");
+			assert.ok(func, "plotshape function should exist");
+			const required = getRequiredParams(func);
+			const allParams = getAllParams(func);
+
+			assert.deepStrictEqual(required, ["series"], "series should be required");
+			assert.ok(allParams.includes("style"), 'should have "style" parameter');
 			assert.ok(
-				spec.optionalParams.includes("style"),
-				'should use "style" parameter',
-			);
-			assert.ok(
-				!spec.optionalParams.includes("shape"),
+				!allParams.includes("shape"),
 				'should NOT have "shape" parameter',
 			);
 		});
 
 		it("strategy() should have title as required", () => {
-			const spec = ALL_FUNCTION_SIGNATURES.strategy;
-			assert.ok(spec, "strategy function should exist");
+			const func = FUNCTIONS_BY_NAME.get("strategy");
+			assert.ok(func, "strategy function should exist");
+			const required = getRequiredParams(func);
+			const optional = getOptionalParams(func);
+
 			assert.deepStrictEqual(
-				spec.requiredParams,
+				required,
 				["title"],
 				"Only title should be required",
 			);
-			assert.ok(
-				spec.optionalParams.includes("overlay"),
-				"overlay should be optional",
-			);
+			assert.ok(optional.includes("overlay"), "overlay should be optional");
 		});
 
 		it("ta.sma() should have source and length as required", () => {
-			const spec = ALL_FUNCTION_SIGNATURES["ta.sma"];
-			assert.ok(spec, "ta.sma function should exist");
+			const func = FUNCTIONS_BY_NAME.get("ta.sma");
+			assert.ok(func, "ta.sma function should exist");
+			const required = getRequiredParams(func);
+
 			assert.deepStrictEqual(
-				spec.requiredParams,
+				required,
 				["source", "length"],
 				"source and length required",
 			);
 		});
 
 		it("ta.crossover() should have source1 and source2 as required", () => {
-			const spec = ALL_FUNCTION_SIGNATURES["ta.crossover"];
-			assert.ok(spec, "ta.crossover function should exist");
+			const func = FUNCTIONS_BY_NAME.get("ta.crossover");
+			assert.ok(func, "ta.crossover function should exist");
+			const required = getRequiredParams(func);
+
 			assert.deepStrictEqual(
-				spec.requiredParams,
+				required,
 				["source1", "source2"],
 				"both sources required",
 			);
@@ -135,7 +134,7 @@ describe("Parameter Requirements Validation", () => {
 
 	describe("Generated Functions Coverage", () => {
 		it("should have generated function signatures", () => {
-			const count = Object.keys(PINE_FUNCTIONS).length;
+			const count = FUNCTIONS_BY_NAME.size;
 			assert.ok(
 				count >= 450,
 				`Should have at least 450 generated functions, got ${count}`,
@@ -143,49 +142,135 @@ describe("Parameter Requirements Validation", () => {
 		});
 
 		it("should have alert() function", () => {
-			const spec = PINE_FUNCTIONS.alert;
-			assert.ok(spec, "alert function should exist in generated");
-			assert.ok(spec.syntax, "alert should have syntax");
-			assert.ok(spec.parameters, "alert should have parameters");
+			const func = FUNCTIONS_BY_NAME.get("alert");
+			assert.ok(func, "alert function should exist in generated");
+			assert.ok(func.syntax, "alert should have syntax");
+			assert.ok(func.parameters, "alert should have parameters");
 		});
 
 		it("should have array functions", () => {
 			assert.ok(
-				PINE_FUNCTIONS["array.new_float"],
+				FUNCTIONS_BY_NAME.get("array.new_float"),
 				"array.new_float should exist",
 			);
-			assert.ok(PINE_FUNCTIONS["array.push"], "array.push should exist");
-			assert.ok(PINE_FUNCTIONS["array.get"], "array.get should exist");
+			assert.ok(FUNCTIONS_BY_NAME.get("array.push"), "array.push should exist");
+			assert.ok(FUNCTIONS_BY_NAME.get("array.get"), "array.get should exist");
 		});
 
 		it("should have math functions", () => {
-			assert.ok(PINE_FUNCTIONS["math.abs"], "math.abs should exist");
-			assert.ok(PINE_FUNCTIONS["math.max"], "math.max should exist");
-			assert.ok(PINE_FUNCTIONS["math.min"], "math.min should exist");
+			assert.ok(FUNCTIONS_BY_NAME.get("math.abs"), "math.abs should exist");
+			assert.ok(FUNCTIONS_BY_NAME.get("math.max"), "math.max should exist");
+			assert.ok(FUNCTIONS_BY_NAME.get("math.min"), "math.min should exist");
 		});
 	});
 
-	describe("Manual Overrides", () => {
-		it("manual indicator() should override generated", () => {
-			const manual = ALL_FUNCTION_SIGNATURES.indicator;
-			const generated = PINE_FUNCTIONS.indicator;
+	describe("Known Issue Regression Tests", () => {
+		it("should detect alertcondition with too many arguments (line 238 issue)", () => {
+			// Example: alertcondition(shortSig,333,tetette,333,333)
+			// Should be: alertcondition(condition, title?, message?)
+			const func = FUNCTIONS_BY_NAME.get("alertcondition");
+			assert.ok(func, "alertcondition should exist");
+			const required = getRequiredParams(func);
+			const totalCount = func.parameters.length;
 
-			assert.ok(manual, "Manual indicator should exist");
-			assert.ok(generated, "Generated indicator should exist");
-
-			// Manual should have accurate required params (only title)
-			assert.deepStrictEqual(
-				manual.requiredParams,
-				["title"],
-				"Manual should have only title required",
+			assert.strictEqual(
+				required.length,
+				1,
+				"alertcondition should have 1 required param",
+			);
+			assert.strictEqual(
+				totalCount,
+				3,
+				"alertcondition should have max 3 params total",
 			);
 
-			// Generated might have incorrectly marked params as required
-			// (This is why we need manual overrides)
+			// Simulated validation: 5 args > 3 max = ERROR
+			const providedArgs = 5;
+			assert.ok(providedArgs > totalCount, "Should detect too many arguments");
 		});
 
-		it("should prioritize manual over generated for all 32 functions", () => {
-			const manualFunctions = [
+		it("should detect input.string with missing required parameter (line 239 issue)", () => {
+			// Example: test = input.string()
+			// Should be: input.string(defval, ...)
+			const func = FUNCTIONS_BY_NAME.get("input.string");
+			assert.ok(func, "input.string should exist");
+			const required = getRequiredParams(func);
+
+			assert.ok(
+				required.includes("defval"),
+				"input.string should require defval",
+			);
+
+			// Simulated validation: 0 args < 1 required = ERROR
+			const providedArgs = 0;
+			assert.ok(
+				providedArgs < required.length,
+				"Should detect missing required param",
+			);
+		});
+
+		it("should NOT falsely flag valid indicator() calls", () => {
+			// Example: indicator("Title", overlay=true) should be VALID
+			const func = FUNCTIONS_BY_NAME.get("indicator");
+			assert.ok(func, "indicator should exist");
+			const required = getRequiredParams(func);
+			const allParams = getAllParams(func);
+
+			// Provided: title, overlay
+			const providedArgs = ["title", "overlay"];
+			const requiredProvided = providedArgs.filter((p) => required.includes(p));
+
+			assert.strictEqual(
+				requiredProvided.length,
+				1,
+				"Should have title (required)",
+			);
+			assert.ok(
+				providedArgs.length >= required.length,
+				"Should have enough args",
+			);
+		});
+
+		it("should NOT falsely flag plotshape with style parameter", () => {
+			// plotshape(..., style=shape.circle) should be VALID
+			// plotshape(..., shape=...) should be ERROR (wrong param name)
+			const func = FUNCTIONS_BY_NAME.get("plotshape");
+			assert.ok(func, "plotshape should exist");
+			const allParams = getAllParams(func);
+
+			assert.ok(allParams.includes("style"), "plotshape should accept style");
+			assert.ok(
+				!allParams.includes("shape"),
+				"plotshape should NOT accept shape",
+			);
+		});
+	});
+
+	describe("Data Integrity", () => {
+		it("all functions should have syntax and parameters", () => {
+			for (const [name, func] of FUNCTIONS_BY_NAME) {
+				assert.ok(func.syntax, `${name} should have syntax`);
+				assert.ok(
+					func.parameters !== undefined,
+					`${name} should have parameters array`,
+				);
+			}
+		});
+
+		it("no duplicate parameter names within a function", () => {
+			for (const [name, func] of FUNCTIONS_BY_NAME) {
+				const allParams = getAllParams(func);
+				const uniqueParams = new Set(allParams);
+				assert.strictEqual(
+					allParams.length,
+					uniqueParams.size,
+					`${name} should not have duplicate parameters`,
+				);
+			}
+		});
+
+		it("all critical functions should exist", () => {
+			const criticalFunctions = [
 				"indicator",
 				"strategy",
 				"library",
@@ -220,136 +305,12 @@ describe("Parameter Requirements Validation", () => {
 				"ta.cross",
 			];
 
-			manualFunctions.forEach((funcName) => {
+			criticalFunctions.forEach((funcName) => {
 				assert.ok(
-					ALL_FUNCTION_SIGNATURES[funcName],
-					`${funcName} should exist in manual`,
+					FUNCTIONS_BY_NAME.get(funcName),
+					`${funcName} should exist in pine-data`,
 				);
 			});
-		});
-	});
-
-	describe("Known Issue Regression Tests", () => {
-		it("should detect alertcondition with too many arguments (line 238 issue)", () => {
-			// Example: alertcondition(shortSig,333,tetette,333,333)
-			// Should be: alertcondition(condition, title?, message?)
-			const spec = ALL_FUNCTION_SIGNATURES.alertcondition;
-			const requiredCount = spec.requiredParams.length; // 1 (condition)
-			const totalCount =
-				spec.requiredParams.length + spec.optionalParams.length; // 3
-
-			assert.strictEqual(
-				requiredCount,
-				1,
-				"alertcondition should have 1 required param",
-			);
-			assert.strictEqual(
-				totalCount,
-				3,
-				"alertcondition should have max 3 params total",
-			);
-
-			// Simulated validation: 5 args > 3 max = ERROR
-			const providedArgs = 5;
-			assert.ok(providedArgs > totalCount, "Should detect too many arguments");
-		});
-
-		it("should detect input.string with missing required parameter (line 239 issue)", () => {
-			// Example: test = input.string()
-			// Should be: input.string(defval, ...)
-			const spec = ALL_FUNCTION_SIGNATURES["input.string"];
-
-			assert.ok(
-				spec.requiredParams.includes("defval"),
-				"input.string should require defval",
-			);
-
-			// Simulated validation: 0 args < 1 required = ERROR
-			const providedArgs = 0;
-			assert.ok(
-				providedArgs < spec.requiredParams.length,
-				"Should detect missing required param",
-			);
-		});
-
-		it("should NOT falsely flag valid indicator() calls", () => {
-			// Example: indicator("Title", overlay=true) should be VALID
-			const spec = ALL_FUNCTION_SIGNATURES.indicator;
-
-			// Provided: title, overlay
-			const providedArgs = ["title", "overlay"];
-			const requiredProvided = providedArgs.filter((p) =>
-				spec.requiredParams.includes(p),
-			);
-
-			assert.strictEqual(
-				requiredProvided.length,
-				1,
-				"Should have title (required)",
-			);
-			assert.ok(
-				providedArgs.length >= spec.requiredParams.length,
-				"Should have enough args",
-			);
-		});
-
-		it("should NOT falsely flag plotshape with style parameter", () => {
-			// plotshape(..., style=shape.circle) should be VALID
-			// plotshape(..., shape=...) should be ERROR (wrong param name)
-			const spec = ALL_FUNCTION_SIGNATURES.plotshape;
-
-			assert.ok(
-				spec.optionalParams.includes("style"),
-				"plotshape should accept style",
-			);
-			assert.ok(
-				!spec.optionalParams.includes("shape"),
-				"plotshape should NOT accept shape",
-			);
-		});
-	});
-
-	describe("Data Integrity", () => {
-		it("all manual functions should have signature", () => {
-			Object.entries(ALL_FUNCTION_SIGNATURES).forEach(
-				([name, spec]: [string, any]) => {
-					assert.ok(spec.signature, `${name} should have signature`);
-					assert.ok(
-						spec.requiredParams,
-						`${name} should have requiredParams array`,
-					);
-					assert.ok(
-						spec.optionalParams,
-						`${name} should have optionalParams array`,
-					);
-				},
-			);
-		});
-
-		it("all generated functions should have syntax and parameters", () => {
-			Object.entries(PINE_FUNCTIONS).forEach(
-				([name, spec]: [string, FunctionSignatureSpec]) => {
-					assert.ok(spec.syntax, `${name} should have syntax`);
-					assert.ok(
-						spec.parameters !== undefined,
-						`${name} should have parameters array`,
-					);
-				},
-			);
-		});
-
-		it("no duplicate parameter names within a function", () => {
-			Object.entries(ALL_FUNCTION_SIGNATURES).forEach(
-				([name, spec]: [string, any]) => {
-					const allParams = [...spec.requiredParams, ...spec.optionalParams];
-					const uniqueParams = new Set(allParams);
-					assert.strictEqual(
-						allParams.length,
-						uniqueParams.size,
-						`${name} should not have duplicate parameters`,
-					);
-				},
-			);
 		});
 	});
 });

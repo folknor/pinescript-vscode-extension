@@ -1,24 +1,30 @@
 // Unified Pine Script Validator with Type Checking and Scope Analysis
 // This is the single validator for the extension, combining all validation logic.
 
+import {
+	type PineFunction,
+	type PineParameter,
+	FUNCTIONS_BY_NAME,
+	CONSTANTS_BY_NAME,
+	VARIABLES_BY_NAME,
+} from "../../pine-data/v6";
 import type {
-	FunctionParameter,
-	FunctionSignatureSpec,
-} from "../../v6/parameter-requirements-generated";
-import { PINE_FUNCTIONS_MERGED } from "../../v6/parameter-requirements-merged";
-import { type PineItem, V6_FUNCTIONS } from "../../v6/v6-manual";
-import type {
+	ArrayExpression,
 	BinaryExpression,
 	CallArgument,
 	CallExpression,
 	Expression,
+	ExpressionStatement,
 	Identifier,
 	IndexExpression,
 	Literal,
 	MemberExpression,
 	Program,
+	ReturnStatement,
 	Statement,
+	SwitchExpression,
 	TernaryExpression,
+	TupleDeclaration,
 	UnaryExpression,
 } from "./ast";
 import { type Symbol as SymbolInfo, SymbolTable } from "./symbolTable";
@@ -100,27 +106,12 @@ export class UnifiedPineValidator {
 	}
 
 	private buildFunctionSignatures(): void {
-		// Build from PINE_FUNCTIONS_MERGED which has accurate parameter requirements
-		for (const [name, spec] of Object.entries(PINE_FUNCTIONS_MERGED)) {
-			const sig = this.buildSignatureFromSpec(
-				name,
-				spec as FunctionSignatureSpec,
-			);
+		// Build from FUNCTIONS_BY_NAME which has accurate parameter requirements
+		// Return types are already included in the generated data
+		for (const [name, func] of FUNCTIONS_BY_NAME) {
+			const sig = this.buildSignatureFromPineFunction(name, func);
 			if (sig) {
 				this.functionSignatures.set(name, sig);
-			}
-		}
-
-		// Add known return types for common functions (Phase A - Session 5)
-		this.addKnownReturnTypes();
-
-		// Also build from V6_FUNCTIONS for any missing functions
-		for (const [name, item] of Object.entries(V6_FUNCTIONS)) {
-			if (!this.functionSignatures.has(name)) {
-				const sig = this.parseSignature(name, item as PineItem);
-				if (sig) {
-					this.functionSignatures.set(name, sig);
-				}
 			}
 		}
 	}
@@ -132,20 +123,24 @@ export class UnifiedPineValidator {
 		"plot.style_circles": "plot.style_circles", // Actually valid, but often confused
 	};
 
+	// Namespace properties for property access type inference
 	private namespaceProperties: Record<string, PineType> = {
-		// plot namespace constants (plot.style_*)
-		"plot.style_line": "string",
-		"plot.style_linebr": "string",
-		"plot.style_stepline": "string",
-		"plot.style_steplinebr": "string",
-		"plot.style_histogram": "string",
-		"plot.style_cross": "string",
-		"plot.style_area": "string",
-		"plot.style_areabr": "string",
-		"plot.style_columns": "string",
-		"plot.style_circles": "string",
+		// Build from CONSTANTS_BY_NAME at initialization time
+		...(() => {
+			const props: Record<string, PineType> = {};
+			for (const [name, constant] of CONSTANTS_BY_NAME) {
+				props[name] = constant.type as PineType;
+			}
+			// Also include variables
+			for (const [name, variable] of VARIABLES_BY_NAME) {
+				if (name.includes(".")) {
+					props[name] = variable.type as PineType;
+				}
+			}
+			return props;
+		})(),
 
-		// v4/v5 input type constants (for backward compatibility)
+		// v4/v5 input type constants (for backward compatibility - not in v6 data)
 		"input.source": "string",
 		"input.resolution": "string",
 		"input.bool": "string",
@@ -159,244 +154,110 @@ export class UnifiedPineValidator {
 		"input.price": "string",
 		"input.time": "string",
 
-		// timeframe namespace properties
-		"timeframe.period": "string",
-		"timeframe.multiplier": "int",
+		// Namespace VARIABLES (not constants - these are runtime values, not in scraped data)
+		// syminfo namespace
+		"syminfo.tickerid": "simple<string>",
+		"syminfo.ticker": "simple<string>",
+		"syminfo.prefix": "simple<string>",
+		"syminfo.type": "simple<string>",
+		"syminfo.session": "simple<string>",
+		"syminfo.timezone": "simple<string>",
+		"syminfo.currency": "simple<string>",
+		"syminfo.basecurrency": "simple<string>",
+		"syminfo.root": "simple<string>",
+		"syminfo.pointvalue": "simple<float>",
+		"syminfo.mintick": "simple<float>",
+		"syminfo.description": "simple<string>",
+		"syminfo.sector": "simple<string>",
+		"syminfo.industry": "simple<string>",
+		"syminfo.country": "simple<string>",
+		"syminfo.volumetype": "simple<string>",
 
-		// syminfo namespace properties
-		"syminfo.tickerid": "string",
-		"syminfo.ticker": "string",
-		"syminfo.prefix": "string",
-		"syminfo.type": "string",
-		"syminfo.session": "string",
-		"syminfo.timezone": "string",
-		"syminfo.currency": "string",
-		"syminfo.basecurrency": "string",
-		"syminfo.root": "string",
-		"syminfo.pointvalue": "float",
-		"syminfo.mintick": "float",
-
-		// barstate namespace properties
+		// barstate namespace
 		"barstate.isfirst": "series<bool>",
 		"barstate.islast": "series<bool>",
 		"barstate.isrealtime": "series<bool>",
 		"barstate.isnew": "series<bool>",
 		"barstate.isconfirmed": "series<bool>",
 		"barstate.ishistory": "series<bool>",
+		"barstate.islastconfirmedhistory": "series<bool>",
 
-		// chart namespace properties
+		// timeframe namespace
+		"timeframe.period": "simple<string>",
+		"timeframe.multiplier": "simple<int>",
+		"timeframe.isseconds": "simple<bool>",
+		"timeframe.isminutes": "simple<bool>",
+		"timeframe.isdaily": "simple<bool>",
+		"timeframe.isweekly": "simple<bool>",
+		"timeframe.ismonthly": "simple<bool>",
+		"timeframe.isdwm": "simple<bool>",
+		"timeframe.isintraday": "simple<bool>",
+
+		// chart namespace
 		"chart.bg_color": "color",
 		"chart.fg_color": "color",
-
-		// color namespace constants
-		"color.white": "color",
-		"color.black": "color",
-		"color.red": "color",
-		"color.green": "color",
-		"color.blue": "color",
-		"color.yellow": "color",
-		"color.orange": "color",
-		"color.aqua": "color",
-		"color.fuchsia": "color",
-		"color.gray": "color",
-		"color.grey": "color",
-		"color.lime": "color",
-		"color.maroon": "color",
-		"color.navy": "color",
-		"color.olive": "color",
-		"color.purple": "color",
-		"color.silver": "color",
-		"color.teal": "color",
-		"color.transparent": "color",
 		"chart.left_visible_bar_time": "series<int>",
 		"chart.right_visible_bar_time": "series<int>",
+		"chart.is_heikinashi": "simple<bool>",
+		"chart.is_kagi": "simple<bool>",
+		"chart.is_linebreak": "simple<bool>",
+		"chart.is_pnf": "simple<bool>",
+		"chart.is_range": "simple<bool>",
+		"chart.is_renko": "simple<bool>",
+		"chart.is_standard": "simple<bool>",
+
+		// session namespace
+		"session.ismarket": "series<bool>",
+		"session.ispremarket": "series<bool>",
+		"session.ispostmarket": "series<bool>",
+		"session.isfirstbar": "series<bool>",
+		"session.islastbar": "series<bool>",
+		"session.isfirstbar_regular": "series<bool>",
+		"session.islastbar_regular": "series<bool>",
+
+		// strategy namespace
+		"strategy.position_size": "series<float>",
+		"strategy.position_avg_price": "series<float>",
+		"strategy.equity": "series<float>",
+		"strategy.openprofit": "series<float>",
+		"strategy.netprofit": "series<float>",
+		"strategy.grossprofit": "series<float>",
+		"strategy.grossloss": "series<float>",
+		"strategy.max_drawdown": "series<float>",
+		"strategy.closedtrades": "series<int>",
+		"strategy.opentrades": "series<int>",
+		"strategy.wintrades": "series<int>",
+		"strategy.losstrades": "series<int>",
+		"strategy.eventrades": "series<int>",
+		"strategy.initial_capital": "simple<float>",
+
+		// color.grey alias (British spelling, not in TradingView docs)
+		"color.grey": "color",
+		"color.transparent": "color",
 	};
 
-	private addKnownReturnTypes(): void {
-		// High-impact function return types identified in Session 5 analysis
-		// These functions are commonly used but missing return type information
-		const knownReturnTypes: Record<string, string> = {
-			// timeframe namespace
-			"timeframe.in_seconds": "int",
-			"timeframe.multiplier": "int",
-			"timeframe.isseconds": "bool",
-			"timeframe.isminutes": "bool",
-			"timeframe.ishours": "bool",
-			"timeframe.isdaily": "bool",
-			"timeframe.isweekly": "bool",
-			"timeframe.ismonthly": "bool",
-			"timeframe.isdwm": "bool",
-			"timeframe.isintraday": "bool",
-
-			// strategy namespace
-			"strategy.position_size": "series float",
-			"strategy.position_avg_price": "series float",
-			"strategy.opentrades": "series int",
-			"strategy.closedtrades": "series int",
-			"strategy.wintrades": "series int",
-			"strategy.losstrades": "series int",
-			"strategy.grossprofit": "series float",
-			"strategy.grossloss": "series float",
-			"strategy.netprofit": "series float",
-
-			// request namespace
-			"request.security": "series float",
-			"request.dividends": "series float",
-			"request.splits": "series float",
-			"request.earnings": "series float",
-
-			// str namespace
-			"str.tostring": "string",
-			"str.tonumber": "float",
-			"str.length": "int",
-			"str.contains": "bool",
-			"str.pos": "int",
-			"str.substring": "string",
-			"str.replace": "string",
-			"str.replace_all": "string",
-			"str.lower": "string",
-			"str.upper": "string",
-			"str.split": "array<string>",
-			"str.format": "string",
-
-			// math namespace (additional)
-			"math.ceil": "int",
-			"math.floor": "int",
-			"math.round": "int",
-			"math.sign": "int",
-			"math.abs": "float",
-			"math.sqrt": "float",
-			"math.pow": "float",
-			"math.exp": "float",
-			"math.log": "float",
-			"math.log10": "float",
-
-			// array namespace (common)
-			"array.size": "int",
-			"array.get": "any", // Returns element type
-			"array.includes": "bool",
-			"array.indexof": "int",
-			"array.lastindexof": "int",
-			"array.min": "float",
-			"array.max": "float",
-			"array.sum": "float",
-			"array.avg": "float",
-
-			// ta namespace (additional)
-			"ta.change": "series float",
-			"ta.rsi": "series float",
-			"ta.ema": "series float",
-			"ta.sma": "series float",
-			"ta.wma": "series float",
-			"ta.vwma": "series float",
-			"ta.stoch": "series float",
-			"ta.bb": "series float",
-			"ta.bbw": "series float",
-			"ta.atr": "series float",
-			"ta.tr": "series float",
-			"ta.crossover": "bool",
-			"ta.crossunder": "bool",
-			"ta.cross": "bool",
-			"ta.valuewhen": "series float",
-			"ta.barssince": "series int",
-			"ta.highest": "series float",
-			"ta.lowest": "series float",
-			"ta.highestbars": "series int",
-			"ta.lowestbars": "series int",
-		};
-
-		// Apply return types to existing signatures
-		for (const [funcName, returnType] of Object.entries(knownReturnTypes)) {
-			const sig = this.functionSignatures.get(funcName);
-			if (sig && !sig.returns) {
-				sig.returns = returnType;
-			}
-		}
-	}
-
-	private buildSignatureFromSpec(
+	private buildSignatureFromPineFunction(
 		name: string,
-		spec: FunctionSignatureSpec,
+		func: PineFunction,
 	): FunctionSignature | null {
 		try {
 			const parameters: ParameterInfo[] = [];
 
-			// Use the parameters array if available
-			if (spec.parameters && Array.isArray(spec.parameters)) {
-				for (const param of spec.parameters as FunctionParameter[]) {
-					parameters.push({
-						name: param.name,
-						type: this.mapToPineType(param.type),
-						optional: param.optional || false,
-						defaultValue: undefined,
-					});
-				}
-			} else {
-				// Fallback to requiredParams and optionalParams
-				const requiredParams = spec.requiredParams || [];
-				const optionalParams = spec.optionalParams || [];
-
-				for (const paramName of requiredParams) {
-					parameters.push({
-						name: paramName,
-						type: "unknown",
-						optional: false,
-					});
-				}
-
-				for (const paramName of optionalParams) {
-					parameters.push({
-						name: paramName,
-						type: "unknown",
-						optional: true,
-					});
-				}
+			// Use the parameters array from PineFunction
+			for (const param of func.parameters) {
+				parameters.push({
+					name: param.name,
+					type: this.mapToPineType(param.type),
+					optional: !param.required,
+					defaultValue: param.default,
+				});
 			}
 
 			return {
 				name,
 				parameters,
-				returns: spec.returns || undefined,
+				returns: func.returns || undefined,
 			};
-		} catch (_e) {
-			return null;
-		}
-	}
-
-	private parseSignature(
-		name: string,
-		item: PineItem,
-	): FunctionSignature | null {
-		if (!item.syntax) return null;
-
-		try {
-			const match = item.syntax.match(/\(([^)]*)\)/);
-			if (!match) return { name, parameters: [], returns: item.returns };
-
-			const paramsString = match[1].trim();
-			if (!paramsString) return { name, parameters: [], returns: item.returns };
-
-			const parameters: ParameterInfo[] = [];
-			const params = this.splitParameters(paramsString);
-
-			for (const param of params) {
-				const parts = param.split("=");
-				const nameAndType = parts[0].trim();
-				const defaultValue = parts[1]?.trim();
-
-				const typeParts = nameAndType.split(":");
-				const paramName = typeParts[0].trim();
-				const paramType = this.mapToPineType(typeParts[1]?.trim());
-
-				parameters.push({
-					name: paramName,
-					type: paramType,
-					optional: !!defaultValue,
-					defaultValue,
-				});
-			}
-
-			return { name, parameters, returns: item.returns };
 		} catch (_e) {
 			return null;
 		}
@@ -465,6 +326,55 @@ export class UnifiedPineValidator {
 			}
 
 			this.symbolTable.define(symbol);
+		} else if (statement.type === "TupleDeclaration") {
+			// Handle tuple destructuring: [a, b, c] = expr
+			const tupleDecl = statement as TupleDeclaration;
+
+			// Try to infer types from the init expression
+			// For request.security with array arg: [a, b, c] = request.security(sym, tf, [open, high, low])
+			// The types come from the array elements (built-in variables)
+			const elementTypes: PineType[] = [];
+
+			if (tupleDecl.init.type === "CallExpression") {
+				const call = tupleDecl.init as CallExpression;
+				let funcName = "";
+				if (call.callee.type === "Identifier") {
+					funcName = call.callee.name;
+				} else if (call.callee.type === "MemberExpression") {
+					const member = call.callee;
+					if (member.object.type === "Identifier") {
+						funcName = `${member.object.name}.${member.property.name}`;
+					}
+				}
+
+				// For request.security, look for the expression/array argument
+				if (funcName === "request.security" && call.arguments.length >= 3) {
+					const exprArg = call.arguments[2].value;
+					if (exprArg.type === "ArrayExpression") {
+						// Extract types from array elements
+						for (const elem of (exprArg as ArrayExpression).elements) {
+							elementTypes.push(this.inferExpressionType(elem, version));
+						}
+					}
+				}
+			}
+
+			// Add each tuple element as a variable
+			for (let i = 0; i < tupleDecl.names.length; i++) {
+				const name = tupleDecl.names[i];
+				// Use inferred type from init expression, or default to series<float>
+				const varType = elementTypes[i] || "series<float>";
+
+				this.symbolTable.define({
+					name,
+					type: varType,
+					line: tupleDecl.line,
+					column: tupleDecl.column,
+					used: false,
+					kind: "variable",
+					declaredWith: null,
+				});
+			}
 		} else if (statement.type === "FunctionDeclaration") {
 			// NOTE: Function declarations are handled in validateStatement
 			// to ensure proper scope management. This method is only called
@@ -550,11 +460,95 @@ export class UnifiedPineValidator {
 				break;
 			}
 
+			case "TupleDeclaration": {
+				// Handle tuple destructuring: [a, b, c] = expr
+				const tupleDecl = statement as TupleDeclaration;
+
+				// Try to infer types from the init expression
+				// For request.security with array arg: [a, b, c] = request.security(sym, tf, [open, high, low])
+				const elementTypes: PineType[] = [];
+
+				if (tupleDecl.init.type === "CallExpression") {
+					const call = tupleDecl.init as CallExpression;
+					let funcName = "";
+					if (call.callee.type === "Identifier") {
+						funcName = call.callee.name;
+					} else if (call.callee.type === "MemberExpression") {
+						const member = call.callee;
+						if (member.object.type === "Identifier") {
+							funcName = `${member.object.name}.${member.property.name}`;
+						}
+					}
+
+					// For request.security, look for the expression/array argument
+					if (funcName === "request.security" && call.arguments.length >= 3) {
+						const exprArg = call.arguments[2].value;
+						if (exprArg.type === "ArrayExpression") {
+							// Extract types from array elements
+							for (const elem of (exprArg as ArrayExpression).elements) {
+								elementTypes.push(this.inferExpressionType(elem, version));
+							}
+						}
+					}
+				}
+
+				// Add each tuple element as a variable
+				for (let i = 0; i < tupleDecl.names.length; i++) {
+					const name = tupleDecl.names[i];
+					// Use inferred type from init expression, or default to series<float>
+					const varType = elementTypes[i] || "series<float>";
+
+					this.symbolTable.define({
+						name,
+						type: varType,
+						line: tupleDecl.line,
+						column: tupleDecl.column,
+						used: false,
+						kind: "variable",
+						declaredWith: null,
+					});
+				}
+
+				// Validate the init expression
+				this.validateExpression(tupleDecl.init, version);
+				break;
+			}
+
 			case "ExpressionStatement":
 				this.validateExpression(statement.expression, version);
 				break;
 
-			case "FunctionDeclaration":
+			case "FunctionDeclaration": {
+				// First, infer the function return type from the body
+				// We need to do this before entering scope since calls to this function
+				// elsewhere need to know the return type
+				let returnType: PineType = "unknown";
+
+				if (statement.returnType) {
+					// Use explicit return type annotation if present
+					returnType = this.mapToPineType(statement.returnType.name);
+				} else {
+					// Infer return type from function body
+					// For arrow functions, body contains a single ReturnStatement
+					// For block functions, look at all return statements
+					returnType = this.inferFunctionReturnType(
+						statement.body,
+						version,
+						statement.params,
+					);
+				}
+
+				// Register the function in the symbol table at the outer scope
+				this.symbolTable.define({
+					name: statement.name,
+					type: returnType,
+					line: statement.line,
+					column: statement.column,
+					used: false,
+					kind: "function",
+					declaredWith: null,
+				});
+
 				this.symbolTable.enterScope();
 				this.blockDepth++;
 
@@ -648,6 +642,7 @@ export class UnifiedPineValidator {
 				this.symbolTable.exitScope();
 				this.blockDepth--;
 				break;
+			}
 
 			case "IfStatement": {
 				this.validateExpression(statement.condition, version);
@@ -820,6 +815,22 @@ export class UnifiedPineValidator {
 				this.validateExpression(expr.object, version);
 				this.validateExpression(expr.index, version);
 				break;
+
+			case "SwitchExpression": {
+				// Validate all cases in the switch expression
+				const switchExpr = expr as SwitchExpression;
+				// Validate discriminant if present (e.g., "switch pos")
+				if (switchExpr.discriminant) {
+					this.validateExpression(switchExpr.discriminant, version);
+				}
+				for (const switchCase of switchExpr.cases) {
+					if (switchCase.condition) {
+						this.validateExpression(switchCase.condition, version);
+					}
+					this.validateExpression(switchCase.result, version);
+				}
+				break;
+			}
 		}
 	}
 
@@ -1086,6 +1097,70 @@ export class UnifiedPineValidator {
 		}
 	}
 
+	/**
+	 * Infer the return type of a user-defined function from its body.
+	 * For arrow functions (single expression), the body contains a single ReturnStatement.
+	 * For block functions, we analyze all return statements.
+	 *
+	 * NOTE: This is called BEFORE we enter the function scope, so we need to
+	 * temporarily collect declarations from the body to resolve local variables.
+	 */
+	private inferFunctionReturnType(
+		body: Statement[],
+		version: string,
+		params?: import("./ast").FunctionParam[],
+	): PineType {
+		// Enter a temporary scope for type inference
+		this.symbolTable.enterScope();
+
+		// Add function parameters to temporary scope
+		if (params) {
+			for (const param of params) {
+				// Use a generic type for parameters during inference
+				this.symbolTable.define({
+					name: param.name,
+					type: "series<float>", // Default assumption for UDF params
+					line: 0,
+					column: 0,
+					used: false,
+					kind: "variable",
+					declaredWith: null,
+				});
+			}
+		}
+
+		// Temporarily collect declarations from function body
+		for (const stmt of body) {
+			this.collectDeclarations(stmt, version);
+		}
+
+		let returnType: PineType = "unknown";
+
+		// Look for return statements in the function body
+		for (const stmt of body) {
+			if (stmt.type === "ReturnStatement") {
+				// For ReturnStatement, infer type from the returned expression
+				const returnStmt = stmt as ReturnStatement;
+				returnType = this.inferExpressionType(returnStmt.value, version);
+				break;
+			}
+		}
+
+		// If no explicit return, check if the last statement is an expression
+		if (returnType === "unknown" && body.length > 0) {
+			const lastStmt = body[body.length - 1];
+			if (lastStmt.type === "ExpressionStatement") {
+				const exprStmt = lastStmt as ExpressionStatement;
+				returnType = this.inferExpressionType(exprStmt.expression, version);
+			}
+		}
+
+		// Exit the temporary scope
+		this.symbolTable.exitScope();
+
+		return returnType;
+	}
+
 	private mapReturnTypeToPineType(returnTypeStr: string): PineType {
 		// Map common return type strings from function signatures to PineType
 		const typeMap: Record<string, PineType> = {
@@ -1107,6 +1182,12 @@ export class UnifiedPineValidator {
 			"simple float": "float",
 			"simple bool": "bool",
 			"simple string": "string",
+			// Input types (from input.* functions)
+			"input int": "int",
+			"input float": "float",
+			"input bool": "bool",
+			"input string": "string",
+			"input color": "color",
 		};
 
 		return typeMap[returnTypeStr.toLowerCase()] || "unknown";
@@ -1147,18 +1228,31 @@ export class UnifiedPineValidator {
 					}
 				}
 
-				// First check if it's a user-defined function in symbol table
-				const funcSymbol = this.symbolTable.lookup(funcName);
-				if (funcSymbol && funcSymbol.kind === "function") {
-					type = funcSymbol.type;
-					break;
+				// Special handling for request.security with non-tuple returns
+				// When 3rd argument is not an array, the return type matches the expression type
+				// e.g., request.security(sym, tf, ta.atr(14)) returns series<float>
+				if (funcName === "request.security" && callExpr.arguments.length >= 3) {
+					const exprArg = callExpr.arguments[2].value;
+					// Only handle non-array cases (array cases are handled in tuple destructuring)
+					if (exprArg.type !== "ArrayExpression") {
+						type = this.inferExpressionType(exprArg, version);
+						break;
+					}
 				}
 
-				// Then check function signatures for built-ins
+				// First check function signatures for built-ins
+				// (These have accurate return type information)
 				const signature = this.functionSignatures.get(funcName);
 				if (signature?.returns) {
 					// Map the return type string to PineType
 					type = this.mapReturnTypeToPineType(signature.returns);
+					break;
+				}
+
+				// Check if it's a user-defined function with registered return type
+				const udfSymbol = this.symbolTable.lookup(funcName);
+				if (udfSymbol && udfSymbol.kind === "function" && udfSymbol.type !== "unknown") {
+					type = udfSymbol.type;
 					break;
 				}
 
@@ -1281,6 +1375,15 @@ export class UnifiedPineValidator {
 				break;
 			}
 
+			case "SwitchExpression": {
+				// Infer type from the first case result (all cases should return same type)
+				const switchExpr = expr as SwitchExpression;
+				if (switchExpr.cases.length > 0) {
+					type = this.inferExpressionType(switchExpr.cases[0].result, version);
+				}
+				break;
+			}
+
 			case "MemberExpression": {
 				// Phase D - Session 5: Check for namespace properties first
 				// Session 9: Add deprecation warnings and unknown property detection
@@ -1309,18 +1412,8 @@ export class UnifiedPineValidator {
 						break;
 					}
 
-					// Check if it's a known namespace property (v6 only)
-					if (version === "6" && propertyName in this.namespaceProperties) {
-						type = this.namespaceProperties[propertyName];
-						break;
-					}
-
-					// For v4/v5, also check input namespace properties
-					if (
-						version !== "6" &&
-						namespaceName === "input" &&
-						propertyName in this.namespaceProperties
-					) {
+					// Check if it's a known namespace property (all versions)
+					if (propertyName in this.namespaceProperties) {
 						type = this.namespaceProperties[propertyName];
 						break;
 					}

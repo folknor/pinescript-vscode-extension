@@ -123,7 +123,19 @@ export type Expression =
 	| UnaryExpression
 	| TernaryExpression
 	| ArrayExpression
-	| IndexExpression;
+	| IndexExpression
+	| SwitchExpression;
+
+export interface SwitchCase {
+	condition?: Expression;  // undefined for default case
+	result: Expression;
+}
+
+export interface SwitchExpression extends ASTNode {
+	type: "SwitchExpression";
+	discriminant?: Expression;  // Optional discriminant (e.g., "switch pos")
+	cases: SwitchCase[];
+}
 
 export interface Identifier extends ASTNode {
 	type: "Identifier";

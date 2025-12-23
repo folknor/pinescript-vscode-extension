@@ -90,9 +90,15 @@ export class Parser {
 		// switch
 		//     condition => expr
 		//     => defaultExpr
-		if (this.check([TokenType.KEYWORD, ["switch"]])) {
-			// Could be switch expression assigned to a variable - handled via variableDeclaration
-			// But if it appears alone, skip it for now
+		if (this.match([TokenType.KEYWORD, ["switch"]])) {
+			// Parse switch as an expression statement (it returns a value)
+			const switchExpr = this.switchExpression();
+			return {
+				type: "ExpressionStatement",
+				expression: switchExpr,
+				line: switchExpr.line,
+				column: switchExpr.column,
+			};
 		}
 
 		// Type or Enum declaration (Pine Script v6)
@@ -785,7 +791,15 @@ export class Parser {
 	private switchExpression(): AST.Expression {
 		const startToken = this.previous();
 
-		// Skip newlines after 'switch'
+		// Check for discriminant expression on the same line (e.g., "switch pos")
+		// If there's an identifier or expression before the newline, parse it as discriminant
+		let discriminant: AST.Expression | undefined;
+		if (!this.check(TokenType.NEWLINE) && !this.isAtEnd()) {
+			// There's something on the same line as 'switch' - parse as discriminant
+			discriminant = this.expression();
+		}
+
+		// Skip newlines after 'switch' (or discriminant)
 		while (this.check(TokenType.NEWLINE)) {
 			this.advance();
 		}
@@ -837,17 +851,11 @@ export class Parser {
 			}
 		}
 
-		// Return the last case's result as the expression value
-		// (In a full implementation, this would be a SwitchExpression AST node)
-		if (cases.length > 0) {
-			return cases[cases.length - 1].result;
-		}
-
-		// Return a placeholder literal if no cases
+		// Return a proper SwitchExpression AST node
 		return {
-			type: "Literal",
-			value: "na",
-			raw: "na",
+			type: "SwitchExpression",
+			discriminant,
+			cases,
 			line: startToken.line,
 			column: startToken.column,
 		};

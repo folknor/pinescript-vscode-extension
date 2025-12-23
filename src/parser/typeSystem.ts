@@ -10,6 +10,11 @@ export type PineType =
 	| "series<bool>"
 	| "series<string>"
 	| "series<color>"
+	| "simple<int>"
+	| "simple<float>"
+	| "simple<bool>"
+	| "simple<string>"
+	| "simple<color>"
 	| "array<int>"
 	| "array<float>"
 	| "array<bool>"
@@ -42,24 +47,44 @@ export namespace TypeChecker {
 		if (from === "int" && to === "float") return true;
 		if (from === "series<int>" && to === "series<float>") return true;
 
-		// Simple -> series coercion
+		// Simple -> series coercion (base types to series)
 		if (from === "int" && to === "series<int>") return true;
 		if (from === "float" && to === "series<float>") return true;
 		if (from === "bool" && to === "series<bool>") return true;
 		if (from === "string" && to === "series<string>") return true;
 		if (from === "color" && to === "series<color>") return true;
 
+		// simple<T> -> series<T> coercion
+		if (from === "simple<int>" && to === "series<int>") return true;
+		if (from === "simple<float>" && to === "series<float>") return true;
+		if (from === "simple<bool>" && to === "series<bool>") return true;
+		if (from === "simple<string>" && to === "series<string>") return true;
+		if (from === "simple<color>" && to === "series<color>") return true;
+
+		// simple<T> -> base type T coercion (simple is compatible with const)
+		if (from === "simple<int>" && to === "int") return true;
+		if (from === "simple<float>" && to === "float") return true;
+		if (from === "simple<bool>" && to === "bool") return true;
+		if (from === "simple<string>" && to === "string") return true;
+		if (from === "simple<color>" && to === "color") return true;
+
+		// int coercion with simple types
+		if (from === "simple<int>" && to === "float") return true;
+		if (from === "simple<int>" && to === "simple<float>") return true;
+		if (from === "simple<int>" && to === "series<float>") return true;
+
 		return false;
 	}
 
 	// Infer type from literal value
 	export function inferLiteralType(value: unknown): PineType {
+		// Check for na first (it's stored as string "na" in the AST)
+		if (value === "na") return "na";
 		if (typeof value === "number") {
 			return Number.isInteger(value) ? "int" : "float";
 		}
 		if (typeof value === "boolean") return "bool";
 		if (typeof value === "string") return "string";
-		if (value === "na") return "na";
 		return "unknown";
 	}
 
@@ -69,6 +94,15 @@ export namespace TypeChecker {
 		right: PineType,
 		operator: string,
 	): PineType {
+		// String concatenation with +
+		if (operator === "+" && (isStringType(left) || isStringType(right))) {
+			// String concatenation returns string (or series<string> if either is series)
+			if (left.startsWith("series") || right.startsWith("series")) {
+				return "series<string>";
+			}
+			return "string";
+		}
+
 		// Arithmetic operators
 		if (["+", "-", "*", "/", "%"].includes(operator)) {
 			// If either is series, result is series
@@ -109,6 +143,12 @@ export namespace TypeChecker {
 		right: PineType,
 		operator: string,
 	): boolean {
+		// String concatenation with +
+		if (operator === "+" && (isStringType(left) || isStringType(right))) {
+			// Both must be strings for string concatenation
+			return isStringType(left) && isStringType(right);
+		}
+
 		// Arithmetic operators require numeric types
 		if (["+", "-", "*", "/", "%"].includes(operator)) {
 			const leftNumeric = isNumericType(left);

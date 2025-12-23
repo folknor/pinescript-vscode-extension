@@ -1,16 +1,8 @@
 import * as vscode from "vscode";
-import { type PineItem, V6_FUNCTIONS } from "../v6/v6-manual";
-import { type NamespaceMember, V6_NAMESPACES } from "../v6/v6-namespaces";
-
-// Helper to convert NamespaceMember to PineItem format
-function memberToPineItem(member: NamespaceMember): PineItem {
-	return {
-		description: member.description || "",
-		syntax: member.syntax,
-		returns: member.returns,
-		type: member.type,
-	};
-}
+import {
+	type PineFunction,
+	FUNCTIONS_BY_NAME,
+} from "../pine-data/v6";
 
 interface ParsedParameter {
 	label: string;
@@ -99,33 +91,24 @@ export function createSignatureHelpProvider(): vscode.SignatureHelpProvider {
 
 			if (!functionName) return undefined;
 
-			// Look up function in our v6 data
-			let funcItem: PineItem | undefined = V6_FUNCTIONS[functionName];
+			// Look up function in our v6 data (unified Map handles both global and namespaced)
+			const func: PineFunction | undefined = FUNCTIONS_BY_NAME.get(functionName);
 
-			// Check namespaced functions
-			if (!funcItem && functionName.includes(".")) {
-				const [ns, fname] = functionName.split(".");
-				const nsData = V6_NAMESPACES[ns];
-				if (nsData?.functions?.[fname]) {
-					funcItem = memberToPineItem(nsData.functions[fname]);
-				}
-			}
-
-			if (!funcItem || !funcItem.syntax) return undefined;
+			if (!func || !func.syntax) return undefined;
 
 			// Parse parameters from syntax
-			const params = parseParameters(funcItem.syntax);
+			const params = parseParameters(func.syntax);
 			if (params.length === 0) return undefined;
 
 			// Create signature information
-			const sigInfo = new vscode.SignatureInformation(funcItem.syntax);
+			const sigInfo = new vscode.SignatureInformation(func.syntax);
 
 			// Add function documentation
-			if (funcItem.description) {
+			if (func.description) {
 				const md = new vscode.MarkdownString();
-				md.appendMarkdown(funcItem.description);
-				if (funcItem.returns) {
-					md.appendMarkdown(`\n\n**Returns:** \`${funcItem.returns}\``);
+				md.appendMarkdown(func.description);
+				if (func.returns) {
+					md.appendMarkdown(`\n\n**Returns:** \`${func.returns}\``);
 				}
 				sigInfo.documentation = md;
 			}
