@@ -118,26 +118,31 @@ Analysis revealed two **independent problem categories** affecting different fil
 
 Files with newline errors have almost no type errors (only 15 total).
 
-### Category B: Type Inference Errors (132 files, ~467 errors)
+### Category B: Type Inference Errors (132 files, ~413 errors)
 
 **Root Causes:**
-1. ~~Polymorphic functions returning wrong type~~ ✅ **PARTIALLY FIXED** (2025-12-23)
-2. Array element types not tracked through symbol table
-3. Other type inference gaps
+1. ~~Polymorphic functions returning wrong type~~ ✅ **FIXED** (2025-12-23)
+2. ~~`simple<T>` types not recognized as numeric~~ ✅ **FIXED** (2025-12-23)
+3. ~~Color arithmetic rejected~~ ✅ **FIXED** (2025-12-23)
+4. Function overloads not supported (e.g., `line.new` has 2 signatures)
+5. Array element types not tracked through symbol table
 
-**Breakdown (after polymorphic fix):**
-- ~~214 errors (45%) involved `unknown` type~~ → 163 errors (35%) remain
-- 304 errors (65%) are other type mismatches
+**Breakdown (after all type fixes):**
+- 157 errors (38%) involve `unknown` type (mostly array element types)
+- 256 errors (62%) are other type mismatches:
+  - 207 argument type mismatches (mostly function overload issues)
+  - ~50 remaining misc type issues
 
 ### Revised Priority List
 
 | Priority | Fix | Impact | Effort | Status |
 |----------|-----|--------|--------|--------|
-| **1** | ~~Lexer: handle `.1` floats~~ | ~~200 errors (42 files)~~ | Low | ✅ **FIXED** |
-| **2** | ~~Polymorphic functions (`nz`, `fixnan`, `math.*`)~~ | ~~51 errors fixed~~ | Medium | ✅ **FIXED** |
-| **3** | Array element type tracking | ~163 remaining "unknown" errors | Medium | |
-| **4** | Parser: library/export function definitions | ~100+ errors (38 files) | Medium | |
-| **5** | Review remaining type mismatch logic | ~304 errors | High | |
+| **1** | ~~Lexer: handle `.1` floats~~ | ~~200 errors~~ | Low | ✅ **FIXED** |
+| **2** | ~~Polymorphic functions~~ | ~~51 errors~~ | Medium | ✅ **FIXED** |
+| **3** | ~~Type coercion (`simple<T>`, color arithmetic)~~ | ~~48 errors~~ | Low | ✅ **FIXED** |
+| **4** | Function overloads (e.g., `line.new`) | ~207 errors | High | |
+| **5** | Array element type tracking | ~157 "unknown" errors | Medium | |
+| **6** | Parser: library/export function definitions | ~100+ errors (38 files) | Medium | |
 
 ### Polymorphic Functions Implemented
 
@@ -146,7 +151,12 @@ Functions marked with `flags.polymorphic` in `scripts/generate-pine-data.js`:
 - **"element"**: `array.get/first/last/pop/remove/shift/max/min/avg/sum/median/mode/stdev/variance`
 - **"numeric"**: `math.abs/sign/max/min/avg/sum/round/floor/ceil`
 
-Note: Array element type inference requires tracking array declarations (e.g., `array.new_float()`) through the symbol table - not yet implemented.
+### Type Coercion Fixes (2025-12-23)
+
+Updated `src/analyzer/types.ts`:
+- `isNumericType()` now includes `simple<int>`, `simple<float>`, and color types
+- `areCompatibleForComparison()` now handles `series<int>` vs `float`, and `simple<T>` types
+- `isBoolType()` and `isStringType()` now include `simple<T>` variants
 
 ---
 

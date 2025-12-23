@@ -191,12 +191,30 @@ export namespace TypeChecker {
 		seriesType: PineType,
 		simpleType: PineType,
 	): boolean {
+		// series<int> comparisons
 		if (seriesType === "series<int>" && simpleType === "int") return true;
+		if (seriesType === "series<int>" && simpleType === "float") return true; // int can compare with float
+		if (seriesType === "series<int>" && simpleType === "simple<int>") return true;
+		if (seriesType === "series<int>" && simpleType === "simple<float>") return true;
+
+		// series<float> comparisons
 		if (seriesType === "series<float>" && simpleType === "float") return true;
 		if (seriesType === "series<float>" && simpleType === "int") return true; // int coerces to float
+		if (seriesType === "series<float>" && simpleType === "simple<int>") return true;
+		if (seriesType === "series<float>" && simpleType === "simple<float>") return true;
+
+		// series<bool> comparisons
 		if (seriesType === "series<bool>" && simpleType === "bool") return true;
+		if (seriesType === "series<bool>" && simpleType === "simple<bool>") return true;
+
+		// series<string> comparisons
 		if (seriesType === "series<string>" && simpleType === "string") return true;
+		if (seriesType === "series<string>" && simpleType === "simple<string>") return true;
+
+		// series<color> comparisons
 		if (seriesType === "series<color>" && simpleType === "color") return true;
+		if (seriesType === "series<color>" && simpleType === "simple<color>") return true;
+
 		return false;
 	}
 
@@ -205,16 +223,22 @@ export namespace TypeChecker {
 			type === "int" ||
 			type === "float" ||
 			type === "series<int>" ||
-			type === "series<float>"
+			type === "series<float>" ||
+			type === "simple<int>" ||
+			type === "simple<float>" ||
+			// Color is numeric in Pine Script (can do arithmetic on it)
+			type === "color" ||
+			type === "series<color>" ||
+			type === "simple<color>"
 		);
 	}
 
 	export function isBoolType(type: PineType): boolean {
-		return type === "bool" || type === "series<bool>";
+		return type === "bool" || type === "series<bool>" || type === "simple<bool>";
 	}
 
 	export function isStringType(type: PineType): boolean {
-		return type === "string" || type === "series<string>";
+		return type === "string" || type === "series<string>" || type === "simple<string>";
 	}
 
 	// Map Pine Script function return types
