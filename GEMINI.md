@@ -259,14 +259,21 @@ Ran comparison of our CLI against TradingView's `pine-lint` on 176 Pine Script f
   - Scraper now parses ALL overloads to capture additional optional parameters
   - Regenerated `pine-data/v6/functions.ts` from raw data
 
-**Remaining False Positives (133 files):**
-| Error Type | Count | Notes |
-|------------|-------|-------|
-| Multiline string parsing | ~400 | `mismatched character '\n' expecting '"'` - lexer issue |
-| Missing required 'title' param | ~42 | hline/plot title param - may be optional in some versions |
-| Type mismatch with unknown | ~100 | Type inference gaps (unknown operand types) |
-| Undefined variable 'src' | ~21 | Common param name not in scope |
-| str.format too many args | ~10 | Similar to str.tostring - needs overload fix |
+**Remaining False Positives (141 files out of 176, 80.1% mismatch rate):**
+| Error Type | Files | Occurrences | Notes |
+|------------|-------|-------------|-------|
+| Unexpected token errors | 149 | ~406 | EOF handling (302), commas (61), brackets (12), `=>` (11) |
+| Multiline string parsing | 47 | ~358 | `mismatched character '\n'` - lexer issue (double: 202, single: 156) |
+| Type mismatch errors | 85 | ~200+ | Type inference gaps, 'unknown' cascading, operator/arg mismatches |
+| Undefined variable | 30 | ~30+ | Scope issues (e.g., 'src' param not in scope) |
+| Missing required param | 13 | ~11 | `line.new` width param, etc. |
+
+**Error Pattern Breakdown:**
+- `Unexpected token: ` (blank/EOF): 302
+- `Unexpected token: ,`: 61
+- `Unexpected token: =>`: 11 (some lambda cases remain)
+- `Type mismatch: cannot apply X to Y and unknown`: ~100+
+- `Type mismatch for argument N`: ~150+
 
 **Comparison Tool:**
 ```bash
@@ -274,7 +281,7 @@ node dev-tools/analysis/compare-validation-results.js
 ```
 Results saved to: `plan/pine-lint-vs-cli-differences/`
 
-**Next Priority:** Fix type inference to reduce "unknown" type cascading errors.
+**Next Priority:** Fix EOF/blank token handling to reduce "Unexpected token: " errors (~302).
 
 ---
 
