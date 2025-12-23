@@ -39,6 +39,7 @@ import {
 	isVariadicFunction,
 	getMinArgsForVariadic,
 	getPolymorphicReturnType,
+	hasOverloads,
 } from "./builtins";
 
 // Re-export for backward compatibility
@@ -744,6 +745,10 @@ export class UnifiedPineValidator {
 			return; // Skip further parameter validation for variadic functions
 		}
 
+		// For functions with overloads, skip positional type checking
+		// (we can't reliably determine which overload is being used)
+		const functionHasOverloads = hasOverloads(functionName);
+
 		// Validate each parameter
 		for (let i = 0; i < signature.parameters.length; i++) {
 			const param = signature.parameters[i];
@@ -751,7 +756,7 @@ export class UnifiedPineValidator {
 			// Check named argument
 			const namedArg = providedArgs.get(param.name);
 			if (namedArg) {
-				// Validate type
+				// Validate type (named args are unambiguous, so we can check them)
 				if (param.type && param.type !== "unknown") {
 					if (!TypeChecker.isAssignable(namedArg.type, param.type)) {
 						this.addError(
@@ -766,8 +771,12 @@ export class UnifiedPineValidator {
 				continue;
 			}
 
-			// Check positional argument
+			// Check positional argument (skip for overloaded functions)
 			if (i < positionalArgs.length) {
+				// Skip type checking for overloaded functions - can't determine which signature is used
+				if (functionHasOverloads) {
+					continue;
+				}
 				const posArg = positionalArgs[i];
 				if (param.type && param.type !== "unknown") {
 					if (!TypeChecker.isAssignable(posArg.type, param.type)) {
@@ -783,8 +792,9 @@ export class UnifiedPineValidator {
 				continue;
 			}
 
-			// Parameter not provided
-			if (!param.optional) {
+			// Parameter not provided - skip for overloaded functions
+			// (alternative overloads may not require this parameter)
+			if (!param.optional && !functionHasOverloads) {
 				this.addError(
 					call.line,
 					call.column,

@@ -307,6 +307,14 @@ export function getPolymorphicType(functionName: string): string | undefined {
 	return func?.flags?.polymorphic;
 }
 
+// Check if a function has overloads (detected by having parameters with unknown type)
+// Functions with overloads have merged parameters from all overloads, some with type "unknown"
+export function hasOverloads(functionName: string): boolean {
+	const func = FUNCTIONS_BY_NAME.get(functionName);
+	if (!func) return false;
+	return func.parameters.some((p) => p.type === "unknown");
+}
+
 // Get the return type for a polymorphic function based on argument types
 export function getPolymorphicReturnType(
 	functionName: string,
