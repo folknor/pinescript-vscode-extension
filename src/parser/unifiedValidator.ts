@@ -123,7 +123,6 @@ export class UnifiedPineValidator {
 				}
 			}
 		}
-
 	}
 
 	// Phase D - Session 5: Namespace properties for property access type inference

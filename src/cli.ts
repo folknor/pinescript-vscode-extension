@@ -7,12 +7,12 @@ import {
 	type PineLintError,
 	type PineLintOutput,
 } from "./parser/astExtractor";
-import {
-	UnifiedPineValidator,
-	DiagnosticSeverity,
-} from "./parser/unifiedValidator";
 import { Parser } from "./parser/parser";
 import { SemanticAnalyzer } from "./parser/semanticAnalyzer";
+import {
+	DiagnosticSeverity,
+	UnifiedPineValidator,
+} from "./parser/unifiedValidator";
 
 async function main() {
 	const args = process.argv.slice(2);
