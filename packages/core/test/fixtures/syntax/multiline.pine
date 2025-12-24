@@ -1,0 +1,51 @@
+// @test syntax/multiline
+// @description Multiline strings, arrays, and operator continuations
+// @expects parse: success
+// @expects no-errors
+
+//@version=6
+indicator("Multiline Syntax Tests")
+
+// Multiline string (deprecated but valid in v6)
+string multilineStr = "This is line one
+and this is line two
+and line three"
+
+// Multiline array literal
+var arr = [
+    1.0,
+    2.0,
+    3.0,
+    4.0
+]
+
+// Operator continuation - comparison
+bool comp = close >
+    open
+
+// Operator continuation - logical
+bool logic = close > open and
+    high > low
+
+bool logic2 = close > open or
+    volume > 0
+
+// Operator continuation - arithmetic
+float sum = close +
+    open +
+    high
+
+float product = close *
+    2.0
+
+// Nested multiline
+float complex = (close + open) *
+    (high - low) /
+    2.0
+
+// Mixed multiline with ternary
+float ternary = close > open ?
+    high :
+    low
+
+plot(sum)

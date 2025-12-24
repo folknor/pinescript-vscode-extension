@@ -1,0 +1,36 @@
+// @test syntax/generics
+// @description Generic type parsing with dotted types and multiple type arguments
+// @expects parse: success
+// @expects no-errors
+
+//@version=6
+indicator("Generic Type Parsing Tests")
+
+// Basic generics - array.new<T>() syntax
+var floatArr = array.new<float>()
+var intArr = array.new<int>()
+var strArr = array.new<string>()
+var boolArr = array.new<bool>()
+var colorArr = array.new<color>()
+
+// Dotted type names in generics - chart.point
+var points = array.new<chart.point>()
+
+// Multiple type arguments (map) - map.new<K, V>()
+var strFloatMap = map.new<string, float>()
+var intStrMap = map.new<int, string>()
+var strColorMap = map.new<string, color>()
+
+// Nested generics
+var nestedArr = array.new<array<float>>()
+
+// Matrix types
+var floatMatrix = matrix.new<float>(3, 3)
+var intMatrix = matrix.new<int>(2, 2)
+
+// Using generic results
+array.push(floatArr, 1.0)
+array.push(intArr, 42)
+map.put(strFloatMap, "key", 3.14)
+
+plot(close)

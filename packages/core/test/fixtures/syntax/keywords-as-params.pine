@@ -1,0 +1,44 @@
+// @test syntax/keywords-as-params
+// @description Keywords used as function parameter names
+// @expects parse: success
+// @expects no-errors
+
+//@version=6
+indicator("Keywords as Parameter Names Tests")
+
+// 'type' as parameter name (common pattern)
+ma(string type, int length) =>
+    switch type
+        "SMA" => ta.sma(close, length)
+        "EMA" => ta.ema(close, length)
+        => ta.sma(close, length)
+
+// 'color' as parameter name
+drawLine(float price, color color) =>
+    line.new(bar_index - 10, price, bar_index, price, color=color)
+
+// 'string' as parameter name
+formatValue(float value, string string) =>
+    str.format(string, value)
+
+// 'int' as parameter name
+repeatChar(string char, int int) =>
+    result = ""
+    for i = 0 to int - 1
+        result := result + char
+    result
+
+// 'float' as parameter name
+multiply(float float, int factor) =>
+    float * factor
+
+// 'bool' as parameter name
+conditional(bool bool, float trueVal, float falseVal) =>
+    bool ? trueVal : falseVal
+
+// Using the functions
+result1 = ma("SMA", 14)
+result2 = multiply(close, 2)
+result3 = conditional(close > open, high, low)
+
+plot(result1)

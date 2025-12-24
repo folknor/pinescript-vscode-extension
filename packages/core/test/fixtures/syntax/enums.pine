@@ -1,0 +1,53 @@
+// @test syntax/enums
+// @description Enum declarations with member access
+// @expects parse: success
+// @expects no-errors
+
+//@version=6
+indicator("Enum Declaration Tests")
+
+// Simple enum declaration
+enum Direction
+    UP
+    DOWN
+    NEUTRAL
+
+// Enum with explicit values
+enum Scale
+    LINEAR = 0
+    LOG = 1
+    ATR = 2
+
+// Enum member access
+dir = Direction.UP
+scale = Scale.ATR
+
+// Using enum in switch
+getMultiplier(Direction d) =>
+    switch d
+        Direction.UP => 1
+        Direction.DOWN => -1
+        Direction.NEUTRAL => 0
+
+// Using enum in comparison
+isUp = dir == Direction.UP
+isLog = scale == Scale.LOG
+
+// Enum as function parameter
+processDirection(Direction direction) =>
+    direction == Direction.UP ? 1.0 : -1.0
+
+// Calling with enum value
+multiplier = getMultiplier(Direction.DOWN)
+processed = processDirection(dir)
+
+// Type declaration (similar pattern)
+type Point
+    float x
+    float y
+    string label = ""
+
+// Using type
+var Point p = Point.new(1.0, 2.0, "A")
+
+plot(close)

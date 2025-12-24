@@ -217,28 +217,20 @@ string TT = "Line 1 " +
 
 The following tests should be added to prevent regression of fixes since commit 8c7cbbb:
 
-| Commit | Fix | Test Coverage | Tests Needed |
-|--------|-----|---------------|--------------|
-| 32248b7 | Unknown type propagation | ✅ `user-functions.pine` | None - covered |
-| 61474e2 | Comma-separated declarations | ✅ `comma-separated-declarations.pine` | None - covered |
-| 9492b43 | NA type coercion | ⚠️ Partial (`na-handling.pine`) | Add: `const<na>` assignable to any type, function-as-property access (`ta.tr` without parens) |
-| c16cd17 | Numeric types in `and`/`or` | ❌ Missing | Add: `1 and true`, `series<int> or bool` |
-| e7cd1df | Generic type parsing | ❌ Missing | Add: `array.new<chart.point>()`, `map.new<string, float>()` |
-| 23200fb | Type coercion expansion | ❌ Missing | Add: `series<T>` → `T`, numeric → color, numeric → string |
-| 14808bb | Keywords as param names | ❌ Missing | Add: `func(string type) =>`, `func(color color) =>` |
-| e02a4b1 | Multiline strings/expressions | ❌ Missing | Add: multiline string literals, `[a,\n b]`, `x +\n y` |
-| f3da491 | Enum/type declarations | ❌ Missing | Add: `enum SCALE` with member access `SCALE.ATR` |
-| 3d18c49 | Array type coercion | ❌ Missing | Add: `array<type>` assignable to `array<float>` |
+| Commit | Fix | Test Coverage |
+|--------|-----|---------------|
+| 32248b7 | Unknown type propagation | ✅ `syntax/user-functions.pine` |
+| 61474e2 | Comma-separated declarations | ✅ `syntax/comma-separated-declarations.pine` |
+| 9492b43 | NA type coercion | ✅ `validation/na-coercion.pine` |
+| c16cd17 | Numeric types in `and`/`or` | ✅ `validation/logical-operators.pine` |
+| e7cd1df | Generic type parsing | ✅ `syntax/generics.pine` |
+| 23200fb | Type coercion expansion | ✅ `validation/type-coercion.pine` |
+| 14808bb | Keywords as param names | ✅ `syntax/keywords-as-params.pine` |
+| e02a4b1 | Multiline strings/expressions | ✅ `syntax/multiline.pine` |
+| f3da491 | Enum/type declarations | ✅ `syntax/enums.pine` |
+| 3d18c49 | Array type coercion | ✅ `validation/type-coercion.pine` |
 
-**Priority tests to add:**
-
-1. **validation/type-coercion.pine** - Test `series<T>` → `T`, numeric → color/string, `array<type>` → `array<float>`
-2. **syntax/multiline.pine** - Test multiline strings, arrays, and operator continuations
-3. **syntax/generics.pine** - Test `map.new<string, float>()`, `array.new<chart.point>()`
-4. **syntax/keywords-as-params.pine** - Test `func(string type) => type`
-5. **syntax/enums.pine** - Test `enum SCALE` with `SCALE.ATR` member access
-6. **validation/logical-operators.pine** - Test `1 and true`, `series<int> or false`
-7. **validation/na-coercion.pine** - Test `const<na>` to various types, `ta.tr` function-as-property
+All fixes since commit 8c7cbbb now have regression tests
 
 ---
 
@@ -255,11 +247,11 @@ packages/core/test/
 ├── core.test.ts        # Test runner
 └── fixtures/
     ├── parse-errors/   # 3 tests - expected parse failures
-    ├── syntax/         # 28 tests - parser syntax coverage
-    └── validation/     # 4 tests - validator error detection
+    ├── syntax/         # 32 tests - parser syntax coverage
+    └── validation/     # 7 tests - validator error detection
 ```
 
-**Total: 35 tests passing**
+**Total: 42 tests passing**
 
 Test files use `@expects` directives:
 ```pine

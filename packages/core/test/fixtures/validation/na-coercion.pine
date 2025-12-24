@@ -1,0 +1,52 @@
+// @test validation/na-coercion
+// @description NA type coercion and function-as-property access
+// @expects parse: success
+// @expects no-errors
+
+//@version=6
+indicator("NA Coercion and Function-as-Property Tests")
+
+// const<na> assignable to various types
+float naFloat = na
+int naInt = na
+string naString = na
+bool naBool = na
+color naColor = na
+
+// NA in variable declarations with var
+var float varNaFloat = na
+var int varNaInt = na
+var string varNaString = na
+
+// NA in conditional assignments
+float condFloat = close > open ? close : na
+int condInt = bar_index > 10 ? bar_index : na
+string condStr = close > open ? "up" : na
+
+// NA in comparisons
+bool isNaCheck = na(close)
+bool eqNa = close == na
+bool neNa = close != na
+
+// NA in operations (should be allowed)
+float naOp = close + na
+float naOp2 = na - high
+
+// Function-as-property access (functions accessible without parentheses)
+// ta.tr is a function but can be accessed like ta.tr without ()
+float trValue = ta.tr
+float atrValue = ta.atr(14)
+
+// Other function-as-property patterns
+float rsiVal = ta.rsi(close, 14)
+float smaVal = ta.sma(close, 14)
+
+// NA with arrays
+var array<float> arr = array.new<float>()
+array.push(arr, na)
+
+// NA coercion in function calls
+plot(na, "NA Plot")
+plotshape(close > open ? close : na, "Conditional")
+
+plot(trValue)
