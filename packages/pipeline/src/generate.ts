@@ -434,6 +434,9 @@ function generateVariables(_details: DetailsData, constructs: ConstructsData): G
 		{ name: "syminfo.description", type: "simple<string>", qualifier: "simple", description: "Symbol description" },
 		{ name: "syminfo.mintick", type: "simple<float>", qualifier: "simple", description: "Minimum tick size" },
 		{ name: "syminfo.pointvalue", type: "simple<float>", qualifier: "simple", description: "Point value" },
+		{ name: "syminfo.country", type: "simple<string>", qualifier: "simple", description: "Country code of the symbol" },
+		{ name: "syminfo.industry", type: "simple<string>", qualifier: "simple", description: "Industry of the symbol" },
+		{ name: "syminfo.root", type: "simple<string>", qualifier: "simple", description: "Root symbol" },
 		// barstate
 		{ name: "barstate.isfirst", type: "series<bool>", qualifier: "series", description: "True on first bar" },
 		{ name: "barstate.islast", type: "series<bool>", qualifier: "series", description: "True on last bar" },
@@ -452,6 +455,8 @@ function generateVariables(_details: DetailsData, constructs: ConstructsData): G
 		{ name: "timeframe.ismonthly", type: "simple<bool>", qualifier: "simple", description: "True if monthly timeframe" },
 		{ name: "timeframe.isdwm", type: "simple<bool>", qualifier: "simple", description: "True if daily/weekly/monthly" },
 		{ name: "timeframe.isintraday", type: "simple<bool>", qualifier: "simple", description: "True if intraday timeframe" },
+		{ name: "timeframe.isticks", type: "simple<bool>", qualifier: "simple", description: "True if ticks timeframe" },
+		{ name: "timeframe.main_period", type: "simple<string>", qualifier: "simple", description: "Main period of the chart timeframe" },
 		// chart
 		{ name: "chart.bg_color", type: "color", qualifier: "simple", description: "Chart background color" },
 		{ name: "chart.fg_color", type: "color", qualifier: "simple", description: "Chart foreground color" },
@@ -468,6 +473,8 @@ function generateVariables(_details: DetailsData, constructs: ConstructsData): G
 		{ name: "session.ismarket", type: "series<bool>", qualifier: "series", description: "True during market session" },
 		{ name: "session.ispremarket", type: "series<bool>", qualifier: "series", description: "True during pre-market" },
 		{ name: "session.ispostmarket", type: "series<bool>", qualifier: "series", description: "True during post-market" },
+		{ name: "session.isfirstbar", type: "series<bool>", qualifier: "series", description: "True on first bar of session" },
+		{ name: "session.isfirstbar_regular", type: "series<bool>", qualifier: "series", description: "True on first bar of regular session" },
 		// strategy
 		{ name: "strategy.position_size", type: "series<float>", qualifier: "series", description: "Current position size" },
 		{ name: "strategy.position_avg_price", type: "series<float>", qualifier: "series", description: "Average position price" },
@@ -481,6 +488,9 @@ function generateVariables(_details: DetailsData, constructs: ConstructsData): G
 		{ name: "strategy.wintrades", type: "series<int>", qualifier: "series", description: "Number of winning trades" },
 		{ name: "strategy.losstrades", type: "series<int>", qualifier: "series", description: "Number of losing trades" },
 		{ name: "strategy.initial_capital", type: "simple<float>", qualifier: "simple", description: "Initial capital" },
+		{ name: "strategy.openprofit_percent", type: "series<float>", qualifier: "series", description: "Open profit as percentage" },
+		{ name: "strategy.netprofit_percent", type: "series<float>", qualifier: "series", description: "Net profit as percentage" },
+		{ name: "strategy.max_drawdown_percent", type: "series<float>", qualifier: "series", description: "Maximum drawdown as percentage" },
 	];
 
 	for (const v of namespaceVars) {
@@ -706,6 +716,7 @@ export * from "./functions";
 export * from "./variables";
 export * from "./constants";
 export * from "./keywords";
+export * from "./function-behavior";
 
 // Re-export types
 export type {

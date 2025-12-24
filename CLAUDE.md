@@ -159,7 +159,6 @@ Run `pnpm run debug:internals -- analyze --summary` for fresh data.
 | Issue | Priority | Notes |
 |-------|----------|-------|
 | Parse errors in complex scripts | Medium | ~20 "Unexpected token" errors in v6 scripts |
-| Missing namespace properties | Low | `chart.point`, `session.isfirstbar`, `timeframe.main_period` |
 | Unknown type propagation | Low | User-defined functions, chained calls |
 
 ### Known Limitations
@@ -184,6 +183,7 @@ string TT = "Line 1 " +
 ### Recently Fixed
 
 **December 2024 Session (59% → 77% v6 clean):**
+- **Missing namespace properties** - Added `timeframe.main_period/isticks`, `session.isfirstbar*`, `syminfo.country/industry/root`, `strategy.*_percent`
 - **Array type coercion** - `array<type>` (unresolved element) now assignable to `array<int/float>`
 - **Enum/type declarations** - User-defined enums now registered in symbol table (`SCALE.ATR` works)
 - **Multiline strings** - Lexer now allows newlines in string literals (deprecated v6 feature)

@@ -1,8 +1,8 @@
 /**
  * Pine Script V6 Built-in Variables
  * Auto-generated from TradingView documentation
- * Generated: 2025-12-23T22:02:17.732Z
- * Total: 80 variables
+ * Generated: 2025-12-24T18:19:57.278Z
+ * Total: 90 variables
  */
 
 import type { PineVariable } from "../schema/types";
@@ -254,7 +254,7 @@ export const VARIABLES: PineVariable[] = [
     "name": "syminfo.country",
     "type": "simple<string>",
     "qualifier": "simple",
-    "description": "Country where the symbol is traded",
+    "description": "Country code of the symbol",
     "namespace": "syminfo"
   },
   {
@@ -268,7 +268,7 @@ export const VARIABLES: PineVariable[] = [
     "name": "syminfo.root",
     "type": "simple<string>",
     "qualifier": "simple",
-    "description": "Root symbol (for derivatives)",
+    "description": "Root symbol",
     "namespace": "syminfo"
   },
   {
@@ -384,6 +384,20 @@ export const VARIABLES: PineVariable[] = [
     "namespace": "timeframe"
   },
   {
+    "name": "timeframe.isticks",
+    "type": "simple<bool>",
+    "qualifier": "simple",
+    "description": "True if ticks timeframe",
+    "namespace": "timeframe"
+  },
+  {
+    "name": "timeframe.main_period",
+    "type": "simple<string>",
+    "qualifier": "simple",
+    "description": "Main period of the chart timeframe",
+    "namespace": "timeframe"
+  },
+  {
     "name": "chart.bg_color",
     "type": "color",
     "qualifier": "simple",
@@ -482,6 +496,20 @@ export const VARIABLES: PineVariable[] = [
     "namespace": "session"
   },
   {
+    "name": "session.isfirstbar",
+    "type": "series<bool>",
+    "qualifier": "series",
+    "description": "True on first bar of session",
+    "namespace": "session"
+  },
+  {
+    "name": "session.isfirstbar_regular",
+    "type": "series<bool>",
+    "qualifier": "series",
+    "description": "True on first bar of regular session",
+    "namespace": "session"
+  },
+  {
     "name": "strategy.position_size",
     "type": "series<float>",
     "qualifier": "series",
@@ -569,21 +597,21 @@ export const VARIABLES: PineVariable[] = [
     "name": "strategy.openprofit_percent",
     "type": "series<float>",
     "qualifier": "series",
-    "description": "Open profit as a percentage of initial capital",
+    "description": "Open profit as percentage",
     "namespace": "strategy"
   },
   {
     "name": "strategy.netprofit_percent",
     "type": "series<float>",
     "qualifier": "series",
-    "description": "Net profit as a percentage of initial capital",
+    "description": "Net profit as percentage",
     "namespace": "strategy"
   },
   {
     "name": "strategy.max_drawdown_percent",
     "type": "series<float>",
     "qualifier": "series",
-    "description": "Maximum drawdown as a percentage",
+    "description": "Maximum drawdown as percentage",
     "namespace": "strategy"
   }
 ];
