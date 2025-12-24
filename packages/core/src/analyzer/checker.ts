@@ -496,6 +496,22 @@ export class UnifiedPineValidator {
 				}
 				break;
 			}
+
+			case "EnumDeclaration":
+			case "TypeDeclaration": {
+				// Register enum/type as a symbol so it can be used as a namespace
+				const symbol: SymbolInfo = {
+					name: statement.name,
+					type: "unknown", // User-defined type
+					line: statement.line,
+					column: statement.column,
+					used: false,
+					kind: "variable", // Treat as namespace for member access
+					declaredWith: null,
+				};
+				this.symbolTable.define(symbol);
+				break;
+			}
 		}
 	}
 
