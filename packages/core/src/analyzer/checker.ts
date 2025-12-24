@@ -294,7 +294,8 @@ export class UnifiedPineValidator {
 			case "IfStatement": {
 				this.validateExpression(statement.condition, version);
 				const condType = this.inferExpressionType(statement.condition, version);
-				if (!TypeChecker.isBoolType(condType)) {
+				// Skip check if type is unknown (can't verify, don't complain)
+				if (condType !== "unknown" && !TypeChecker.isBoolType(condType)) {
 					this.addError(
 						statement.line,
 						statement.column,

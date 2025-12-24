@@ -1,0 +1,33 @@
+// @test syntax/user-functions
+// @description User-defined functions with untyped parameters
+// @expects parse: success
+// @expects no-errors
+
+//@version=6
+indicator("User Function Tests")
+
+// Function without type annotations - parameters are "unknown" type
+// Should NOT produce type mismatch errors on operations
+multiply(x, y) =>
+    x * y
+
+add(a, b) =>
+    a + b
+
+// Chained operations with unknown types
+compound(val) =>
+    result = val * 2
+    result + 10
+
+// Using user-defined functions
+result1 = multiply(close, 2)
+result2 = add(high, low)
+result3 = compound(volume)
+
+// Nested calls
+nested = multiply(add(1, 2), 3)
+
+// Mixed with built-ins
+mixed = ta.sma(multiply(close, 2), 14)
+
+plot(result1)

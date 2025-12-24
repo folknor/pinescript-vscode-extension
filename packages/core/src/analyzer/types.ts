@@ -240,6 +240,13 @@ export namespace TypeChecker {
 		right: PineType,
 		operator: string,
 	): boolean {
+		// If either type is unknown, we can't verify compatibility - assume OK
+		// This prevents cascading false positives from user-defined functions
+		// and other cases where type inference fails
+		if (left === "unknown" || right === "unknown") {
+			return true;
+		}
+
 		// String concatenation with +
 		if (operator === "+" && (isStringType(left) || isStringType(right))) {
 			// Both must be strings for string concatenation
