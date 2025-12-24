@@ -1452,6 +1452,14 @@ export class Parser {
 	private ternary(): AST.Expression {
 		const expr = this.logicalOr();
 
+		// Handle line continuation: newline followed by ? (ternary operator at line start)
+		if (this.check(TokenType.NEWLINE)) {
+			const nextToken = this.peekNext();
+			if (nextToken && nextToken.type === TokenType.TERNARY) {
+				this.advance(); // skip newline
+			}
+		}
+
 		if (this.match(TokenType.TERNARY)) {
 			// Skip newlines after ? for multi-line ternary
 			while (this.check(TokenType.NEWLINE)) {
@@ -1915,11 +1923,24 @@ export class Parser {
 
 				// Check for named argument: name = value
 				// Allow both IDENTIFIER and KEYWORD as parameter names (Pine Script uses keywords like 'color', 'title', etc. as parameter names)
+				// Also handle line continuation: name\n= value
+				let nextTok = this.peekNext();
+				if (nextTok?.type === TokenType.NEWLINE) {
+					// Look past the newline to check for =
+					const afterNewline = this.tokens[this.current + 2];
+					if (afterNewline?.type === TokenType.ASSIGN) {
+						nextTok = afterNewline;
+					}
+				}
 				if (
 					(this.check(TokenType.IDENTIFIER) || this.check(TokenType.KEYWORD)) &&
-					this.peekNext()?.type === TokenType.ASSIGN
+					nextTok?.type === TokenType.ASSIGN
 				) {
 					const name = this.advance().value;
+					// Skip newlines before = (allows: arg\n= value)
+					while (this.check(TokenType.NEWLINE)) {
+						this.advance();
+					}
 					this.advance(); // consume =
 					// Skip newlines after = (allows: arg =\n value)
 					while (this.check(TokenType.NEWLINE)) {
