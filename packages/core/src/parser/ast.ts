@@ -23,7 +23,13 @@ export type Statement =
 	| ReturnStatement
 	| TypeDeclaration
 	| EnumDeclaration
-	| AssignmentStatement;
+	| AssignmentStatement
+	| SequenceStatement;
+
+export interface SequenceStatement extends ASTNode {
+	type: "SequenceStatement";
+	statements: Statement[];
+}
 
 export interface TypeDeclaration extends ASTNode {
 	type: "TypeDeclaration";

@@ -371,13 +371,14 @@ export class Parser {
 		}
 
 		// Check for assignment: target := expr or target = expr or target += expr (compound)
+		// Also handles comma-separated assignments: a := 1, b := 2, c := 3
 		const checkpoint = this.current;
 		try {
 			const target = this.expression();
 			if (this.match(TokenType.ASSIGN) || this.match(TokenType.COMPOUND_ASSIGN)) {
 				const operator = this.previous().value;
 				const value = this.expression();
-				return {
+				const firstAssignment: AST.AssignmentStatement = {
 					type: "AssignmentStatement",
 					target,
 					operator,
@@ -385,6 +386,40 @@ export class Parser {
 					line: target.line,
 					column: target.column,
 				};
+
+				// Check for comma-separated assignments
+				if (this.check(TokenType.COMMA)) {
+					const statements: AST.Statement[] = [firstAssignment];
+
+					while (this.match(TokenType.COMMA)) {
+						const nextTarget = this.expression();
+						if (
+							!this.match(TokenType.ASSIGN) &&
+							!this.match(TokenType.COMPOUND_ASSIGN)
+						) {
+							throw new Error("Expected assignment operator after comma");
+						}
+						const nextOperator = this.previous().value;
+						const nextValue = this.expression();
+						statements.push({
+							type: "AssignmentStatement",
+							target: nextTarget,
+							operator: nextOperator,
+							value: nextValue,
+							line: nextTarget.line,
+							column: nextTarget.column,
+						});
+					}
+
+					return {
+						type: "SequenceStatement",
+						statements,
+						line: firstAssignment.line,
+						column: firstAssignment.column,
+					};
+				}
+
+				return firstAssignment;
 			}
 			// Not an assignment, backtrack
 			this.current = checkpoint;
@@ -459,8 +494,38 @@ export class Parser {
 		};
 	}
 
-	private expressionStatement(): AST.ExpressionStatement {
+	private expressionStatement(): AST.ExpressionStatement | AST.SequenceStatement {
 		const expr = this.expression();
+
+		// Check for comma-separated expressions (e.g., func1(), func2(), func3())
+		if (this.check(TokenType.COMMA)) {
+			const statements: AST.Statement[] = [
+				{
+					type: "ExpressionStatement",
+					expression: expr,
+					line: expr.line,
+					column: expr.column,
+				},
+			];
+
+			while (this.match(TokenType.COMMA)) {
+				const nextExpr = this.expression();
+				statements.push({
+					type: "ExpressionStatement",
+					expression: nextExpr,
+					line: nextExpr.line,
+					column: nextExpr.column,
+				});
+			}
+
+			return {
+				type: "SequenceStatement",
+				statements,
+				line: expr.line,
+				column: expr.column,
+			};
+		}
+
 		return {
 			type: "ExpressionStatement",
 			expression: expr,
