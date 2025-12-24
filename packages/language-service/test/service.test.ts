@@ -188,6 +188,104 @@ describe("PineLanguageService", () => {
 		});
 	});
 
+	describe("Go to Definition", () => {
+		it("should find variable definition", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+myVar = 42
+x = myVar + 1
+`,
+				1,
+			);
+			// Position on "myVar" in the usage (line 2, character 4)
+			const result = service.getDefinition("test.pine", {
+				line: 2,
+				character: 4,
+			});
+
+			expect(result).not.toBeNull();
+			expect(result?.isBuiltin).toBeFalsy();
+			expect(result?.location).toBeDefined();
+			expect(result?.location?.range.start.line).toBe(1); // Definition on line 1 (0-indexed)
+		});
+
+		it("should find function definition", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+myFunc() =>
+    42
+
+x = myFunc()
+`,
+				1,
+			);
+			// Position on "myFunc" in the call (line 4)
+			const result = service.getDefinition("test.pine", {
+				line: 4,
+				character: 5,
+			});
+
+			expect(result).not.toBeNull();
+			expect(result?.isBuiltin).toBeFalsy();
+			expect(result?.location?.range.start.line).toBe(1);
+		});
+
+		it("should identify built-in symbols", () => {
+			service.openDocument("test.pine", "//@version=6\nx = close", 1);
+			const result = service.getDefinition("test.pine", {
+				line: 1,
+				character: 5,
+			});
+
+			expect(result).not.toBeNull();
+			expect(result?.isBuiltin).toBe(true);
+			expect(result?.symbolInfo).toBeDefined();
+		});
+
+		it("should identify built-in functions", () => {
+			service.openDocument("test.pine", "//@version=6\nx = ta.sma(close, 14)", 1);
+			const result = service.getDefinition("test.pine", {
+				line: 1,
+				character: 7, // on "sma"
+			});
+
+			// ta.sma is a built-in
+			expect(result).not.toBeNull();
+			expect(result?.isBuiltin).toBe(true);
+		});
+
+		it("should return null for unknown symbols", () => {
+			service.openDocument("test.pine", "//@version=6\nx = unknownVar", 1);
+			const result = service.getDefinition("test.pine", {
+				line: 1,
+				character: 6,
+			});
+
+			expect(result).toBeNull();
+		});
+
+		it("should find for loop iterator definition", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+for i = 0 to 10
+    x = i
+`,
+				1,
+			);
+			// Position on "i" in the usage (line 2, character 8)
+			const result = service.getDefinition("test.pine", {
+				line: 2,
+				character: 8,
+			});
+
+			expect(result).not.toBeNull();
+			expect(result?.location?.range.start.line).toBe(1); // for loop line
+		});
+	});
+
 	describe("Document Symbols", () => {
 		it("should return function symbols", () => {
 			service.openDocument(

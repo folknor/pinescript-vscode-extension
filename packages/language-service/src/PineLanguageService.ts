@@ -1,12 +1,14 @@
 import { PineV6 } from "../../../pine-data/v6";
 import { DocumentManager, type ParsedDocument } from "./documents";
 import {
+	type DefinitionResult,
 	format as formatImpl,
 	formatToString,
 	getAllConstantNames,
 	getAllFunctionNames,
 	getAllVariableNames,
 	getCompletions as getCompletionsImpl,
+	getDefinition as getDefinitionImpl,
 	getDiagnostics as getDiagnosticsImpl,
 	getDocumentSymbols as getDocumentSymbolsImpl,
 	getHover as getHoverImpl,
@@ -141,6 +143,15 @@ export class PineLanguageService {
 		const doc = this.documents.get(uri);
 		if (!doc) return [];
 		return getDocumentSymbolsImpl(doc);
+	}
+
+	/**
+	 * Get the definition location of a symbol at a position.
+	 */
+	getDefinition(uri: string, position: Position): DefinitionResult | null {
+		const doc = this.documents.get(uri);
+		if (!doc) return null;
+		return getDefinitionImpl(doc, position);
 	}
 
 	// ========== Static Helpers (no document needed) ==========

@@ -14,6 +14,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { PineLanguageService } from "../../language-service/src";
 import { getCapabilities } from "./capabilities";
 import { setupCompletionHandler } from "./handlers/completion";
+import { setupDefinitionHandler } from "./handlers/definition";
 import { setupDocumentHandlers } from "./handlers/documents";
 import { setupFormattingHandler } from "./handlers/formatting";
 import { setupHoverHandler } from "./handlers/hover";
@@ -55,6 +56,7 @@ setupHoverHandler(connection, languageService);
 setupSignatureHandler(connection, languageService);
 setupFormattingHandler(connection, languageService);
 setupSymbolsHandler(connection, languageService);
+setupDefinitionHandler(connection, languageService);
 
 // ========== Start Listening ==========
 
