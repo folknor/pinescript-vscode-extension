@@ -251,6 +251,27 @@ export const VARIABLES: PineVariable[] = [
     "namespace": "syminfo"
   },
   {
+    "name": "syminfo.country",
+    "type": "simple<string>",
+    "qualifier": "simple",
+    "description": "Country where the symbol is traded",
+    "namespace": "syminfo"
+  },
+  {
+    "name": "syminfo.industry",
+    "type": "simple<string>",
+    "qualifier": "simple",
+    "description": "Industry of the symbol",
+    "namespace": "syminfo"
+  },
+  {
+    "name": "syminfo.root",
+    "type": "simple<string>",
+    "qualifier": "simple",
+    "description": "Root symbol (for derivatives)",
+    "namespace": "syminfo"
+  },
+  {
     "name": "barstate.isfirst",
     "type": "series<bool>",
     "qualifier": "series",
@@ -542,6 +563,27 @@ export const VARIABLES: PineVariable[] = [
     "type": "simple<float>",
     "qualifier": "simple",
     "description": "Initial capital",
+    "namespace": "strategy"
+  },
+  {
+    "name": "strategy.openprofit_percent",
+    "type": "series<float>",
+    "qualifier": "series",
+    "description": "Open profit as a percentage of initial capital",
+    "namespace": "strategy"
+  },
+  {
+    "name": "strategy.netprofit_percent",
+    "type": "series<float>",
+    "qualifier": "series",
+    "description": "Net profit as a percentage of initial capital",
+    "namespace": "strategy"
+  },
+  {
+    "name": "strategy.max_drawdown_percent",
+    "type": "series<float>",
+    "qualifier": "series",
+    "description": "Maximum drawdown as a percentage",
     "namespace": "strategy"
   }
 ];
