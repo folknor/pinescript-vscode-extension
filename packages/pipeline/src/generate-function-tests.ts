@@ -115,7 +115,9 @@ function generateArgumentOrderingTest(func: PineFunction): string {
 		return lines.join("\n");
 	}
 
-	const params = func.parameters.filter((p) => p.required || p.name === "defval");
+	const params = func.parameters.filter(
+		(p) => p.required || p.name === "defval",
+	);
 
 	if (params.length === 0) {
 		lines.push(`// ${func.name}: No required parameters, skip ordering test`);
@@ -149,7 +151,9 @@ function generateArgumentOrderingTest(func: PineFunction): string {
 		.map((p) => `${p.name}=${getTestValue(p.type, p.name)}`)
 		.join(", ");
 	lines.push(`// All named`);
-	const prefix2 = needsCapture ? `_${func.name.replace(".", "_")}_named = ` : "";
+	const prefix2 = needsCapture
+		? `_${func.name.replace(".", "_")}_named = `
+		: "";
 	lines.push(`${prefix2}${func.name}(${namedArgs})`);
 
 	// Generate reversed named call (if more than 1 param)

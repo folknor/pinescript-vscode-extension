@@ -123,9 +123,7 @@ function main() {
 			console.log("No matching errors.");
 		} else {
 			for (const err of errors) {
-				const loc = err.start
-					? `${err.start.line}:${err.start.column}`
-					: "?:?";
+				const loc = err.start ? `${err.start.line}:${err.start.column}` : "?:?";
 				console.log(`[${loc}] ${err.message}`);
 			}
 			console.log(`\nTotal: ${errors.length} error(s)`);

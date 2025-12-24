@@ -52,7 +52,9 @@ function loadModule(modulePath) {
 	try {
 		return require(path.join(DIST_ROOT, modulePath));
 	} catch (e) {
-		console.error(`Failed to load ${modulePath}. Did you run 'pnpm run build'?`);
+		console.error(
+			`Failed to load ${modulePath}. Did you run 'pnpm run build'?`,
+		);
 		console.error(e.message);
 		process.exit(1);
 	}
@@ -89,7 +91,10 @@ function cmdLookup(name) {
 			if (namespaces.includes(name)) {
 				console.log(`\n"${name}" is a NAMESPACE.`);
 				const members = PineV6.getNamespaceMembers(name);
-				console.log("Members:", members.slice(0, 10).join(", ") + (members.length > 10 ? "..." : ""));
+				console.log(
+					"Members:",
+					members.slice(0, 10).join(", ") + (members.length > 10 ? "..." : ""),
+				);
 			}
 		}
 	}
@@ -137,11 +142,11 @@ function cmdTokens(code) {
 
 		console.log(
 			`  ${idx.toString().padStart(3)}  ` +
-			`${t.type.padEnd(15)} ` +
-			`${JSON.stringify(displayValue).padEnd(18)} ` +
-			`${t.line.toString().padStart(4)}  ` +
-			`${(t.column || 0).toString().padStart(4)}  ` +
-			`${(t.indent ?? "-").toString().padStart(6)}`
+				`${t.type.padEnd(15)} ` +
+				`${JSON.stringify(displayValue).padEnd(18)} ` +
+				`${t.line.toString().padStart(4)}  ` +
+				`${(t.column || 0).toString().padStart(4)}  ` +
+				`${(t.indent ?? "-").toString().padStart(6)}`,
 		);
 		idx++;
 	}
@@ -151,7 +156,9 @@ function cmdTokens(code) {
 
 function cmdValidate(code) {
 	const { Parser } = loadModule("packages/core/src/parser/parser.js");
-	const { UnifiedPineValidator } = loadModule("packages/core/src/analyzer/checker.js");
+	const { UnifiedPineValidator } = loadModule(
+		"packages/core/src/analyzer/checker.js",
+	);
 
 	// Add version header if missing
 	if (!code.includes("@version")) {
@@ -227,7 +234,9 @@ function cmdSymbols(filter) {
 
 function cmdSymbolTable(code) {
 	const { Parser } = loadModule("packages/core/src/parser/parser.js");
-	const { UnifiedPineValidator } = loadModule("packages/core/src/analyzer/checker.js");
+	const { UnifiedPineValidator } = loadModule(
+		"packages/core/src/analyzer/checker.js",
+	);
 	const { SymbolTable } = loadModule("packages/core/src/analyzer/symbols.js");
 
 	// Add version header if missing
@@ -243,14 +252,27 @@ function cmdSymbolTable(code) {
 
 	console.log("Initial Symbol Table (built-ins):");
 	const globalSymbols = st.getGlobalScope().getAllSymbols();
-	const userRelevant = globalSymbols.filter(s =>
-		!s.name.includes(".") &&
-		["hour", "minute", "close", "open", "high", "low", "volume", "time", "na"].includes(s.name)
+	const userRelevant = globalSymbols.filter(
+		(s) =>
+			!s.name.includes(".") &&
+			[
+				"hour",
+				"minute",
+				"close",
+				"open",
+				"high",
+				"low",
+				"volume",
+				"time",
+				"na",
+			].includes(s.name),
 	);
 	for (const s of userRelevant) {
 		console.log(`  [${s.kind.padEnd(8)}] ${s.name}: ${s.type}`);
 	}
-	console.log(`  ... and ${globalSymbols.length - userRelevant.length} more built-ins\n`);
+	console.log(
+		`  ... and ${globalSymbols.length - userRelevant.length} more built-ins\n`,
+	);
 
 	// Now validate to populate user-defined symbols
 	const validator = new UnifiedPineValidator();
@@ -295,14 +317,17 @@ function cmdAnalyze(args) {
 	// Check if directory exists
 	if (!fs.existsSync(DIFF_DIR)) {
 		console.error(`Differences directory not found: ${DIFF_DIR}`);
-		console.error("Run 'node dev-tools/analysis/compare-validation-results.js' first.");
+		console.error(
+			"Run 'node dev-tools/analysis/compare-validation-results.js' first.",
+		);
 		process.exit(1);
 	}
 
 	// Read all JSON files
-	const files = fs.readdirSync(DIFF_DIR)
-		.filter(f => f.endsWith(".json") && !f.startsWith("_"))
-		.map(f => path.join(DIFF_DIR, f));
+	const files = fs
+		.readdirSync(DIFF_DIR)
+		.filter((f) => f.endsWith(".json") && !f.startsWith("_"))
+		.map((f) => path.join(DIFF_DIR, f));
 
 	if (files.length === 0) {
 		console.error("No comparison result files found.");
@@ -325,7 +350,11 @@ function cmdAnalyze(args) {
 				for (const err of errors) {
 					const msg = err.message || "";
 					if (!filter || msg.toLowerCase().includes(filter.toLowerCase())) {
-						results.push({ file: basename, line: err.start?.line, message: msg });
+						results.push({
+							file: basename,
+							line: err.start?.line,
+							message: msg,
+						});
 						messageCounts.set(msg, (messageCounts.get(msg) || 0) + 1);
 						if (!fileMatches.has(basename)) fileMatches.set(basename, []);
 						fileMatches.get(basename).push(msg);
@@ -353,17 +382,25 @@ function cmdAnalyze(args) {
 	if (summaryOnly) {
 		// Group by message and show counts
 		const sorted = [...messageCounts.entries()].sort((a, b) => b[1] - a[1]);
-		console.log(`Found ${results.length} matching ${showCliErrors ? "CLI errors" : "discrepancies"} across ${fileMatches.size} files:\n`);
+		console.log(
+			`Found ${results.length} matching ${showCliErrors ? "CLI errors" : "discrepancies"} across ${fileMatches.size} files:\n`,
+		);
 		for (const [msg, count] of sorted.slice(0, limit)) {
-			console.log(`  [${count.toString().padStart(4)}] ${msg.slice(0, 80)}${msg.length > 80 ? "..." : ""}`);
+			console.log(
+				`  [${count.toString().padStart(4)}] ${msg.slice(0, 80)}${msg.length > 80 ? "..." : ""}`,
+			);
 		}
 		if (sorted.length > limit) {
 			console.log(`  ... and ${sorted.length - limit} more unique messages`);
 		}
 	} else if (showFiles) {
 		// Show files with matches
-		console.log(`Files with matching ${showCliErrors ? "CLI errors" : "discrepancies"}:\n`);
-		const sorted = [...fileMatches.entries()].sort((a, b) => b[1].length - a[1].length);
+		console.log(
+			`Files with matching ${showCliErrors ? "CLI errors" : "discrepancies"}:\n`,
+		);
+		const sorted = [...fileMatches.entries()].sort(
+			(a, b) => b[1].length - a[1].length,
+		);
 		for (const [file, msgs] of sorted.slice(0, limit)) {
 			console.log(`  ${file}: ${msgs.length} match(es)`);
 		}
@@ -372,17 +409,23 @@ function cmdAnalyze(args) {
 		}
 	} else {
 		// Show individual results
-		console.log(`Found ${results.length} matching ${showCliErrors ? "CLI errors" : "discrepancies"}:\n`);
+		console.log(
+			`Found ${results.length} matching ${showCliErrors ? "CLI errors" : "discrepancies"}:\n`,
+		);
 		for (const r of results.slice(0, limit)) {
 			const loc = r.line ? `:${r.line}` : "";
 			console.log(`  [${r.file}${loc}] ${r.message}`);
 		}
 		if (results.length > limit) {
-			console.log(`\n  ... and ${results.length - limit} more (use --limit to see more)`);
+			console.log(
+				`\n  ... and ${results.length - limit} more (use --limit to see more)`,
+			);
 		}
 	}
 
-	console.log(`\nTotal: ${results.length} result(s) in ${fileMatches.size} file(s)`);
+	console.log(
+		`\nTotal: ${results.length} result(s) in ${fileMatches.size} file(s)`,
+	);
 }
 
 function cmdCorpus(args) {
@@ -451,7 +494,7 @@ function cmdCorpus(args) {
 					(e) =>
 						e.message.includes("Unexpected token") ||
 						e.message.includes("Expected") ||
-						e.message.includes("mismatched character")
+						e.message.includes("mismatched character"),
 				);
 
 				if (parseErrors.length > 0) {
@@ -534,15 +577,23 @@ function main() {
 		console.log("  lookup <name>        Check if symbol exists in pine-data");
 		console.log("  parse 'code'         Parse code and show AST");
 		console.log("  validate 'code'      Validate code with full error details");
-		console.log("  tokens 'code'        Show lexer tokens with type/line/indent");
-		console.log("  symbols [filter]     List built-in symbols (optionally filtered)");
+		console.log(
+			"  tokens 'code'        Show lexer tokens with type/line/indent",
+		);
+		console.log(
+			"  symbols [filter]     List built-in symbols (optionally filtered)",
+		);
 		console.log("  symbol-table 'code'  Show symbol table state");
 		console.log("  analyze [options]    Analyze comparison results");
-		console.log("  corpus [options]     Analyze pinescripts corpus for parse errors");
+		console.log(
+			"  corpus [options]     Analyze pinescripts corpus for parse errors",
+		);
 		console.log("");
 		console.log("Analyze options:");
 		console.log("  --filter <text>      Filter by message content");
-		console.log("  --cli-errors         Show CLI errors (default: discrepancies)");
+		console.log(
+			"  --cli-errors         Show CLI errors (default: discrepancies)",
+		);
 		console.log("  --summary            Show grouped counts");
 		console.log("  --files              Show files with matches");
 		console.log("  --limit <n>          Limit results (default: 50)");

@@ -1,5 +1,7 @@
 // Semantic Analyzer for Pine Script - Detects code quality issues and best practices violations
 
+import { FUNCTIONS_BY_NAME } from "../../../../pine-data/v6";
+import { DiagnosticSeverity } from "../common/errors";
 import type {
 	AssignmentStatement,
 	BinaryExpression,
@@ -15,8 +17,6 @@ import type {
 	VariableDeclaration,
 	WhileStatement,
 } from "./ast";
-import { DiagnosticSeverity } from "../common/errors";
-import { FUNCTIONS_BY_NAME } from "../../../../pine-data/v6";
 
 export interface SemanticWarning {
 	line: number;

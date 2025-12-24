@@ -1,6 +1,7 @@
 // Pine Script Type Checker and Validator
 // Performs semantic analysis and type checking on the AST
 
+import { DiagnosticSeverity, type ValidationError } from "../common/errors";
 import type {
 	ArrayExpression,
 	BinaryExpression,
@@ -23,29 +24,25 @@ import type {
 	TupleDeclaration,
 	UnaryExpression,
 } from "../parser/ast";
-import { type Symbol as SymbolInfo, SymbolTable } from "./symbols";
-import { type PineType, TypeChecker } from "./types";
 import {
-	type ValidationError,
-	DiagnosticSeverity,
-} from "../common/errors";
-import {
-	type FunctionSignature,
-	isTopLevelOnly,
-	DEPRECATED_V5_CONSTANTS,
-	NAMESPACE_PROPERTIES,
-	KNOWN_NAMESPACES,
+	type ArgumentInfo,
 	buildFunctionSignatures,
-	mapToPineType,
-	mapReturnTypeToPineType,
-	isVariadicFunction,
+	DEPRECATED_V5_CONSTANTS,
+	type FunctionSignature,
+	getFunctionBehavior,
 	getMinArgsForVariadic,
 	getPolymorphicReturnType,
 	getPolymorphicType,
-	getFunctionBehavior,
 	hasOverloads,
-	type ArgumentInfo,
+	isTopLevelOnly,
+	isVariadicFunction,
+	KNOWN_NAMESPACES,
+	mapReturnTypeToPineType,
+	mapToPineType,
+	NAMESPACE_PROPERTIES,
 } from "./builtins";
+import { type Symbol as SymbolInfo, SymbolTable } from "./symbols";
+import { type PineType, TypeChecker } from "./types";
 
 // Re-export for backward compatibility
 export { DiagnosticSeverity, type ValidationError } from "../common/errors";
@@ -712,7 +709,8 @@ export class UnifiedPineValidator {
 
 		// For polymorphic functions, skip parameter type checking
 		// (the function signature shows one type but accepts multiple)
-		const functionIsPolymorphic = getPolymorphicType(functionName) !== undefined ||
+		const functionIsPolymorphic =
+			getPolymorphicType(functionName) !== undefined ||
 			getFunctionBehavior(functionName)?.polymorphic !== undefined;
 
 		// Validate each parameter
@@ -1023,7 +1021,11 @@ export class UnifiedPineValidator {
 					type: this.inferExpressionType(arg.value, version),
 				}));
 				const argTypes = argInfos.map((info) => info.type);
-				const polyReturnType = getPolymorphicReturnType(funcName, argTypes, argInfos);
+				const polyReturnType = getPolymorphicReturnType(
+					funcName,
+					argTypes,
+					argInfos,
+				);
 				if (polyReturnType) {
 					type = polyReturnType;
 					break;
@@ -1038,7 +1040,11 @@ export class UnifiedPineValidator {
 
 				// Check if it's a user-defined function with registered return type
 				const udfSymbol = this.symbolTable.lookup(funcName);
-				if (udfSymbol && udfSymbol.kind === "function" && udfSymbol.type !== "unknown") {
+				if (
+					udfSymbol &&
+					udfSymbol.kind === "function" &&
+					udfSymbol.type !== "unknown"
+				) {
 					type = udfSymbol.type;
 					break;
 				}

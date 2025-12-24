@@ -1,10 +1,10 @@
 import {
+	CONSTANTS_BY_NAMESPACE,
 	FUNCTIONS_BY_NAME,
 	FUNCTIONS_BY_NAMESPACE,
+	PineV6,
 	VARIABLES_BY_NAME,
 	VARIABLES_BY_NAMESPACE,
-	CONSTANTS_BY_NAMESPACE,
-	PineV6,
 } from "../../../../pine-data/v6";
 import type { ParsedDocument } from "../documents/ParsedDocument";
 import {
@@ -276,7 +276,9 @@ export function getAllCompletions(): CompletionItem[] {
 /**
  * Get completions for function parameters.
  */
-export function getParameterCompletions(functionName: string): CompletionItem[] {
+export function getParameterCompletions(
+	functionName: string,
+): CompletionItem[] {
 	const items: CompletionItem[] = [];
 	const func = FUNCTIONS_BY_NAME.get(functionName);
 	if (!func) return items;

@@ -3,8 +3,8 @@
  * Provides documentation on hover.
  */
 
-import { Connection, HoverParams } from "vscode-languageserver/node";
-import { PineLanguageService } from "../../../language-service/src";
+import type { Connection, HoverParams } from "vscode-languageserver/node";
+import type { PineLanguageService } from "../../../language-service/src";
 import { convertHover } from "../converters";
 
 /**

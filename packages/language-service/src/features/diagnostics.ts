@@ -67,7 +67,10 @@ function getPatternWarnings(doc: ParsedDocument): Diagnostic[] {
 	// 1. Version header check
 	if (!/^\s*\/\/@version=6/m.test(text)) {
 		warnings.push({
-			range: { start: { line: 0, character: 0 }, end: { line: 0, character: 1 } },
+			range: {
+				start: { line: 0, character: 0 },
+				end: { line: 0, character: 1 },
+			},
 			severity: DiagnosticSeverity.Warning,
 			message: "Recommend using //@version=6 for Pine v6.",
 			source: "pine-lint",

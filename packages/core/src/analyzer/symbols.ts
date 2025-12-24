@@ -1,9 +1,9 @@
 // Symbol Table for tracking variables, functions, and scopes
 
 import {
-	VARIABLES_BY_NAME,
 	FUNCTIONS_BY_NAME,
 	PineV6,
+	VARIABLES_BY_NAME,
 } from "../../../../pine-data/v6";
 import { RESERVED_KEYWORDS } from "../constants/keywords";
 import type { PineType } from "./types";

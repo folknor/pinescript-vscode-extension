@@ -1,6 +1,6 @@
 import {
+	type ServerCapabilities,
 	TextDocumentSyncKind,
-	ServerCapabilities,
 } from "vscode-languageserver/node";
 
 /**

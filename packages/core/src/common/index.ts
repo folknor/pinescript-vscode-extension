@@ -2,10 +2,10 @@
 // Re-exports all common components
 
 export {
+	createError,
+	createHint,
+	createInfo,
+	createWarning,
 	DiagnosticSeverity,
 	type ValidationError,
-	createError,
-	createWarning,
-	createInfo,
-	createHint,
 } from "./errors";

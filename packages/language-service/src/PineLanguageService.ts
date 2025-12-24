@@ -1,26 +1,26 @@
-import { DocumentManager, ParsedDocument } from "./documents";
+import { PineV6 } from "../../../pine-data/v6";
+import { DocumentManager, type ParsedDocument } from "./documents";
 import {
-	getCompletions as getCompletionsImpl,
-	getHover as getHoverImpl,
-	getSignatureHelp as getSignatureHelpImpl,
-	getDiagnostics as getDiagnosticsImpl,
 	format as formatImpl,
 	formatToString,
-	getSymbolInfo as getSymbolInfoImpl,
+	getAllConstantNames,
 	getAllFunctionNames,
 	getAllVariableNames,
-	getAllConstantNames,
+	getCompletions as getCompletionsImpl,
+	getDiagnostics as getDiagnosticsImpl,
+	getHover as getHoverImpl,
+	getSignatureHelp as getSignatureHelpImpl,
+	getSymbolInfo as getSymbolInfoImpl,
 } from "./features";
-import { PineV6 } from "../../../pine-data/v6";
 import type {
-	Position,
 	CompletionItem,
-	HoverInfo,
-	SignatureHelp,
 	Diagnostic,
-	TextEdit,
 	FormattingOptions,
+	HoverInfo,
+	Position,
+	SignatureHelp,
 	SymbolInfo,
+	TextEdit,
 } from "./types";
 
 export interface HoverOptions {

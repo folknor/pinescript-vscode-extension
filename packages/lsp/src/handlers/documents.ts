@@ -3,9 +3,9 @@
  * Manages document lifecycle: open, change, close.
  */
 
-import { Connection, TextDocuments } from "vscode-languageserver/node";
-import { TextDocument } from "vscode-languageserver-textdocument";
-import { PineLanguageService } from "../../../language-service/src";
+import type { Connection, TextDocuments } from "vscode-languageserver/node";
+import type { TextDocument } from "vscode-languageserver-textdocument";
+import type { PineLanguageService } from "../../../language-service/src";
 import { convertDiagnostic } from "../converters";
 
 /**

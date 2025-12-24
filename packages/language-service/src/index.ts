@@ -1,51 +1,49 @@
 // Main service export
-export { PineLanguageService } from "./PineLanguageService";
-export type { HoverOptions } from "./PineLanguageService";
 
 // Document classes
 export { DocumentManager, ParsedDocument } from "./documents";
-
+// Feature implementations (for direct use if needed)
+export {
+	getAllCompletions,
+	getCompletions,
+	getNamespaceCompletions,
+} from "./features/completions";
+export { getDiagnostics } from "./features/diagnostics";
+export { format, formatToString } from "./features/formatting";
+export { getHover } from "./features/hover";
+export {
+	getAllConstantNames,
+	getAllFunctionNames,
+	getAllVariableNames,
+	getSymbolInfo,
+} from "./features/lookup";
+export { getSignatureHelp } from "./features/signatures";
+export type { HoverOptions } from "./PineLanguageService";
+export { PineLanguageService } from "./PineLanguageService";
 // Types
 export {
+	type CompletionItem,
+	// Completions
+	CompletionItemKind,
+	type Diagnostic,
+	// Diagnostics
+	DiagnosticSeverity,
+	type DocumentSymbol,
+	type FormattingOptions,
+	// Hover
+	type HoverInfo,
+	InsertTextFormat,
+	type Location,
+	// Signature Help
+	type ParameterInfo,
 	// Position & Range
 	type Position,
 	type Range,
-	type Location,
-	// Diagnostics
-	DiagnosticSeverity,
-	type Diagnostic,
-	// Completions
-	CompletionItemKind,
-	InsertTextFormat,
-	type CompletionItem,
-	// Hover
-	type HoverInfo,
-	// Signature Help
-	type ParameterInfo,
-	type SignatureInfo,
 	type SignatureHelp,
-	// Formatting
-	type TextEdit,
-	type FormattingOptions,
+	type SignatureInfo,
+	type SymbolInfo,
 	// Symbols
 	SymbolKind,
-	type DocumentSymbol,
-	type SymbolInfo,
+	// Formatting
+	type TextEdit,
 } from "./types";
-
-// Feature implementations (for direct use if needed)
-export {
-	getCompletions,
-	getAllCompletions,
-	getNamespaceCompletions,
-} from "./features/completions";
-export { getHover } from "./features/hover";
-export { getSignatureHelp } from "./features/signatures";
-export { getDiagnostics } from "./features/diagnostics";
-export { format, formatToString } from "./features/formatting";
-export {
-	getSymbolInfo,
-	getAllFunctionNames,
-	getAllVariableNames,
-	getAllConstantNames,
-} from "./features/lookup";

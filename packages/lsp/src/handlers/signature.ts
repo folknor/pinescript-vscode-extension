@@ -3,11 +3,11 @@
  * Provides parameter hints during function calls.
  */
 
-import {
+import type {
 	Connection,
 	SignatureHelpParams,
 } from "vscode-languageserver/node";
-import { PineLanguageService } from "../../../language-service/src";
+import type { PineLanguageService } from "../../../language-service/src";
 import { convertSignatureHelp } from "../converters";
 
 /**

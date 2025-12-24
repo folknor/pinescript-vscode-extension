@@ -32,7 +32,13 @@ export function createWarning(
 	length: number,
 	message: string,
 ): ValidationError {
-	return { line, column, length, message, severity: DiagnosticSeverity.Warning };
+	return {
+		line,
+		column,
+		length,
+		message,
+		severity: DiagnosticSeverity.Warning,
+	};
 }
 
 export function createInfo(
@@ -41,7 +47,13 @@ export function createInfo(
 	length: number,
 	message: string,
 ): ValidationError {
-	return { line, column, length, message, severity: DiagnosticSeverity.Information };
+	return {
+		line,
+		column,
+		length,
+		message,
+		severity: DiagnosticSeverity.Information,
+	};
 }
 
 export function createHint(

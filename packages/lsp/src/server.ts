@@ -5,19 +5,19 @@
 
 import {
 	createConnection,
-	TextDocuments,
+	type InitializeParams,
+	type InitializeResult,
 	ProposedFeatures,
-	InitializeParams,
-	InitializeResult,
+	TextDocuments,
 } from "vscode-languageserver/node";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { PineLanguageService } from "../../language-service/src";
 import { getCapabilities } from "./capabilities";
-import { setupDocumentHandlers } from "./handlers/documents";
 import { setupCompletionHandler } from "./handlers/completion";
+import { setupDocumentHandlers } from "./handlers/documents";
+import { setupFormattingHandler } from "./handlers/formatting";
 import { setupHoverHandler } from "./handlers/hover";
 import { setupSignatureHandler } from "./handlers/signature";
-import { setupFormattingHandler } from "./handlers/formatting";
 
 // Create LSP connection using stdio
 const connection = createConnection(ProposedFeatures.all);

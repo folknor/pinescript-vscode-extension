@@ -1,10 +1,10 @@
+import type { PineParameter } from "../../../../pine-data/schema/types";
 import {
+	CONSTANTS_BY_NAME,
 	FUNCTIONS_BY_NAME,
 	VARIABLES_BY_NAME,
-	CONSTANTS_BY_NAME,
 } from "../../../../pine-data/v6";
-import type { PineParameter } from "../../../../pine-data/schema/types";
-import type { SymbolInfo, ParameterInfo } from "../types";
+import type { ParameterInfo, SymbolInfo } from "../types";
 
 /**
  * Look up documentation for a symbol (function, variable, or constant).
@@ -26,10 +26,12 @@ export function getSymbolInfo(symbol: string): SymbolInfo | null {
 	// Check functions
 	const func = FUNCTIONS_BY_NAME.get(symbol);
 	if (func) {
-		const parameters: ParameterInfo[] = func.parameters.map((p: PineParameter) => ({
-			label: p.name,
-			documentation: p.description,
-		}));
+		const parameters: ParameterInfo[] = func.parameters.map(
+			(p: PineParameter) => ({
+				label: p.name,
+				documentation: p.description,
+			}),
+		);
 
 		return {
 			name: func.name,

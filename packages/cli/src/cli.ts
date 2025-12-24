@@ -3,16 +3,16 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import {
+	DiagnosticSeverity,
+	UnifiedPineValidator,
+} from "../../core/src/analyzer/checker";
+import {
 	ASTExtractor,
 	type PineLintError,
 	type PineLintOutput,
 } from "../../core/src/parser/astExtractor";
 import { Parser } from "../../core/src/parser/parser";
 import { SemanticAnalyzer } from "../../core/src/parser/semanticAnalyzer";
-import {
-	DiagnosticSeverity,
-	UnifiedPineValidator,
-} from "../../core/src/analyzer/checker";
 
 async function main() {
 	const args = process.argv.slice(2);

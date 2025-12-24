@@ -1,6 +1,11 @@
 import { FUNCTIONS_BY_NAME } from "../../../../pine-data/v6";
 import type { ParsedDocument } from "../documents/ParsedDocument";
-import type { SignatureHelp, SignatureInfo, ParameterInfo, Position } from "../types";
+import type {
+	ParameterInfo,
+	Position,
+	SignatureHelp,
+	SignatureInfo,
+} from "../types";
 
 interface ParsedParameter {
 	label: string;

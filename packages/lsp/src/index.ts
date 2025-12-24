@@ -4,8 +4,8 @@
 
 export { getCapabilities } from "./capabilities";
 export {
-	convertDiagnostic,
 	convertCompletionItem,
+	convertDiagnostic,
 	convertHover,
 	convertSignatureHelp,
 	convertTextEdit,

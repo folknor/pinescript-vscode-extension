@@ -115,8 +115,7 @@ function analyzePolymorphism(
 		// Determine the strategy
 		// "same-as-input" means the return type matches the input type directly
 		const isSameAsInput = Object.entries(mappings).every(
-			([input, output]) =>
-				output.includes(input) || input.includes(output),
+			([input, output]) => output.includes(input) || input.includes(output),
 		);
 
 		return {
@@ -153,7 +152,9 @@ function analyzeArgumentOrdering(
 }
 
 // Run discovery on polymorphism test file
-async function discoverPolymorphism(): Promise<Record<string, FunctionBehavior>> {
+async function discoverPolymorphism(): Promise<
+	Record<string, FunctionBehavior>
+> {
 	const testFile = path.join(TESTS_DIR, "test-polymorphism.pine");
 	console.log(`\nAnalyzing: ${path.basename(testFile)}`);
 
@@ -203,9 +204,7 @@ async function discoverPolymorphism(): Promise<Record<string, FunctionBehavior>>
 		behaviors[funcName] = {
 			polymorphic,
 			argumentOrdering: "flexible", // Will be refined by ordering tests
-			observedReturnTypes: polymorphic
-				? polymorphic.allowedTypes
-				: undefined,
+			observedReturnTypes: polymorphic ? polymorphic.allowedTypes : undefined,
 		};
 	}
 
@@ -297,10 +296,10 @@ async function discover(): Promise<void> {
 	try {
 		await fs.access(TESTS_DIR);
 	} catch {
+		console.error(`\nError: Tests directory not found: ${TESTS_DIR}`);
 		console.error(
-			`\nError: Tests directory not found: ${TESTS_DIR}`,
+			"Run 'pnpm run generate:tests' first to generate test files.",
 		);
-		console.error("Run 'pnpm run generate:tests' first to generate test files.");
 		process.exit(1);
 	}
 

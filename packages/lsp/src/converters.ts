@@ -6,26 +6,26 @@
  */
 
 import {
-	Diagnostic as LSPDiagnostic,
-	DiagnosticSeverity as LSPDiagnosticSeverity,
-	CompletionItem as LSPCompletionItem,
-	CompletionItemKind as LSPCompletionItemKind,
-	InsertTextFormat as LSPInsertTextFormat,
-	Hover as LSPHover,
+	type CompletionItem as LSPCompletionItem,
+	type CompletionItemKind as LSPCompletionItemKind,
+	type Diagnostic as LSPDiagnostic,
+	type DiagnosticSeverity as LSPDiagnosticSeverity,
+	type Hover as LSPHover,
+	type InsertTextFormat as LSPInsertTextFormat,
+	type SignatureHelp as LSPSignatureHelp,
+	type TextEdit as LSPTextEdit,
 	MarkupKind,
-	SignatureHelp as LSPSignatureHelp,
+	type ParameterInformation,
 	SignatureInformation,
-	ParameterInformation,
-	TextEdit as LSPTextEdit,
 } from "vscode-languageserver/node";
 
 import type {
-	Diagnostic,
-	DiagnosticSeverity,
 	CompletionItem,
 	CompletionItemKind,
-	InsertTextFormat,
+	Diagnostic,
+	DiagnosticSeverity,
 	HoverInfo,
+	InsertTextFormat,
 	SignatureHelp,
 	TextEdit,
 } from "../../language-service/src/types";

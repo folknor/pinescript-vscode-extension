@@ -1,6 +1,15 @@
-export { getCompletions, getAllCompletions, getNamespaceCompletions } from "./completions";
-export { getHover } from "./hover";
-export { getSignatureHelp } from "./signatures";
+export {
+	getAllCompletions,
+	getCompletions,
+	getNamespaceCompletions,
+} from "./completions";
 export { getDiagnostics } from "./diagnostics";
 export { format, formatToString } from "./formatting";
-export { getSymbolInfo, getAllFunctionNames, getAllVariableNames, getAllConstantNames } from "./lookup";
+export { getHover } from "./hover";
+export {
+	getAllConstantNames,
+	getAllFunctionNames,
+	getAllVariableNames,
+	getSymbolInfo,
+} from "./lookup";
+export { getSignatureHelp } from "./signatures";

@@ -3,8 +3,8 @@
  * Provides IntelliSense suggestions.
  */
 
-import { Connection, CompletionParams } from "vscode-languageserver/node";
-import { PineLanguageService } from "../../../language-service/src";
+import type { CompletionParams, Connection } from "vscode-languageserver/node";
+import type { PineLanguageService } from "../../../language-service/src";
 import { convertCompletionItem } from "../converters";
 
 /**

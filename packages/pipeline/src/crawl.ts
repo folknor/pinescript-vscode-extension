@@ -12,10 +12,10 @@
  * Default output: pine-data/raw/v6/v6-language-constructs.json
  */
 
-import puppeteer from "puppeteer";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import puppeteer from "puppeteer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

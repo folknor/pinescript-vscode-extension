@@ -16,7 +16,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PINE_DATA_DIR = path.join(__dirname, "../../../pine-data/v6");
-const OUTPUT_FILE = path.join(__dirname, "../../../syntaxes/pine.tmLanguage.json");
+const OUTPUT_FILE = path.join(
+	__dirname,
+	"../../../syntaxes/pine.tmLanguage.json",
+);
 
 // Load pine-data
 function loadPineData() {
@@ -42,7 +45,8 @@ function extractFunctions(content: string): Map<string, string[]> {
 	const byNamespace = new Map<string, string[]>();
 
 	// Match function names like "name": "ta.sma" or "name": "alert"
-	const regex = /"name":\s*"([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)"/g;
+	const regex =
+		/"name":\s*"([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)"/g;
 	let match;
 	while ((match = regex.exec(content)) !== null) {
 		const fullName = match[1];
@@ -83,12 +87,16 @@ function extractConstants(content: string): Map<string, string[]> {
 	return byNamespace;
 }
 
-function extractVariables(content: string): { standalone: string[]; namespaced: Map<string, string[]> } {
+function extractVariables(content: string): {
+	standalone: string[];
+	namespaced: Map<string, string[]>;
+} {
 	const standalone: string[] = [];
 	const namespaced = new Map<string, string[]>();
 
 	// Match variable names like "name": "close" or "name": "syminfo.tickerid"
-	const regex = /"name":\s*"([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)"/g;
+	const regex =
+		/"name":\s*"([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)"/g;
 	let match;
 	while ((match = regex.exec(content)) !== null) {
 		const fullName = match[1];
@@ -127,7 +135,8 @@ function generateGrammar(data: ReturnType<typeof loadPineData>) {
 
 	// Build the grammar object
 	const grammar = {
-		$schema: "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+		$schema:
+			"https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 		name: "Pine Script",
 		scopeName: "source.pine",
 		patterns: [
@@ -153,7 +162,8 @@ function generateGrammar(data: ReturnType<typeof loadPineData>) {
 				patterns: [
 					{
 						name: "comment.line.annotation.pine",
-						match: "^\\s*(//\\s*@(version|strategy_alert_message|description))\\s*(=)?\\s*(.*)$",
+						match:
+							"^\\s*(//\\s*@(version|strategy_alert_message|description))\\s*(=)?\\s*(.*)$",
 						captures: {
 							"1": { name: "keyword.control.annotation.pine" },
 							"2": { name: "entity.name.tag.annotation.pine" },
@@ -185,15 +195,26 @@ function generateGrammar(data: ReturnType<typeof loadPineData>) {
 						begin: '"',
 						end: '"',
 						patterns: [
-							{ name: "constant.character.escape.pine", match: '\\\\(["\\\\/bfnrt]|u[0-9a-fA-F]{4})' },
-							{ name: "invalid.illegal.unrecognized-string-escape.pine", match: "\\\\." },
+							{
+								name: "constant.character.escape.pine",
+								match: '\\\\(["\\\\/bfnrt]|u[0-9a-fA-F]{4})',
+							},
+							{
+								name: "invalid.illegal.unrecognized-string-escape.pine",
+								match: "\\\\.",
+							},
 						],
 					},
 					{
 						name: "string.quoted.single.pine",
 						begin: "'",
 						end: "'",
-						patterns: [{ name: "constant.character.escape.pine", match: "\\\\(['\\\\/bfnrt]|u[0-9a-fA-F]{4})" }],
+						patterns: [
+							{
+								name: "constant.character.escape.pine",
+								match: "\\\\(['\\\\/bfnrt]|u[0-9a-fA-F]{4})",
+							},
+						],
 					},
 				],
 			},
@@ -202,42 +223,82 @@ function generateGrammar(data: ReturnType<typeof loadPineData>) {
 					{ name: "constant.numeric.hex.pine", match: "\\b0x[0-9A-Fa-f]+\\b" },
 					{
 						name: "constant.numeric.float.pine",
-						match: "\\b([0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?|\\.[0-9]+([eE][+-]?[0-9]+)?)\\b",
+						match:
+							"\\b([0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?|\\.[0-9]+([eE][+-]?[0-9]+)?)\\b",
 					},
-					{ name: "constant.numeric.integer.pine", match: "\\b[0-9]+([eE][+-]?[0-9]+)?\\b" },
+					{
+						name: "constant.numeric.integer.pine",
+						match: "\\b[0-9]+([eE][+-]?[0-9]+)?\\b",
+					},
 				],
 			},
 			booleans: {
-				patterns: [{ name: "constant.language.boolean.pine", match: "\\b(true|false)\\b" }],
+				patterns: [
+					{
+						name: "constant.language.boolean.pine",
+						match: "\\b(true|false)\\b",
+					},
+				],
 			},
 			keywords: {
 				patterns: [
-					{ name: "keyword.control.conditional.pine", match: "\\b(if|else|switch|case|default)\\b" },
-					{ name: "keyword.control.loop.pine", match: "\\b(for|while|break|continue)\\b" },
+					{
+						name: "keyword.control.conditional.pine",
+						match: "\\b(if|else|switch|case|default)\\b",
+					},
+					{
+						name: "keyword.control.loop.pine",
+						match: "\\b(for|while|break|continue)\\b",
+					},
 					{ name: "keyword.control.flow.pine", match: "\\b(return)\\b" },
-					{ name: "keyword.control.import.pine", match: "\\b(import|export|as)\\b" },
-					{ name: "keyword.operator.logical.pine", match: "\\b(and|or|not)\\b" },
-					{ name: "keyword.other.pine", match: "\\b(method|type|enum|in|to|by)\\b" },
+					{
+						name: "keyword.control.import.pine",
+						match: "\\b(import|export|as)\\b",
+					},
+					{
+						name: "keyword.operator.logical.pine",
+						match: "\\b(and|or|not)\\b",
+					},
+					{
+						name: "keyword.other.pine",
+						match: "\\b(method|type|enum|in|to|by)\\b",
+					},
 				],
 			},
 			storage: {
 				patterns: [
 					{ name: "storage.type.variable.pine", match: "\\b(var|varip)\\b" },
-					{ name: "storage.modifier.pine", match: "\\b(const|simple|series|input)\\b" },
+					{
+						name: "storage.modifier.pine",
+						match: "\\b(const|simple|series|input)\\b",
+					},
 				],
 			},
 			types: {
 				patterns: [
-					{ name: "support.type.primitive.pine", match: "\\b(int|float|bool|string|color)\\b" },
-					{ name: "support.type.object.pine", match: "\\b(line|label|box|table|array|matrix|map|polyline|chart\\.point)\\b" },
+					{
+						name: "support.type.primitive.pine",
+						match: "\\b(int|float|bool|string|color)\\b",
+					},
+					{
+						name: "support.type.object.pine",
+						match:
+							"\\b(line|label|box|table|array|matrix|map|polyline|chart\\.point)\\b",
+					},
 					{ name: "support.type.special.pine", match: "\\b(void|na)\\b" },
 				],
 			},
 			operators: {
 				patterns: [
 					{ name: "keyword.operator.assignment.pine", match: "(:=|=)" },
-					{ name: "keyword.operator.comparison.pine", match: "(==|!=|<=|>=|<|>)" },
-					{ name: "keyword.operator.arithmetic.pine", match: "(\\+|-|\\*|/|%)" },
+					{
+						name: "keyword.operator.comparison.pine",
+						match: "(==|!=|<=|>=|<|>)",
+					},
+					{
+						name: "keyword.operator.arithmetic.pine",
+						match: "(\\+|-|\\*|/|%)",
+					},
 					{ name: "keyword.operator.ternary.pine", match: "(\\?|:)" },
 					{ name: "keyword.operator.arrow.pine", match: "(=>)" },
 				],
@@ -247,7 +308,9 @@ function generateGrammar(data: ReturnType<typeof loadPineData>) {
 					{
 						name: "meta.function.declaration.pine",
 						match: "^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
-						captures: { "1": { name: "entity.name.function.declaration.pine" } },
+						captures: {
+							"1": { name: "entity.name.function.declaration.pine" },
+						},
 					},
 					{
 						name: "support.function.builtin.declaration.pine",
@@ -262,7 +325,9 @@ function generateGrammar(data: ReturnType<typeof loadPineData>) {
 				patterns: generateConstantPatterns(constants),
 			},
 			"function-calls": {
-				patterns: generateGlobalFunctionPatterns(functions.get("_global") || []),
+				patterns: generateGlobalFunctionPatterns(
+					functions.get("_global") || [],
+				),
 			},
 			"method-calls": {
 				patterns: generateMethodCallPatterns(functions),
@@ -311,7 +376,20 @@ function generateGlobalFunctionPatterns(globalFuncs: string[]) {
 	if (globalFuncs.length > 0) {
 		// Split into categories for better highlighting
 		const plotFuncs = globalFuncs.filter((f) =>
-			["plot", "plotshape", "plotchar", "plotarrow", "plotbar", "plotcandle", "hline", "fill", "bgcolor", "barcolor", "alertcondition", "alert"].includes(f),
+			[
+				"plot",
+				"plotshape",
+				"plotchar",
+				"plotarrow",
+				"plotbar",
+				"plotcandle",
+				"hline",
+				"fill",
+				"bgcolor",
+				"barcolor",
+				"alertcondition",
+				"alert",
+			].includes(f),
 		);
 		const otherFuncs = globalFuncs.filter((f) => !plotFuncs.includes(f));
 
@@ -371,7 +449,10 @@ function generateNamespacePatterns(namespaces: Set<string>) {
 	return patterns;
 }
 
-function generateVariablePatterns(variables: { standalone: string[]; namespaced: Map<string, string[]> }) {
+function generateVariablePatterns(variables: {
+	standalone: string[];
+	namespaced: Map<string, string[]>;
+}) {
 	const patterns: object[] = [];
 
 	// Standalone built-in variables
@@ -411,11 +492,17 @@ function main() {
 	try {
 		const data = loadPineData();
 
-		console.log(`  Functions: ${Array.from(data.functions.values()).flat().length} total`);
+		console.log(
+			`  Functions: ${Array.from(data.functions.values()).flat().length} total`,
+		);
 		console.log(`    Namespaces: ${data.functions.size}`);
-		console.log(`  Constants: ${Array.from(data.constants.values()).flat().length} total`);
+		console.log(
+			`  Constants: ${Array.from(data.constants.values()).flat().length} total`,
+		);
 		console.log(`    Namespaces: ${data.constants.size}`);
-		console.log(`  Variables: ${data.variables.standalone.length} standalone, ${Array.from(data.variables.namespaced.values()).flat().length} namespaced`);
+		console.log(
+			`  Variables: ${data.variables.standalone.length} standalone, ${Array.from(data.variables.namespaced.values()).flat().length} namespaced`,
+		);
 
 		const grammar = generateGrammar(data);
 		const output = JSON.stringify(grammar, null, "\t");

@@ -13,10 +13,10 @@
  * Default output: pine-data/raw/v6/complete-v6-details.json
  */
 
-import puppeteer, { type Browser, type Page } from "puppeteer";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import puppeteer, { type Browser, type Page } from "puppeteer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -273,7 +273,10 @@ export async function scrapeFunctionDetails(
 			}
 
 			function extractFromElement(element: HTMLElement): FunctionDetails {
-				const res: FunctionDetails & { overloads?: string[]; variadic?: boolean } = {
+				const res: FunctionDetails & {
+					overloads?: string[];
+					variadic?: boolean;
+				} = {
 					name: "",
 					syntax: "",
 					description: "",
@@ -353,8 +356,10 @@ export async function scrapeFunctionDetails(
 							paramName.startsWith("[") ||
 							descLower.includes("optional argument") ||
 							descLower.includes("optional.");
-						const isExplicitlyRequired = descLower.includes("required argument");
-						const isOptional = isExplicitlyOptional || hasDefault || !isExplicitlyRequired;
+						const isExplicitlyRequired =
+							descLower.includes("required argument");
+						const isOptional =
+							isExplicitlyOptional || hasDefault || !isExplicitlyRequired;
 
 						res.parameters.push({
 							name: paramName,
@@ -367,15 +372,21 @@ export async function scrapeFunctionDetails(
 				});
 
 				// Extract parameters from ALL overloads
-				const paramsByName = new Map<string, {
-					name: string;
-					type: string;
-					description: string;
-					optional: boolean;
-					required: boolean;
-				}>();
+				const paramsByName = new Map<
+					string,
+					{
+						name: string;
+						type: string;
+						description: string;
+						optional: boolean;
+						required: boolean;
+					}
+				>();
 
-				const parseParamsFromSyntax = (syntaxStr: string, isFirstOverload = false) => {
+				const parseParamsFromSyntax = (
+					syntaxStr: string,
+					isFirstOverload = false,
+				) => {
 					const syntaxMatch = syntaxStr.match(/^[^(]+\(([^)]+)\)/);
 					if (syntaxMatch) {
 						const paramsStr = syntaxMatch[1];
@@ -391,8 +402,14 @@ export async function scrapeFunctionDetails(
 										name: trimmed,
 										type: "unknown",
 										description: "",
-										optional: !isFirstOverload || trimmed.startsWith("[") || trimmed.endsWith("?"),
-										required: isFirstOverload && !trimmed.startsWith("[") && !trimmed.endsWith("?"),
+										optional:
+											!isFirstOverload ||
+											trimmed.startsWith("[") ||
+											trimmed.endsWith("?"),
+										required:
+											isFirstOverload &&
+											!trimmed.startsWith("[") &&
+											!trimmed.endsWith("?"),
 									});
 								}
 							}
@@ -471,15 +488,17 @@ export async function scrapeFunctionDetails(
 
 		return details;
 	} catch (error) {
-		console.log(`Failed to scrape ${functionName}: ${(error as Error).message}`);
+		console.log(
+			`Failed to scrape ${functionName}: ${(error as Error).message}`,
+		);
 		return null;
 	}
 }
 
-export async function scrapeAllFunctions(forceRefresh = false): Promise<ScrapeResult> {
-	console.log(
-		"Starting Pine Script v6 function details scrape (Puppeteer)...",
-	);
+export async function scrapeAllFunctions(
+	forceRefresh = false,
+): Promise<ScrapeResult> {
+	console.log("Starting Pine Script v6 function details scrape (Puppeteer)...");
 	console.log(`Input: ${INPUT_FILE}`);
 	console.log(`Output: ${OUTPUT_FILE}`);
 	console.log(`Cache: ${CACHE_DIR}`);
@@ -513,9 +532,7 @@ export async function scrapeAllFunctions(forceRefresh = false): Promise<ScrapeRe
 	}
 
 	if (functionNames.length === 0) {
-		console.error(
-			"No functions found in input file. Run crawl script first.",
-		);
+		console.error("No functions found in input file. Run crawl script first.");
 		process.exit(1);
 	}
 

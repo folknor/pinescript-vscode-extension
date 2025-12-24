@@ -104,7 +104,11 @@ interface ConstructsData {
 
 function inferVariableType(name: string): { type: string; qualifier: string } {
 	// Price data - series<float>
-	if (["close", "open", "high", "low", "hl2", "hlc3", "ohlc4", "hlcc4"].includes(name)) {
+	if (
+		["close", "open", "high", "low", "hl2", "hlc3", "ohlc4", "hlcc4"].includes(
+			name,
+		)
+	) {
 		return { type: "float", qualifier: "series" };
 	}
 	if (["volume", "ask", "bid"].includes(name)) {
@@ -112,13 +116,32 @@ function inferVariableType(name: string): { type: string; qualifier: string } {
 	}
 
 	// Time data - series<int>
-	if (["time", "time_close", "time_tradingday", "timenow", "last_bar_time"].includes(name)) {
+	if (
+		[
+			"time",
+			"time_close",
+			"time_tradingday",
+			"timenow",
+			"last_bar_time",
+		].includes(name)
+	) {
 		return { type: "int", qualifier: "series" };
 	}
 	if (["bar_index", "last_bar_index"].includes(name)) {
 		return { type: "int", qualifier: "series" };
 	}
-	if (["dayofweek", "dayofmonth", "month", "year", "hour", "minute", "second", "weekofyear"].includes(name)) {
+	if (
+		[
+			"dayofweek",
+			"dayofmonth",
+			"month",
+			"year",
+			"hour",
+			"minute",
+			"second",
+			"weekofyear",
+		].includes(name)
+	) {
 		return { type: "int", qualifier: "series" };
 	}
 
@@ -126,7 +149,8 @@ function inferVariableType(name: string): { type: string; qualifier: string } {
 	if (name === "na") return { type: "na", qualifier: "const" };
 
 	// Namespaced variables
-	if (name.startsWith("barstate.")) return { type: "bool", qualifier: "series" };
+	if (name.startsWith("barstate."))
+		return { type: "bool", qualifier: "series" };
 	if (name.startsWith("chart.")) {
 		if (name.includes("color")) return { type: "color", qualifier: "simple" };
 		if (name.includes("time")) return { type: "int", qualifier: "series" };
@@ -134,16 +158,24 @@ function inferVariableType(name: string): { type: string; qualifier: string } {
 	}
 	if (name.startsWith("session.")) return { type: "bool", qualifier: "series" };
 	if (name.startsWith("syminfo.")) {
-		if (name.includes("mintick") || name.includes("pointvalue")) return { type: "float", qualifier: "simple" };
+		if (name.includes("mintick") || name.includes("pointvalue"))
+			return { type: "float", qualifier: "simple" };
 		return { type: "string", qualifier: "simple" };
 	}
 	if (name.startsWith("timeframe.")) {
-		if (name.startsWith("timeframe.is")) return { type: "bool", qualifier: "simple" };
-		if (name === "timeframe.multiplier") return { type: "int", qualifier: "simple" };
+		if (name.startsWith("timeframe.is"))
+			return { type: "bool", qualifier: "simple" };
+		if (name === "timeframe.multiplier")
+			return { type: "int", qualifier: "simple" };
 		return { type: "string", qualifier: "simple" };
 	}
 	if (name.startsWith("strategy.")) {
-		if (name.includes("position_size") || name.includes("equity") || name.includes("profit") || name.includes("loss")) {
+		if (
+			name.includes("position_size") ||
+			name.includes("equity") ||
+			name.includes("profit") ||
+			name.includes("loss")
+		) {
 			return { type: "float", qualifier: "series" };
 		}
 		return { type: "int", qualifier: "series" };
@@ -155,33 +187,60 @@ function inferVariableType(name: string): { type: string; qualifier: string } {
 
 function inferConstantType(namespace: string): string {
 	switch (namespace) {
-		case "color": return "color";
-		case "shape": return "string";
-		case "plot": return "string";
-		case "hline": return "string";
-		case "line": return "string";
-		case "label": return "string";
-		case "size": return "string";
-		case "location": return "string";
-		case "position": return "string";
-		case "display": return "int";
-		case "extend": return "string";
-		case "xloc": return "string";
-		case "yloc": return "string";
-		case "alert": return "string";
-		case "adjustment": return "string";
-		case "barmerge": return "string";
-		case "currency": return "string";
-		case "dayofweek": return "int";
-		case "format": return "string";
-		case "order": return "string";
-		case "scale": return "string";
-		case "session": return "string";
-		case "strategy": return "string";
-		case "text": return "string";
-		case "font": return "string";
-		case "math": return "float";
-		default: return "string";
+		case "color":
+			return "color";
+		case "shape":
+			return "string";
+		case "plot":
+			return "string";
+		case "hline":
+			return "string";
+		case "line":
+			return "string";
+		case "label":
+			return "string";
+		case "size":
+			return "string";
+		case "location":
+			return "string";
+		case "position":
+			return "string";
+		case "display":
+			return "int";
+		case "extend":
+			return "string";
+		case "xloc":
+			return "string";
+		case "yloc":
+			return "string";
+		case "alert":
+			return "string";
+		case "adjustment":
+			return "string";
+		case "barmerge":
+			return "string";
+		case "currency":
+			return "string";
+		case "dayofweek":
+			return "int";
+		case "format":
+			return "string";
+		case "order":
+			return "string";
+		case "scale":
+			return "string";
+		case "session":
+			return "string";
+		case "strategy":
+			return "string";
+		case "text":
+			return "string";
+		case "font":
+			return "string";
+		case "math":
+			return "float";
+		default:
+			return "string";
 	}
 }
 
@@ -190,9 +249,20 @@ function getFunctionFlags(name: string): Record<string, unknown> | undefined {
 
 	// Top-level only functions
 	const topLevelOnly = [
-		"indicator", "strategy", "library",
-		"plot", "plotshape", "plotchar", "plotcandle", "plotbar", "plotarrow",
-		"bgcolor", "barcolor", "fill", "hline", "alertcondition",
+		"indicator",
+		"strategy",
+		"library",
+		"plot",
+		"plotshape",
+		"plotchar",
+		"plotcandle",
+		"plotbar",
+		"plotarrow",
+		"bgcolor",
+		"barcolor",
+		"fill",
+		"hline",
+		"alertcondition",
 	];
 	if (topLevelOnly.includes(name)) {
 		flags.topLevelOnly = true;
@@ -214,8 +284,8 @@ function getFunctionFlags(name: string): Record<string, unknown> | undefined {
 
 	// Polymorphic functions
 	const polymorphic: Record<string, string> = {
-		"nz": "input",
-		"fixnan": "input",
+		nz: "input",
+		fixnan: "input",
 		"array.get": "element",
 		"array.first": "element",
 		"array.last": "element",
@@ -267,15 +337,51 @@ function isParameterOptional(param: Parameter): boolean {
 	if (param.default !== undefined) return true;
 
 	const commonOptionalParams = [
-		"text", "textcolor", "color", "bgcolor", "bordercolor",
-		"offset", "show_last", "editable", "display", "format", "precision",
-		"size", "location", "style", "force_overlay", "tooltip", "inline",
-		"group", "confirm", "options", "minval", "maxval", "step", "xloc", "yloc",
-		"overlay", "format", "scale", "max_bars_back", "max_lines_count",
-		"max_labels_count", "max_boxes_count", "max_polylines_count",
-		"timeframe", "timeframe_gaps", "explicit_plot_zorder", "precision",
-		"shorttitle", "trackprice", "histbase", "join", "linewidth",
-		"linestyle", "transp", "show_last",
+		"text",
+		"textcolor",
+		"color",
+		"bgcolor",
+		"bordercolor",
+		"offset",
+		"show_last",
+		"editable",
+		"display",
+		"format",
+		"precision",
+		"size",
+		"location",
+		"style",
+		"force_overlay",
+		"tooltip",
+		"inline",
+		"group",
+		"confirm",
+		"options",
+		"minval",
+		"maxval",
+		"step",
+		"xloc",
+		"yloc",
+		"overlay",
+		"format",
+		"scale",
+		"max_bars_back",
+		"max_lines_count",
+		"max_labels_count",
+		"max_boxes_count",
+		"max_polylines_count",
+		"timeframe",
+		"timeframe_gaps",
+		"explicit_plot_zorder",
+		"precision",
+		"shorttitle",
+		"trackprice",
+		"histbase",
+		"join",
+		"linewidth",
+		"linestyle",
+		"transp",
+		"show_last",
 	];
 	if (commonOptionalParams.includes(param.name)) {
 		if (desc.includes("required argument") || desc.includes("is required")) {
@@ -291,18 +397,51 @@ function isParameterOptional(param: Parameter): boolean {
 
 const MISSING_PARAMETERS: Record<string, Parameter[]> = {
 	"input.int": [
-		{ name: "minval", type: "const int", description: "Minimum value of the input.", required: false },
-		{ name: "maxval", type: "const int", description: "Maximum value of the input.", required: false },
-		{ name: "step", type: "const int", description: "Step value for the input.", required: false },
+		{
+			name: "minval",
+			type: "const int",
+			description: "Minimum value of the input.",
+			required: false,
+		},
+		{
+			name: "maxval",
+			type: "const int",
+			description: "Maximum value of the input.",
+			required: false,
+		},
+		{
+			name: "step",
+			type: "const int",
+			description: "Step value for the input.",
+			required: false,
+		},
 	],
 	"input.float": [
-		{ name: "minval", type: "const float", description: "Minimum value of the input.", required: false },
-		{ name: "maxval", type: "const float", description: "Maximum value of the input.", required: false },
-		{ name: "step", type: "const float", description: "Step value for the input.", required: false },
+		{
+			name: "minval",
+			type: "const float",
+			description: "Minimum value of the input.",
+			required: false,
+		},
+		{
+			name: "maxval",
+			type: "const float",
+			description: "Maximum value of the input.",
+			required: false,
+		},
+		{
+			name: "step",
+			type: "const float",
+			description: "Step value for the input.",
+			required: false,
+		},
 	],
 };
 
-function generateFunctions(details: DetailsData, _constructs: ConstructsData): GeneratedFunction[] {
+function generateFunctions(
+	details: DetailsData,
+	_constructs: ConstructsData,
+): GeneratedFunction[] {
 	console.log("Generating functions.ts...");
 
 	const functions: GeneratedFunction[] = [];
@@ -313,7 +452,7 @@ function generateFunctions(details: DetailsData, _constructs: ConstructsData): G
 		const namespace = name.includes(".") ? name.split(".")[0] : undefined;
 		const flags = getFunctionFlags(name);
 
-		let parameters = (detail.parameters || []).map(p => ({
+		const parameters = (detail.parameters || []).map((p) => ({
 			name: p.name,
 			type: p.type || "unknown",
 			description: p.description || "",
@@ -322,7 +461,7 @@ function generateFunctions(details: DetailsData, _constructs: ConstructsData): G
 		}));
 
 		if (MISSING_PARAMETERS[name]) {
-			const existingNames = new Set(parameters.map(p => p.name));
+			const existingNames = new Set(parameters.map((p) => p.name));
 			for (const missing of MISSING_PARAMETERS[name]) {
 				if (!existingNames.has(missing.name)) {
 					parameters.push({
@@ -402,7 +541,10 @@ export const FUNCTION_NAMESPACES: Set<string> = new Set(
 	return functions;
 }
 
-function generateVariables(_details: DetailsData, constructs: ConstructsData): GeneratedVariable[] {
+function generateVariables(
+	_details: DetailsData,
+	constructs: ConstructsData,
+): GeneratedVariable[] {
 	console.log("Generating variables.ts...");
 
 	const variables: GeneratedVariable[] = [];
@@ -423,74 +565,389 @@ function generateVariables(_details: DetailsData, constructs: ConstructsData): G
 	// Namespace variables
 	const namespaceVars: GeneratedVariable[] = [
 		// syminfo
-		{ name: "syminfo.tickerid", type: "simple<string>", qualifier: "simple", description: "Ticker ID with exchange prefix" },
-		{ name: "syminfo.ticker", type: "simple<string>", qualifier: "simple", description: "Ticker symbol without exchange" },
-		{ name: "syminfo.prefix", type: "simple<string>", qualifier: "simple", description: "Exchange prefix" },
-		{ name: "syminfo.type", type: "simple<string>", qualifier: "simple", description: "Symbol type (stock, forex, crypto, etc.)" },
-		{ name: "syminfo.session", type: "simple<string>", qualifier: "simple", description: "Session type" },
-		{ name: "syminfo.timezone", type: "simple<string>", qualifier: "simple", description: "Timezone" },
-		{ name: "syminfo.currency", type: "simple<string>", qualifier: "simple", description: "Currency" },
-		{ name: "syminfo.basecurrency", type: "simple<string>", qualifier: "simple", description: "Base currency" },
-		{ name: "syminfo.description", type: "simple<string>", qualifier: "simple", description: "Symbol description" },
-		{ name: "syminfo.mintick", type: "simple<float>", qualifier: "simple", description: "Minimum tick size" },
-		{ name: "syminfo.pointvalue", type: "simple<float>", qualifier: "simple", description: "Point value" },
-		{ name: "syminfo.country", type: "simple<string>", qualifier: "simple", description: "Country code of the symbol" },
-		{ name: "syminfo.industry", type: "simple<string>", qualifier: "simple", description: "Industry of the symbol" },
-		{ name: "syminfo.root", type: "simple<string>", qualifier: "simple", description: "Root symbol" },
+		{
+			name: "syminfo.tickerid",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Ticker ID with exchange prefix",
+		},
+		{
+			name: "syminfo.ticker",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Ticker symbol without exchange",
+		},
+		{
+			name: "syminfo.prefix",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Exchange prefix",
+		},
+		{
+			name: "syminfo.type",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Symbol type (stock, forex, crypto, etc.)",
+		},
+		{
+			name: "syminfo.session",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Session type",
+		},
+		{
+			name: "syminfo.timezone",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Timezone",
+		},
+		{
+			name: "syminfo.currency",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Currency",
+		},
+		{
+			name: "syminfo.basecurrency",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Base currency",
+		},
+		{
+			name: "syminfo.description",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Symbol description",
+		},
+		{
+			name: "syminfo.mintick",
+			type: "simple<float>",
+			qualifier: "simple",
+			description: "Minimum tick size",
+		},
+		{
+			name: "syminfo.pointvalue",
+			type: "simple<float>",
+			qualifier: "simple",
+			description: "Point value",
+		},
+		{
+			name: "syminfo.country",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Country code of the symbol",
+		},
+		{
+			name: "syminfo.industry",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Industry of the symbol",
+		},
+		{
+			name: "syminfo.root",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Root symbol",
+		},
 		// barstate
-		{ name: "barstate.isfirst", type: "series<bool>", qualifier: "series", description: "True on first bar" },
-		{ name: "barstate.islast", type: "series<bool>", qualifier: "series", description: "True on last bar" },
-		{ name: "barstate.ishistory", type: "series<bool>", qualifier: "series", description: "True on historical bars" },
-		{ name: "barstate.isrealtime", type: "series<bool>", qualifier: "series", description: "True on realtime bars" },
-		{ name: "barstate.isnew", type: "series<bool>", qualifier: "series", description: "True on new bar" },
-		{ name: "barstate.isconfirmed", type: "series<bool>", qualifier: "series", description: "True when bar is confirmed" },
-		{ name: "barstate.islastconfirmedhistory", type: "series<bool>", qualifier: "series", description: "True on last confirmed historical bar" },
+		{
+			name: "barstate.isfirst",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True on first bar",
+		},
+		{
+			name: "barstate.islast",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True on last bar",
+		},
+		{
+			name: "barstate.ishistory",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True on historical bars",
+		},
+		{
+			name: "barstate.isrealtime",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True on realtime bars",
+		},
+		{
+			name: "barstate.isnew",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True on new bar",
+		},
+		{
+			name: "barstate.isconfirmed",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True when bar is confirmed",
+		},
+		{
+			name: "barstate.islastconfirmedhistory",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True on last confirmed historical bar",
+		},
 		// timeframe
-		{ name: "timeframe.period", type: "simple<string>", qualifier: "simple", description: "Timeframe period string" },
-		{ name: "timeframe.multiplier", type: "simple<int>", qualifier: "simple", description: "Timeframe multiplier" },
-		{ name: "timeframe.isseconds", type: "simple<bool>", qualifier: "simple", description: "True if seconds timeframe" },
-		{ name: "timeframe.isminutes", type: "simple<bool>", qualifier: "simple", description: "True if minutes timeframe" },
-		{ name: "timeframe.isdaily", type: "simple<bool>", qualifier: "simple", description: "True if daily timeframe" },
-		{ name: "timeframe.isweekly", type: "simple<bool>", qualifier: "simple", description: "True if weekly timeframe" },
-		{ name: "timeframe.ismonthly", type: "simple<bool>", qualifier: "simple", description: "True if monthly timeframe" },
-		{ name: "timeframe.isdwm", type: "simple<bool>", qualifier: "simple", description: "True if daily/weekly/monthly" },
-		{ name: "timeframe.isintraday", type: "simple<bool>", qualifier: "simple", description: "True if intraday timeframe" },
-		{ name: "timeframe.isticks", type: "simple<bool>", qualifier: "simple", description: "True if ticks timeframe" },
-		{ name: "timeframe.main_period", type: "simple<string>", qualifier: "simple", description: "Main period of the chart timeframe" },
+		{
+			name: "timeframe.period",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Timeframe period string",
+		},
+		{
+			name: "timeframe.multiplier",
+			type: "simple<int>",
+			qualifier: "simple",
+			description: "Timeframe multiplier",
+		},
+		{
+			name: "timeframe.isseconds",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if seconds timeframe",
+		},
+		{
+			name: "timeframe.isminutes",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if minutes timeframe",
+		},
+		{
+			name: "timeframe.isdaily",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if daily timeframe",
+		},
+		{
+			name: "timeframe.isweekly",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if weekly timeframe",
+		},
+		{
+			name: "timeframe.ismonthly",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if monthly timeframe",
+		},
+		{
+			name: "timeframe.isdwm",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if daily/weekly/monthly",
+		},
+		{
+			name: "timeframe.isintraday",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if intraday timeframe",
+		},
+		{
+			name: "timeframe.isticks",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if ticks timeframe",
+		},
+		{
+			name: "timeframe.main_period",
+			type: "simple<string>",
+			qualifier: "simple",
+			description: "Main period of the chart timeframe",
+		},
 		// chart
-		{ name: "chart.bg_color", type: "color", qualifier: "simple", description: "Chart background color" },
-		{ name: "chart.fg_color", type: "color", qualifier: "simple", description: "Chart foreground color" },
-		{ name: "chart.is_standard", type: "simple<bool>", qualifier: "simple", description: "True if standard chart" },
-		{ name: "chart.is_heikinashi", type: "simple<bool>", qualifier: "simple", description: "True if Heikin Ashi chart" },
-		{ name: "chart.is_renko", type: "simple<bool>", qualifier: "simple", description: "True if Renko chart" },
-		{ name: "chart.is_kagi", type: "simple<bool>", qualifier: "simple", description: "True if Kagi chart" },
-		{ name: "chart.is_linebreak", type: "simple<bool>", qualifier: "simple", description: "True if Line Break chart" },
-		{ name: "chart.is_pnf", type: "simple<bool>", qualifier: "simple", description: "True if Point & Figure chart" },
-		{ name: "chart.is_range", type: "simple<bool>", qualifier: "simple", description: "True if Range chart" },
-		{ name: "chart.left_visible_bar_time", type: "series<int>", qualifier: "series", description: "Time of leftmost visible bar" },
-		{ name: "chart.right_visible_bar_time", type: "series<int>", qualifier: "series", description: "Time of rightmost visible bar" },
+		{
+			name: "chart.bg_color",
+			type: "color",
+			qualifier: "simple",
+			description: "Chart background color",
+		},
+		{
+			name: "chart.fg_color",
+			type: "color",
+			qualifier: "simple",
+			description: "Chart foreground color",
+		},
+		{
+			name: "chart.is_standard",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if standard chart",
+		},
+		{
+			name: "chart.is_heikinashi",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if Heikin Ashi chart",
+		},
+		{
+			name: "chart.is_renko",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if Renko chart",
+		},
+		{
+			name: "chart.is_kagi",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if Kagi chart",
+		},
+		{
+			name: "chart.is_linebreak",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if Line Break chart",
+		},
+		{
+			name: "chart.is_pnf",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if Point & Figure chart",
+		},
+		{
+			name: "chart.is_range",
+			type: "simple<bool>",
+			qualifier: "simple",
+			description: "True if Range chart",
+		},
+		{
+			name: "chart.left_visible_bar_time",
+			type: "series<int>",
+			qualifier: "series",
+			description: "Time of leftmost visible bar",
+		},
+		{
+			name: "chart.right_visible_bar_time",
+			type: "series<int>",
+			qualifier: "series",
+			description: "Time of rightmost visible bar",
+		},
 		// session
-		{ name: "session.ismarket", type: "series<bool>", qualifier: "series", description: "True during market session" },
-		{ name: "session.ispremarket", type: "series<bool>", qualifier: "series", description: "True during pre-market" },
-		{ name: "session.ispostmarket", type: "series<bool>", qualifier: "series", description: "True during post-market" },
-		{ name: "session.isfirstbar", type: "series<bool>", qualifier: "series", description: "True on first bar of session" },
-		{ name: "session.isfirstbar_regular", type: "series<bool>", qualifier: "series", description: "True on first bar of regular session" },
+		{
+			name: "session.ismarket",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True during market session",
+		},
+		{
+			name: "session.ispremarket",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True during pre-market",
+		},
+		{
+			name: "session.ispostmarket",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True during post-market",
+		},
+		{
+			name: "session.isfirstbar",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True on first bar of session",
+		},
+		{
+			name: "session.isfirstbar_regular",
+			type: "series<bool>",
+			qualifier: "series",
+			description: "True on first bar of regular session",
+		},
 		// strategy
-		{ name: "strategy.position_size", type: "series<float>", qualifier: "series", description: "Current position size" },
-		{ name: "strategy.position_avg_price", type: "series<float>", qualifier: "series", description: "Average position price" },
-		{ name: "strategy.equity", type: "series<float>", qualifier: "series", description: "Current equity" },
-		{ name: "strategy.openprofit", type: "series<float>", qualifier: "series", description: "Open profit" },
-		{ name: "strategy.netprofit", type: "series<float>", qualifier: "series", description: "Net profit" },
-		{ name: "strategy.grossprofit", type: "series<float>", qualifier: "series", description: "Gross profit" },
-		{ name: "strategy.grossloss", type: "series<float>", qualifier: "series", description: "Gross loss" },
-		{ name: "strategy.closedtrades", type: "series<int>", qualifier: "series", description: "Number of closed trades" },
-		{ name: "strategy.opentrades", type: "series<int>", qualifier: "series", description: "Number of open trades" },
-		{ name: "strategy.wintrades", type: "series<int>", qualifier: "series", description: "Number of winning trades" },
-		{ name: "strategy.losstrades", type: "series<int>", qualifier: "series", description: "Number of losing trades" },
-		{ name: "strategy.initial_capital", type: "simple<float>", qualifier: "simple", description: "Initial capital" },
-		{ name: "strategy.openprofit_percent", type: "series<float>", qualifier: "series", description: "Open profit as percentage" },
-		{ name: "strategy.netprofit_percent", type: "series<float>", qualifier: "series", description: "Net profit as percentage" },
-		{ name: "strategy.max_drawdown_percent", type: "series<float>", qualifier: "series", description: "Maximum drawdown as percentage" },
+		{
+			name: "strategy.position_size",
+			type: "series<float>",
+			qualifier: "series",
+			description: "Current position size",
+		},
+		{
+			name: "strategy.position_avg_price",
+			type: "series<float>",
+			qualifier: "series",
+			description: "Average position price",
+		},
+		{
+			name: "strategy.equity",
+			type: "series<float>",
+			qualifier: "series",
+			description: "Current equity",
+		},
+		{
+			name: "strategy.openprofit",
+			type: "series<float>",
+			qualifier: "series",
+			description: "Open profit",
+		},
+		{
+			name: "strategy.netprofit",
+			type: "series<float>",
+			qualifier: "series",
+			description: "Net profit",
+		},
+		{
+			name: "strategy.grossprofit",
+			type: "series<float>",
+			qualifier: "series",
+			description: "Gross profit",
+		},
+		{
+			name: "strategy.grossloss",
+			type: "series<float>",
+			qualifier: "series",
+			description: "Gross loss",
+		},
+		{
+			name: "strategy.closedtrades",
+			type: "series<int>",
+			qualifier: "series",
+			description: "Number of closed trades",
+		},
+		{
+			name: "strategy.opentrades",
+			type: "series<int>",
+			qualifier: "series",
+			description: "Number of open trades",
+		},
+		{
+			name: "strategy.wintrades",
+			type: "series<int>",
+			qualifier: "series",
+			description: "Number of winning trades",
+		},
+		{
+			name: "strategy.losstrades",
+			type: "series<int>",
+			qualifier: "series",
+			description: "Number of losing trades",
+		},
+		{
+			name: "strategy.initial_capital",
+			type: "simple<float>",
+			qualifier: "simple",
+			description: "Initial capital",
+		},
+		{
+			name: "strategy.openprofit_percent",
+			type: "series<float>",
+			qualifier: "series",
+			description: "Open profit as percentage",
+		},
+		{
+			name: "strategy.netprofit_percent",
+			type: "series<float>",
+			qualifier: "series",
+			description: "Net profit as percentage",
+		},
+		{
+			name: "strategy.max_drawdown_percent",
+			type: "series<float>",
+			qualifier: "series",
+			description: "Maximum drawdown as percentage",
+		},
 	];
 
 	for (const v of namespaceVars) {
@@ -557,7 +1014,10 @@ export const VARIABLE_NAMESPACES: Set<string> = new Set(
 	return variables;
 }
 
-function generateConstants(_details: DetailsData, constructs: ConstructsData): GeneratedConstant[] {
+function generateConstants(
+	_details: DetailsData,
+	constructs: ConstructsData,
+): GeneratedConstant[] {
 	console.log("Generating constants.ts...");
 
 	const constants: GeneratedConstant[] = [];
@@ -631,11 +1091,33 @@ function generateKeywords(constructs: ConstructsData): string[] {
 
 	const allKeywords = new Set([
 		...keywords,
-		"if", "else", "for", "while", "switch", "case", "default",
-		"break", "continue", "return",
-		"var", "varip", "const", "type", "enum", "export", "import",
-		"method", "library", "indicator", "strategy",
-		"and", "or", "not", "true", "false", "na",
+		"if",
+		"else",
+		"for",
+		"while",
+		"switch",
+		"case",
+		"default",
+		"break",
+		"continue",
+		"return",
+		"var",
+		"varip",
+		"const",
+		"type",
+		"enum",
+		"export",
+		"import",
+		"method",
+		"library",
+		"indicator",
+		"strategy",
+		"and",
+		"or",
+		"not",
+		"true",
+		"false",
+		"na",
 	]);
 
 	const keywordList = [...allKeywords].sort();
@@ -820,8 +1302,12 @@ function main(): void {
 		process.exit(1);
 	}
 
-	const details: DetailsData = JSON.parse(fs.readFileSync(DETAILS_FILE, "utf8"));
-	const constructs: ConstructsData = JSON.parse(fs.readFileSync(CONSTRUCTS_FILE, "utf8"));
+	const details: DetailsData = JSON.parse(
+		fs.readFileSync(DETAILS_FILE, "utf8"),
+	);
+	const constructs: ConstructsData = JSON.parse(
+		fs.readFileSync(CONSTRUCTS_FILE, "utf8"),
+	);
 
 	// Generate all files
 	const functions = generateFunctions(details, constructs);

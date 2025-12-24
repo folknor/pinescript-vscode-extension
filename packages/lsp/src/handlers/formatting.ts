@@ -3,11 +3,11 @@
  * Provides code formatting.
  */
 
-import {
+import type {
 	Connection,
 	DocumentFormattingParams,
 } from "vscode-languageserver/node";
-import { PineLanguageService } from "../../../language-service/src";
+import type { PineLanguageService } from "../../../language-service/src";
 import { convertTextEdit } from "../converters";
 
 /**

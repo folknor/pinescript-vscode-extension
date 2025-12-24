@@ -7,8 +7,8 @@
  */
 
 import type {
-	PineLintResponse,
 	PineLintOptions,
+	PineLintResponse,
 	PineLintResultPayload,
 } from "./types.ts";
 

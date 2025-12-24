@@ -1,6 +1,11 @@
 // AST Extractor for pine-lint compatible output format
 // This module extracts variables, functions, types, and enums from the Pine Script AST
 
+import { FUNCTIONS_BY_NAME, VARIABLES_BY_NAME } from "../../../../pine-data/v6";
+import {
+	type ArgumentInfo,
+	getPolymorphicReturnType,
+} from "../analyzer/builtins";
 import type {
 	CallExpression,
 	EnumDeclaration,
@@ -18,14 +23,6 @@ import type {
 	TypeDeclaration,
 	VariableDeclaration,
 } from "./ast";
-import {
-	getPolymorphicReturnType,
-	type ArgumentInfo,
-} from "../analyzer/builtins";
-import {
-	FUNCTIONS_BY_NAME,
-	VARIABLES_BY_NAME,
-} from "../../../../pine-data/v6";
 
 // Pine-lint compatible interfaces
 export interface PineLintPosition {
@@ -197,15 +194,27 @@ export class ASTExtractor {
 				}
 			} else if (stmt.type === "ForStatement") {
 				const forStmt = stmt as ForStatement;
-				variables.push(this.createIteratorVariable(
-					forStmt.iterator, forStmt.line, forStmt.column, "series int", scopeId
-				));
+				variables.push(
+					this.createIteratorVariable(
+						forStmt.iterator,
+						forStmt.line,
+						forStmt.column,
+						"series int",
+						scopeId,
+					),
+				);
 				this.walkStatements(forStmt.body, variables, scopeId);
 			} else if (stmt.type === "ForInStatement") {
 				const forInStmt = stmt as ForInStatement;
-				variables.push(this.createIteratorVariable(
-					forInStmt.iterator, forInStmt.line, forInStmt.column, "undetermined type", scopeId
-				));
+				variables.push(
+					this.createIteratorVariable(
+						forInStmt.iterator,
+						forInStmt.line,
+						forInStmt.column,
+						"undetermined type",
+						scopeId,
+					),
+				);
 				this.walkStatements(forInStmt.body, variables, scopeId);
 			} else if (stmt.type === "WhileStatement") {
 				const loopStmt = stmt as { body: Statement[] };
@@ -432,7 +441,9 @@ export class ASTExtractor {
 					}));
 					const polyType = getPolymorphicReturnType(
 						funcName,
-						argInfos.map((info) => info.type) as import("../analyzer/types").PineType[],
+						argInfos.map(
+							(info) => info.type,
+						) as import("../analyzer/types").PineType[],
 						argInfos as ArgumentInfo[],
 					);
 					return polyType ? `input ${polyType}` : "input int";
@@ -445,13 +456,22 @@ export class ASTExtractor {
 				}
 
 				// Math functions preserve input qualifier and type
-				if (funcName.startsWith("math.") && funcDef && call.arguments.length > 0) {
+				if (
+					funcName.startsWith("math.") &&
+					funcDef &&
+					call.arguments.length > 0
+				) {
 					return this.inferExpressionType(call.arguments[0].value);
 				}
 
 				// Array element-returning functions (polymorphic on array element type)
-				if (funcDef?.flags?.polymorphic === "element" && call.arguments.length > 0) {
-					const arrayArgType = this.inferExpressionType(call.arguments[0].value);
+				if (
+					funcDef?.flags?.polymorphic === "element" &&
+					call.arguments.length > 0
+				) {
+					const arrayArgType = this.inferExpressionType(
+						call.arguments[0].value,
+					);
 					const arrayMatch = arrayArgType.match(/^array<(.+)>$/);
 					if (arrayMatch) {
 						// If function has explicit return type, use it; otherwise use element type

@@ -1,8 +1,8 @@
 // Simple Pine Script Parser (focused on function call validation)
 
+import { TYPE_KEYWORDS, VAR_TYPE_KEYWORDS } from "../constants/keywords";
 import type * as AST from "./ast";
 import { Lexer, type LexerError, type Token, TokenType } from "./lexer";
-import { TYPE_KEYWORDS, VAR_TYPE_KEYWORDS } from "../constants/keywords";
 
 export interface ParserError {
 	line: number;
@@ -73,7 +73,11 @@ export class Parser {
 
 	private statement(): AST.Statement | null {
 		// Skip newlines between statements (but not inside parentheses or brackets)
-		while (this.check(TokenType.NEWLINE) && this.parenDepth === 0 && this.bracketDepth === 0) {
+		while (
+			this.check(TokenType.NEWLINE) &&
+			this.parenDepth === 0 &&
+			this.bracketDepth === 0
+		) {
 			this.advance();
 		}
 
@@ -369,7 +373,10 @@ export class Parser {
 		const checkpoint = this.current;
 		try {
 			const target = this.expression();
-			if (this.match(TokenType.ASSIGN) || this.match(TokenType.COMPOUND_ASSIGN)) {
+			if (
+				this.match(TokenType.ASSIGN) ||
+				this.match(TokenType.COMPOUND_ASSIGN)
+			) {
 				const operator = this.previous().value;
 				const value = this.expression();
 				const firstAssignment: AST.AssignmentStatement = {
@@ -479,7 +486,9 @@ export class Parser {
 		};
 	}
 
-	private expressionStatement(): AST.ExpressionStatement | AST.SequenceStatement {
+	private expressionStatement():
+		| AST.ExpressionStatement
+		| AST.SequenceStatement {
 		const expr = this.expression();
 
 		// Check for comma-separated expressions/assignments (e.g., func1(), a := b)
@@ -902,7 +911,9 @@ export class Parser {
 		if (this.match(TokenType.DIVIDE)) {
 			libraryPath += "/";
 		} else {
-			throw new Error(`Expected "/" in import path at line ${this.peek().line}`);
+			throw new Error(
+				`Expected "/" in import path at line ${this.peek().line}`,
+			);
 		}
 
 		// Second segment: libraryName (identifier)
@@ -916,14 +927,18 @@ export class Parser {
 		if (this.match(TokenType.DIVIDE)) {
 			libraryPath += "/";
 		} else {
-			throw new Error(`Expected "/" in import path at line ${this.peek().line}`);
+			throw new Error(
+				`Expected "/" in import path at line ${this.peek().line}`,
+			);
 		}
 
 		// Third segment: version (number)
 		if (this.check(TokenType.NUMBER)) {
 			libraryPath += this.advance().value;
 		} else {
-			throw new Error(`Expected library version number at line ${this.peek().line}`);
+			throw new Error(
+				`Expected library version number at line ${this.peek().line}`,
+			);
 		}
 
 		// Optional: as alias
@@ -933,7 +948,9 @@ export class Parser {
 			if (this.check(TokenType.IDENTIFIER)) {
 				alias = this.advance().value;
 			} else {
-				throw new Error(`Expected alias name after 'as' at line ${this.peek().line}`);
+				throw new Error(
+					`Expected alias name after 'as' at line ${this.peek().line}`,
+				);
 			}
 		}
 
@@ -956,7 +973,10 @@ export class Parser {
 		}
 
 		// Otherwise it's 'export funcName(...) => ...'
-		const nameToken = this.consume(TokenType.IDENTIFIER, "Expected function name after 'export'");
+		const nameToken = this.consume(
+			TokenType.IDENTIFIER,
+			"Expected function name after 'export'",
+		);
 		this.consume(TokenType.LPAREN, 'Expected "(" after function name');
 		const params = this.parseFunctionParams();
 		this.consume(TokenType.RPAREN, 'Expected ")" after function parameters');
@@ -976,7 +996,10 @@ export class Parser {
 	 * Parse method declaration: [export] method methodName(...) => ...
 	 */
 	private methodDeclaration(isExport: boolean): AST.MethodDeclaration {
-		const nameToken = this.consume(TokenType.IDENTIFIER, "Expected method name after 'method'");
+		const nameToken = this.consume(
+			TokenType.IDENTIFIER,
+			"Expected method name after 'method'",
+		);
 		this.consume(TokenType.LPAREN, 'Expected "(" after method name');
 		const params = this.parseFunctionParams();
 		this.consume(TokenType.RPAREN, 'Expected ")" after method parameters');
@@ -1260,10 +1283,7 @@ export class Parser {
 
 	private isTypeKeyword(): boolean {
 		const token = this.peek();
-		return (
-			token.type === TokenType.KEYWORD &&
-			TYPE_KEYWORDS.has(token.value)
-		);
+		return token.type === TokenType.KEYWORD && TYPE_KEYWORDS.has(token.value);
 	}
 
 	/** Check if current token is a variable type keyword (not a qualifier) */
@@ -1286,7 +1306,10 @@ export class Parser {
 				// Handle nested generics like array<array<float>>
 				while (this.check(TokenType.COMPARE) && this.peek().value === "<") {
 					this.advance(); // consume <
-					if (this.check(TokenType.IDENTIFIER) || this.check(TokenType.KEYWORD)) {
+					if (
+						this.check(TokenType.IDENTIFIER) ||
+						this.check(TokenType.KEYWORD)
+					) {
 						suffix += `<${this.advance().value}`;
 					}
 					if (this.check(TokenType.COMPARE) && this.peek().value === ">") {
@@ -1367,7 +1390,11 @@ export class Parser {
 			}
 
 			// Check for generic type syntax: array<float>, matrix<int>, map<string, float>
-			if (typeKeywords.length > 0 && this.check(TokenType.COMPARE) && this.peek().value === "<") {
+			if (
+				typeKeywords.length > 0 &&
+				this.check(TokenType.COMPARE) &&
+				this.peek().value === "<"
+			) {
 				this.advance(); // consume <
 				let genericType = "<";
 				let depth = 1;
@@ -1802,10 +1829,7 @@ export class Parser {
 						}
 
 						// Handle nested generics like array<array<float>>
-						while (
-							this.check(TokenType.COMPARE) &&
-							this.peek().value === "<"
-						) {
+						while (this.check(TokenType.COMPARE) && this.peek().value === "<") {
 							typeArg += "<";
 							this.advance();
 							if (
@@ -1824,10 +1848,7 @@ export class Parser {
 									}
 								}
 							}
-							if (
-								this.check(TokenType.COMPARE) &&
-								this.peek().value === ">"
-							) {
+							if (this.check(TokenType.COMPARE) && this.peek().value === ">") {
 								typeArg += ">";
 								this.advance();
 							}
@@ -1837,8 +1858,7 @@ export class Parser {
 					} while (
 						this.check(TokenType.COMMA) &&
 						(this.advance(),
-						this.check(TokenType.IDENTIFIER) ||
-							this.check(TokenType.KEYWORD))
+						this.check(TokenType.IDENTIFIER) || this.check(TokenType.KEYWORD))
 					);
 
 					// Consume closing >

@@ -2,13 +2,13 @@
 // This module contains data about built-in functions, namespace properties, and validation rules
 
 import {
+	getFunctionBehavior as _getFunctionBehavior,
+	CONSTANTS_BY_NAME,
+	FUNCTIONS_BY_NAME,
+	getReturnTypeParam,
 	type PineFunction,
 	type PineParameter,
-	FUNCTIONS_BY_NAME,
-	CONSTANTS_BY_NAME,
 	VARIABLES_BY_NAME,
-	getFunctionBehavior as _getFunctionBehavior,
-	getReturnTypeParam,
 } from "../../../../pine-data/v6";
 import type { PineType } from "./types";
 
@@ -366,7 +366,7 @@ export function getPolymorphicReturnType(
 			// e.g., nz(float) -> float, nz(int) -> int
 			return firstArgType !== "unknown" ? firstArgType : null;
 
-		case "element":
+		case "element": {
 			// Returns the element type of an array
 			// e.g., array.get(array<float>) -> float
 			if (firstArgType === "unknown") return null;
@@ -381,6 +381,7 @@ export function getPolymorphicReturnType(
 				return `series<${seriesMatch[1]}>` as PineType;
 			}
 			return firstArgType;
+		}
 
 		case "numeric":
 			// Returns the same numeric type (int stays int, float stays float)

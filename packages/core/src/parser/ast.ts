@@ -151,13 +151,13 @@ export type Expression =
 	| SwitchExpression;
 
 export interface SwitchCase {
-	condition?: Expression;  // undefined for default case
+	condition?: Expression; // undefined for default case
 	result: Expression;
 }
 
 export interface SwitchExpression extends ASTNode {
 	type: "SwitchExpression";
-	discriminant?: Expression;  // Optional discriminant (e.g., "switch pos")
+	discriminant?: Expression; // Optional discriminant (e.g., "switch pos")
 	cases: SwitchCase[];
 }
 

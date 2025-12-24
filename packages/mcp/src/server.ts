@@ -1,8 +1,12 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { PineLanguageService } from "../../language-service/src/index.js";
 import { z } from "zod";
-import { PineV6, FUNCTIONS_BY_NAME, VARIABLES_BY_NAME } from "../../../pine-data/v6/index.js";
+import {
+	FUNCTIONS_BY_NAME,
+	PineV6,
+	VARIABLES_BY_NAME,
+} from "../../../pine-data/v6/index.js";
+import { PineLanguageService } from "../../language-service/src/index.js";
 
 export async function main() {
 	const server = new McpServer({
@@ -17,7 +21,8 @@ export async function main() {
 		"pine_validate",
 		{
 			title: "Validate Pine Script",
-			description: "Validate Pine Script code and return any errors or warnings",
+			description:
+				"Validate Pine Script code and return any errors or warnings",
 			inputSchema: z.object({
 				code: z.string().describe("Pine Script code to validate"),
 			}),
@@ -68,7 +73,8 @@ export async function main() {
 		"pine_lookup",
 		{
 			title: "Look up Pine Script symbol",
-			description: "Look up documentation for a Pine Script symbol (function, variable, or constant)",
+			description:
+				"Look up documentation for a Pine Script symbol (function, variable, or constant)",
 			inputSchema: z.object({
 				symbol: z
 					.string()
@@ -123,7 +129,8 @@ export async function main() {
 		"pine_list_functions",
 		{
 			title: "List Pine Script functions",
-			description: "List available Pine Script functions, optionally filtered by namespace",
+			description:
+				"List available Pine Script functions, optionally filtered by namespace",
 			inputSchema: z.object({
 				namespace: z
 					.string()
