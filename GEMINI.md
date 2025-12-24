@@ -186,98 +186,37 @@ Discovered automatically via `discover:behavior`:
 
 ## Larger Projects
 
-### 1. Hack Audit (Do First)
+### 1. Simplify astExtractor.ts
 
-Deep analysis of `packages/core/src/` to identify and document code that "works but shouldn't be there." Goal is to understand technical debt before building new infrastructure.
+~600 lines handling type inference, qualifier tracking, and special cases. Now that pine-data is the source of truth (after hack audit), this file can be significantly streamlined.
 
-**What constitutes a hack:**
-1. **Hardcoded special cases** - `if (name === "na")` checks for specific built-ins that should be handled generically
-2. **Type assertions / `as any`** - Casting away type safety to make something work
-3. **Commented workarounds** - Code with `// TODO`, `// HACK`, `// FIXME`, or comments explaining why something is "temporary"
-4. **Data that should be in pine-data/** - Hardcoded lists of functions/variables/behaviors that belong in the generated data layer
-5. **Duplicated logic** - Same check done in multiple places instead of centralized
-6. **Order-dependent initialization** - Code that only works because things happen to run in a certain order
-7. **Silent failures** - `catch {}` blocks, `|| undefined`, or similar patterns that swallow errors
-8. **Magic numbers/strings** - Unexplained literals embedded in logic
-
-**Why first:** Understanding what's hacky vs intentional before writing tests.
-
-**Important:** Hacks aren't inherently bad. Some are elegant solutions to genuinely awkward problems. The goal is to *identify and document* them, not blindly remove them. For each hack we decide: fix, keep as-is, or keep with documentation.
-
-### Hack Audit Progress
-
-**Files to audit in `packages/core/src/`:**
-
-| File | Status | Hacks Found |
-|------|--------|-------------|
-| `parser/lexer.ts` | **Done** | 4 |
-| `parser/parser.ts` | **Done** | 7 |
-| `parser/ast.ts` | **Done** | 0 |
-| `parser/astExtractor.ts` | **Done** | 7 |
-| `parser/semanticAnalyzer.ts` | **Done** | 4 |
-| `analyzer/checker.ts` | **Done** | 7 |
-| `analyzer/builtins.ts` | **Done** | 6 |
-| `analyzer/symbols.ts` | **Done** | 1 |
-| `analyzer/types.ts` | **Done** | 3 |
-| `common/errors.ts` | **Done** | 0 |
-
-**Audit process per file:**
-1. Read entire file
-2. Search for each hack category (special cases, `as any`, TODO/HACK comments, etc.)
-3. Document each hack with: location, category, description, severity (low/medium/high)
-4. Decide action: fix now, fix later, keep (acceptable), or keep + document why
-
-**Discovered hacks:**
-
-| Location | Category | Description | Severity | Action |
-|----------|----------|-------------|----------|--------|
-| `lexer.ts:103-122` | Dead code | `_BUILTIN_FUNCTIONS` defined but never used | Low | ✅ FIXED - deleted |
-| `lexer.ts:271-276` | Silent failure | `!` without `=` produces no token | Medium | ✅ FIXED - produces ERROR token |
-| `lexer.ts:452-460,478-486` | Duplicated logic | Scientific notation scanning duplicated | Low | Keep |
-| `lexer.ts:161` | Magic number | Tab = 4 spaces hardcoded | Low | Keep |
-| `parser.ts:1952-1955` | Dead code | Duplicate `switch` keyword check | Low | ✅ FIXED - deleted |
-| `parser.ts:1719` | Magic number | `column > 10` tuple vs array detection | Medium | ✅ FIXED - named constant with docs |
-| `parser.ts:1252-1253` | TODO comment | BlockExpression incomplete | Medium | ✅ FIXED - documented as low priority |
-| `parser.ts:222-250,288-314` | Duplicated logic | Generic type parsing duplicated | Medium | ✅ FIXED - extracted parseGenericTypeSuffix() |
-| `parser.ts:201-217,268-282` | Duplicated logic | Type keyword list duplicated | Low | ✅ FIXED - static VAR_TYPE_KEYWORDS |
-| `parser.ts:multiple` | Silent failures | `catch (_e)` for backtracking | Low | Keep |
-| `parser.ts:1924-1934` | Special case | `na` as Identifier | Low | Keep - documented |
-| `astExtractor.ts:91-104` | Data in wrong place | `INPUT_FUNCTIONS` hardcoded | High | ✅ FIXED - uses pine-data |
-| `astExtractor.ts:107-159` | Data in wrong place | `SERIES_FUNCTIONS` hardcoded | High | ✅ FIXED - uses pine-data |
-| `astExtractor.ts:162-180` | Data in wrong place | `QUALIFIER_PRESERVING` hardcoded | High | ✅ FIXED - uses pine-data |
-| `astExtractor.ts:183-197` | Data in wrong place | `BUILTIN_SERIES` hardcoded | High | ✅ FIXED - uses pine-data |
-| `astExtractor.ts:536-547` | Data in wrong place | `arrayElementFuncs` hardcoded | Medium | ✅ FIXED - uses flags.polymorphic |
-| `astExtractor.ts:324` | Magic number | `+ 20` approx end column | Low | Keep |
-| `astExtractor.ts:multiple` | Magic strings | Default type fallbacks | Low | Keep |
-| `semanticAnalyzer.ts:314-366` | Data in wrong place | `seriesFunctions` hardcoded | Medium | ✅ FIXED - uses pine-data return types |
-| `semanticAnalyzer.ts:446-491` | Data in wrong place | `commonVariables` hardcoded | Low | Keep - heuristic |
-| `semanticAnalyzer.ts:298-299` | TODO comment | "simplified check" incomplete | Low | ✅ FIXED - documented |
-| `semanticAnalyzer.ts:432` | Magic number | `0, 0` for missing location | Low | Keep |
-| `checker.ts:1066-1070` | Dead code | `DEBUG_NA = false` left in | Low | ✅ FIXED - deleted |
-| `checker.ts:355-412` | Data in wrong place | Param name→type heuristics | High | ✅ FIXED - removed heuristics, use "unknown" |
-| `checker.ts:108-154,258-308` | Duplicated logic | TupleDeclaration duplicated | Medium | ✅ FIXED - extracted helper methods |
-| `checker.ts:941-970` | Special case | plotshape/indicator validations | Medium | ✅ FIXED - documented as intentional |
-| `checker.ts:1076-1098` | Special case | array.new/request.security | Medium | Keep |
-| `checker.ts:761` | Silent failure | Complex callee ignored | Low | ✅ FIXED - documented |
-| `builtins.ts:19-33` | Data in wrong place | `TOP_LEVEL_ONLY_FUNCTIONS` | Medium | ✅ FIXED - uses flags.topLevelOnly |
-| `builtins.ts:36-39` | Data in wrong place | `DEPRECATED_V5_CONSTANTS` | Low | Keep - documented why |
-| `builtins.ts:67-159` | Data in wrong place | Namespace properties hardcoded | High | ✅ FIXED - uses pine-data |
-| `builtins.ts:163-180` | Data in wrong place | `KNOWN_NAMESPACES` hardcoded | Medium | ✅ FIXED - derived from pine-data |
-| `builtins.ts:197-294` | Duplicated logic | Type mapping duplicated | Low | ✅ FIXED - mapReturnTypeToPineType calls mapToPineType |
-| `builtins.ts:319-320` | Silent failure | `catch (_e) { return null }` | Low | ✅ FIXED - documented |
-| `types.ts:345-421` | Data in wrong place | `builtinTypes` redundant | High | ✅ FIXED - deleted |
-| `types.ts:113-173` | Duplicated logic | Coercion rules repetitive | Medium | Keep |
+**Goals:**
+- Reduce complexity and line count
+- Remove redundant type inference logic
+- Better separation of concerns
+- Clearer data flow
 
 ### 2. Test Infrastructure Overhaul
 
-Replace existing test infrastructure with .pine script-driven tests. Each behavioral branch in the parser/analyzer should have a corresponding .pine file that exercises it.
+Replace existing test infrastructure with .pine script-driven tests.
 
-- Delete existing abstract unit tests
+- Delete existing abstract unit tests (currently stale/failing)
 - Create .pine files that test actual Pine Script behavior
 - Run via vitest during `pnpm test`
 - Coverage goal: every behavioral code path has a real Pine Script justification
 
-**Depends on:** Hack audit completion (or at least identification of worst offenders)
+---
+
+## Completed Projects
+
+### Hack Audit (Complete)
+
+Deep analysis of `packages/core/src/` - 39 hacks identified across 10 files:
+- **7 high-severity** (data in wrong place) → All fixed, now use pine-data
+- **12 medium-severity** (duplication, special cases) → All fixed or documented
+- **20 low-severity** (magic numbers, dead code) → 9 fixed, 11 intentionally kept
+
+See GEMINI.md for the detailed hack table with all findings and resolutions.
 
 ---
 
