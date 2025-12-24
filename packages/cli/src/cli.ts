@@ -117,8 +117,11 @@ async function main() {
 			success: true,
 			result,
 		};
-		console.log(JSON.stringify(output, null, 2));
-		process.exit(0);
+		// Write to stdout and wait for drain before exiting
+		const jsonOutput = JSON.stringify(output, null, 2);
+		process.stdout.write(jsonOutput + "\n", () => {
+			process.exit(0);
+		});
 	} catch (e: unknown) {
 		const error = e as { message?: string };
 		const output: PineLintOutput = {

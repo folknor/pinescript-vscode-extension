@@ -110,6 +110,8 @@ function getVariableType(varName: string): string | undefined {
 export class ASTExtractor {
 	private scopeCounter = 0;
 	private extractedVariables: PineLintVariable[] = [];
+	// User-defined function return types: name → return type
+	private userDefinedFunctions: Map<string, string> = new Map();
 
 	/**
 	 * Extract pine-lint compatible result from AST
@@ -117,6 +119,10 @@ export class ASTExtractor {
 	extract(ast: Program): PineLintResult {
 		this.scopeCounter = 0;
 		this.extractedVariables = [];
+		this.userDefinedFunctions = new Map();
+
+		// First pass: collect UDF return types so they're available for variable type inference
+		this.collectUserDefinedFunctions(ast);
 
 		const variables = this.extractVariables(ast);
 		const functions = this.extractFunctions(ast);
@@ -124,6 +130,19 @@ export class ASTExtractor {
 		const enums = this.extractEnums(ast);
 
 		return { variables, functions, types, enums };
+	}
+
+	/**
+	 * First pass: collect user-defined function names and return types
+	 */
+	private collectUserDefinedFunctions(ast: Program): void {
+		for (const stmt of ast.body) {
+			if (stmt.type === "FunctionDeclaration") {
+				const funcDecl = stmt as FunctionDeclaration;
+				const returnType = this.inferFunctionReturnType(funcDecl);
+				this.userDefinedFunctions.set(funcDecl.name, returnType);
+			}
+		}
 	}
 
 	/**
@@ -443,8 +462,18 @@ export class ASTExtractor {
 					}
 				}
 
-				// Default: use return type from pine-data
-				return funcDef?.returns || "undetermined type";
+				// Default: use return type from pine-data or user-defined functions
+				if (funcDef?.returns) {
+					return funcDef.returns;
+				}
+
+				// Check user-defined functions (collected in first pass)
+				const udfReturnType = this.userDefinedFunctions.get(funcName);
+				if (udfReturnType) {
+					return udfReturnType;
+				}
+
+				return "undetermined type";
 			}
 
 			case "MemberExpression": {

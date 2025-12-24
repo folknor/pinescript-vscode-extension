@@ -157,22 +157,19 @@ Discovered automatically via `discover:behavior`:
 
 ## Current Status
 
-**42 of 49 v6 scripts parse cleanly (86%)**
+**44 of 49 v6 scripts pass validation (89.8%)**
 
 Run `pnpm run debug:corpus --summary` for fresh stats.
 
 Breakdown:
-- 42 scripts: No parse errors
-- 2 scripts: Actual syntax errors in source (not parser bugs)
-  - `tdf-20251102.pine` - Missing commas between function arguments
-  - `854667873-nsdt-2.pine` - Corrupted comment (line break without `//`)
-- 5 scripts: Analysis timeout (very large files)
+- 44 scripts: No parse errors
+- 5 scripts: Parse errors (some real source issues, some parser bugs remaining)
 
 ## Remaining Work
 
 | Issue | Priority | Notes |
 |-------|----------|-------|
-| Unknown type propagation | Low | User-defined functions, chained calls |
+| Parse errors in complex scripts | Medium | ~5 scripts with "Unexpected token" errors |
 
 ### Known Limitations
 
@@ -196,7 +193,10 @@ string TT = "Line 1 " +
 
 ### Recently Fixed
 
-**December 2024 Session (59% → 86% v6 clean):**
+**December 2024 Session (59% → 89.8% v6 clean):**
+- **CLI stdout flush fix** - Large file output was truncating at 64KB; now uses `process.stdout.write` with callback
+- **User-defined function type inference** - UDF return types now propagate to call sites (e.g., `result = myFunc(close)` gets proper type)
+- **Keyword consolidation** - Removed duplicate `to` in lexer; keywords now centralized in `packages/core/src/constants/keywords.ts`
 - **Line continuation in function args** - `func(arg =\n value)` pattern now supported
 - **Nested switch/for/tuple parsing** - Fixed tuple declarations being misparsed as array subscripts in nested blocks
 - **UDT annotations** - `TypeName varName = expr` pattern now recognized as type annotation
