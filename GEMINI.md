@@ -98,6 +98,7 @@ pnpm run watch        # Watch mode
 pnpm run crawl            # Crawl TradingView docs → pine-data/raw/v6/v6-language-constructs.json
 pnpm run scrape           # Scrape details → pine-data/raw/v6/complete-v6-details.json
 pnpm run generate         # Generate TypeScript from raw data
+pnpm run generate:syntax  # Generate syntaxes/pine.tmLanguage.json
 pnpm run discover:behavior # Discover polymorphism → pine-data/v6/function-behavior.json
 pnpm run generate:tests   # Generate test .pine files
 

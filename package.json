@@ -132,6 +132,7 @@
 		"crawl": "node --experimental-strip-types packages/pipeline/src/crawl.ts",
 		"generate": "node --experimental-strip-types packages/pipeline/src/generate.ts",
 		"generate:tests": "node --experimental-strip-types packages/pipeline/src/generate-function-tests.ts",
+		"generate:syntax": "node --experimental-strip-types packages/pipeline/src/generate-syntax.ts",
 		"discover:behavior": "node --experimental-strip-types packages/pipeline/src/discover-function-behavior.ts",
 		"scrape": "node --experimental-strip-types packages/pipeline/src/scrape.ts",
 		"scrape:force": "node --experimental-strip-types packages/pipeline/src/scrape.ts --force",

@@ -3,21 +3,51 @@
 	"name": "Pine Script",
 	"scopeName": "source.pine",
 	"patterns": [
-		{ "include": "#annotations" },
-		{ "include": "#comments" },
-		{ "include": "#strings" },
-		{ "include": "#numbers" },
-		{ "include": "#booleans" },
-		{ "include": "#keywords" },
-		{ "include": "#storage" },
-		{ "include": "#types" },
-		{ "include": "#constants" },
-		{ "include": "#operators" },
-		{ "include": "#function-declarations" },
-		{ "include": "#function-calls" },
-		{ "include": "#method-calls" },
-		{ "include": "#namespaces" },
-		{ "include": "#variables" }
+		{
+			"include": "#annotations"
+		},
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#numbers"
+		},
+		{
+			"include": "#booleans"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#storage"
+		},
+		{
+			"include": "#types"
+		},
+		{
+			"include": "#constants"
+		},
+		{
+			"include": "#operators"
+		},
+		{
+			"include": "#function-declarations"
+		},
+		{
+			"include": "#function-calls"
+		},
+		{
+			"include": "#method-calls"
+		},
+		{
+			"include": "#namespaces"
+		},
+		{
+			"include": "#variables"
+		}
 	],
 	"repository": {
 		"annotations": {
@@ -26,10 +56,18 @@
 					"name": "comment.line.annotation.pine",
 					"match": "^\\s*(//\\s*@(version|strategy_alert_message|description))\\s*(=)?\\s*(.*)$",
 					"captures": {
-						"1": { "name": "keyword.control.annotation.pine" },
-						"2": { "name": "entity.name.tag.annotation.pine" },
-						"3": { "name": "keyword.operator.assignment.pine" },
-						"4": { "name": "constant.numeric.annotation.pine" }
+						"1": {
+							"name": "keyword.control.annotation.pine"
+						},
+						"2": {
+							"name": "entity.name.tag.annotation.pine"
+						},
+						"3": {
+							"name": "keyword.operator.assignment.pine"
+						},
+						"4": {
+							"name": "constant.numeric.annotation.pine"
+						}
 					}
 				}
 			]
@@ -41,14 +79,18 @@
 					"begin": "/\\*",
 					"end": "\\*/",
 					"captures": {
-						"0": { "name": "punctuation.definition.comment.pine" }
+						"0": {
+							"name": "punctuation.definition.comment.pine"
+						}
 					}
 				},
 				{
 					"name": "comment.line.double-slash.pine",
 					"match": "//.*$",
 					"captures": {
-						"0": { "name": "punctuation.definition.comment.pine" }
+						"0": {
+							"name": "punctuation.definition.comment.pine"
+						}
 					}
 				}
 			]
@@ -131,7 +173,7 @@
 				},
 				{
 					"name": "keyword.other.pine",
-					"match": "\\b(method|type|enum)\\b"
+					"match": "\\b(method|type|enum|in|to|by)\\b"
 				}
 			]
 		},
@@ -155,63 +197,11 @@
 				},
 				{
 					"name": "support.type.object.pine",
-					"match": "\\b(line|label|box|table|array|matrix|map|polyline)\\b"
+					"match": "\\b(line|label|box|table|array|matrix|map|polyline|chart\\.point)\\b"
 				},
 				{
 					"name": "support.type.special.pine",
 					"match": "\\b(void|na)\\b"
-				}
-			]
-		},
-		"constants": {
-			"patterns": [
-				{
-					"name": "constant.language.na.pine",
-					"match": "\\bna\\b"
-				},
-				{
-					"name": "support.constant.color.pine",
-					"match": "\\bcolor\\.(red|green|blue|yellow|white|black|orange|aqua|fuchsia|gray|grey|lime|maroon|navy|olive|purple|silver|teal)\\b"
-				},
-				{
-					"name": "support.constant.strategy.pine",
-					"match": "\\bstrategy\\.(long|short|fixed|percent_of_equity|cash|commission\\.percent|commission\\.cash_per_contract|commission\\.cash_per_order|oca\\.none|oca\\.cancel|oca\\.reduce)\\b"
-				},
-				{
-					"name": "support.constant.location.pine",
-					"match": "\\blocation\\.(absolute|abovebar|belowbar|top|bottom)\\b"
-				},
-				{
-					"name": "support.constant.shape.pine",
-					"match": "\\bshape\\.(xcross|cross|circle|triangleup|triangledown|flag|arrowup|arrowdown|square|diamond|labelup|labeldown)\\b"
-				},
-				{
-					"name": "support.constant.linestyle.pine",
-					"match": "\\b(line|hline)\\.style_(solid|dotted|dashed)\\b"
-				},
-				{
-					"name": "support.constant.plot.pine",
-					"match": "\\bplot\\.style_(line|stepline|histogram|cross|area|columns|circles|linebreaks|areabr)\\b"
-				},
-				{
-					"name": "support.constant.format.pine",
-					"match": "\\bformat\\.(inherit|price|volume|percent|mintick)\\b"
-				},
-				{
-					"name": "support.constant.scale.pine",
-					"match": "\\bscale\\.(right|left|none)\\b"
-				},
-				{
-					"name": "support.constant.display.pine",
-					"match": "\\bdisplay\\.(none|all|data_window|pane|status_line)\\b"
-				},
-				{
-					"name": "support.constant.barmerge.pine",
-					"match": "\\bbarmerge\\.(gaps_off|gaps_on|lookahead_off|lookahead_on)\\b"
-				},
-				{
-					"name": "support.constant.alert.pine",
-					"match": "\\balert\\.freq_(once_per_bar|once_per_bar_close|all)\\b"
 				}
 			]
 		},
@@ -245,32 +235,172 @@
 					"name": "meta.function.declaration.pine",
 					"match": "^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
 					"captures": {
-						"1": { "name": "entity.name.function.declaration.pine" }
+						"1": {
+							"name": "entity.name.function.declaration.pine"
+						}
 					}
 				},
 				{
 					"name": "support.function.builtin.declaration.pine",
 					"match": "\\b(indicator|strategy|library)\\s*\\(",
 					"captures": {
-						"1": { "name": "entity.name.function.builtin.pine" }
+						"1": {
+							"name": "entity.name.function.builtin.pine"
+						}
 					}
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"name": "constant.language.na.pine",
+					"match": "\\bna\\b"
+				},
+				{
+					"name": "support.constant.adjustment.pine",
+					"match": "\\badjustment\\.(dividends|none|splits)\\b"
+				},
+				{
+					"name": "support.constant.alert.pine",
+					"match": "\\balert\\.(freq_all|freq_once_per_bar|freq_once_per_bar_close)\\b"
+				},
+				{
+					"name": "support.constant.backadjustment.pine",
+					"match": "\\bbackadjustment\\.(inherit|off|on)\\b"
+				},
+				{
+					"name": "support.constant.barmerge.pine",
+					"match": "\\bbarmerge\\.(gaps_off|gaps_on|lookahead_off|lookahead_on)\\b"
+				},
+				{
+					"name": "support.constant.color.pine",
+					"match": "\\bcolor\\.(aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|purple|red|silver|teal|white|yellow)\\b"
+				},
+				{
+					"name": "support.constant.currency.pine",
+					"match": "\\bcurrency\\.(AED|ARS|AUD|BDT|BHD|BRL|BTC|CAD|CHF|CLP|CNY|COP|CZK|DKK|EGP|ETH|EUR|GBP|HKD|HUF|IDR|ILS|INR|ISK|JPY|KES|KRW|KWD|LKR|MAD|MXN|MYR|NGN|NOK|NONE|NZD|PEN|PHP|PKR|PLN|QAR|RON|RSD|RUB|SAR|SEK|SGD|THB|TND|TRY|TWD|USD|USDT|VES|VND|ZAR)\\b"
+				},
+				{
+					"name": "support.constant.dayofweek.pine",
+					"match": "\\bdayofweek\\.(friday|monday|saturday|sunday|thursday|tuesday|wednesday)\\b"
+				},
+				{
+					"name": "support.constant.display.pine",
+					"match": "\\bdisplay\\.(all|data_window|none|pane|pine_screener|price_scale|status_line)\\b"
+				},
+				{
+					"name": "support.constant.dividends.pine",
+					"match": "\\bdividends\\.(gross|net)\\b"
+				},
+				{
+					"name": "support.constant.earnings.pine",
+					"match": "\\bearnings\\.(actual|estimate|standardized)\\b"
+				},
+				{
+					"name": "support.constant.extend.pine",
+					"match": "\\bextend\\.(both|left|none|right)\\b"
+				},
+				{
+					"name": "support.constant.font.pine",
+					"match": "\\bfont\\.(family_default|family_monospace)\\b"
+				},
+				{
+					"name": "support.constant.format.pine",
+					"match": "\\bformat\\.(inherit|mintick|percent|price|volume)\\b"
+				},
+				{
+					"name": "support.constant.hline.pine",
+					"match": "\\bhline\\.(style_dashed|style_dotted|style_solid)\\b"
+				},
+				{
+					"name": "support.constant.label.pine",
+					"match": "\\blabel\\.(style_arrowdown|style_arrowup|style_circle|style_cross|style_diamond|style_flag|style_label_center|style_label_down|style_label_left|style_label_lower_left|style_label_lower_right|style_label_right|style_label_up|style_label_upper_left|style_label_upper_right|style_none|style_square|style_text_outline|style_triangledown|style_triangleup|style_xcross)\\b"
+				},
+				{
+					"name": "support.constant.line.pine",
+					"match": "\\bline\\.(style_arrow_both|style_arrow_left|style_arrow_right|style_dashed|style_dotted|style_solid)\\b"
+				},
+				{
+					"name": "support.constant.location.pine",
+					"match": "\\blocation\\.(abovebar|absolute|belowbar|bottom|top)\\b"
+				},
+				{
+					"name": "support.constant.math.pine",
+					"match": "\\bmath\\.(e|phi|pi|rphi)\\b"
+				},
+				{
+					"name": "support.constant.order.pine",
+					"match": "\\border\\.(ascending|descending)\\b"
+				},
+				{
+					"name": "support.constant.plot.pine",
+					"match": "\\bplot\\.(linestyle_dashed|linestyle_dotted|linestyle_solid|style_area|style_areabr|style_circles|style_columns|style_cross|style_histogram|style_line|style_linebr|style_stepline|style_stepline_diamond|style_steplinebr)\\b"
+				},
+				{
+					"name": "support.constant.position.pine",
+					"match": "\\bposition\\.(bottom_center|bottom_left|bottom_right|middle_center|middle_left|middle_right|top_center|top_left|top_right)\\b"
+				},
+				{
+					"name": "support.constant.scale.pine",
+					"match": "\\bscale\\.(left|none|right)\\b"
+				},
+				{
+					"name": "support.constant.session.pine",
+					"match": "\\bsession\\.(extended|regular)\\b"
+				},
+				{
+					"name": "support.constant.settlement_as_close.pine",
+					"match": "\\bsettlement_as_close\\.(inherit|off|on)\\b"
+				},
+				{
+					"name": "support.constant.shape.pine",
+					"match": "\\bshape\\.(arrowdown|arrowup|circle|cross|diamond|flag|labeldown|labelup|square|triangledown|triangleup|xcross)\\b"
+				},
+				{
+					"name": "support.constant.size.pine",
+					"match": "\\bsize\\.(auto|huge|large|normal|small|tiny)\\b"
+				},
+				{
+					"name": "support.constant.splits.pine",
+					"match": "\\bsplits\\.(denominator|numerator)\\b"
+				},
+				{
+					"name": "support.constant.strategy.pine",
+					"match": "\\bstrategy\\.(cash|fixed|long|percent_of_equity|short)\\b"
+				},
+				{
+					"name": "support.constant.text.pine",
+					"match": "\\btext\\.(align_bottom|align_center|align_left|align_right|align_top|format_bold|format_italic|format_none|wrap_auto|wrap_none)\\b"
+				},
+				{
+					"name": "support.constant.xloc.pine",
+					"match": "\\bxloc\\.(bar_index|bar_time)\\b"
+				},
+				{
+					"name": "support.constant.yloc.pine",
+					"match": "\\byloc\\.(abovebar|belowbar|price)\\b"
 				}
 			]
 		},
 		"function-calls": {
 			"patterns": [
 				{
-					"name": "meta.function-call.pine",
-					"match": "\\b(plot|plotshape|plotchar|plotarrow|plotbar|plotcandle|hline|fill|bgcolor|label\\.new|line\\.new|box\\.new|table\\.new|alertcondition|alert)\\s*(?=\\()",
+					"name": "meta.function-call.plot.pine",
+					"match": "\\b(alert|alertcondition|barcolor|bgcolor|bgcolor|fill|hline|plot|plotarrow|plotbar|plotcandle|plotchar|plotshape|bgcolor|bgcolor|bgcolor|bgcolor)\\s*(?=\\()",
 					"captures": {
-						"1": { "name": "entity.name.function.plot.pine" }
+						"1": {
+							"name": "entity.name.function.plot.pine"
+						}
 					}
 				},
 				{
 					"name": "meta.function-call.builtin.pine",
-					"match": "\\b(nz|na|log|log10|exp|sqrt|pow|abs|min|max|avg|sum|sign|ceil|floor|round|timestamp|time|year|month|weekofyear|dayofmonth|dayofweek|hour|minute|second|timenow)\\s*(?=\\()",
+					"match": "\\b(message|freq|condition|title|message|id|id|id|val|id|val|id|val|id|id1|id2|id|id1|id2|biased|id|id|value|index_from|index_to|id|arg0|arg1|id|index|id|value|id|value|id|index|value|id|separator|id|id|value|id|nth|id|id|nth|id|size|initial_value|size|initial_value|size|initial_value|size|initial_value|size|initial_value|size|initial_value|size|initial_value|size|initial_value|size|initial_value|size|initial_value|size|initial_value|id|percentage|id|percentage|id|index|id|id|value|id|id|index|id|id|index|value|id|id|id|index_from|index_to|id|id|order|id|order|id|id|biased|id|id|value|id|biased|color|offset|editable|show_last|title|display|color|offset|editable|show_last|title|display|force_overlay|bool|x|box|x|id|id|id|id|id|id|top_left|bottom_right|border_color|border_width|border_style|extend|xloc|text|text_size|text_color|text_halign|text_valign|text_wrap|text_font_family|force_overlay|text_formatting|left|top|right|bottom|id|color|id|color|id|style|id|width|id|bottom|id|point|id|extend|id|left|id|left|top|id|right|id|right|bottom|id|text|id|text_color|id|text_font_family|id|text_formatting|id|text_halign|id|text_size|id|text_valign|id|text_wrap|id|top|id|point|id|left|right|xloc|id|index|price|time|price|time|index|price|price|color|x|color|value|bottom_value|top_value|bottom_color|top_color|color|color|transp|color|red|green|blue|transp|color|dayofmonth|time|timezone|dayofweek|time|timezone|hline1|hline2|color|title|editable|fillgaps|display|plot1|plot2|show_last|top_value|bottom_value|top_color|bottom_color|fixnan|source|float|x|price|title|color|linestyle|linewidth|editable|display|hour|time|timezone|indicator|title|shorttitle|overlay|format|precision|scale|max_bars_back|timeframe|timeframe_gaps|explicit_plot_zorder|max_lines_count|max_labels_count|max_boxes_count|calc_bars_count|max_polylines_count|dynamic_requests|behind_chart|input|defval|title|tooltip|inline|group|display|active|defval|title|tooltip|inline|group|confirm|display|active|defval|title|tooltip|inline|group|confirm|display|active|defval|title|options|tooltip|inline|group|confirm|display|active|defval|title|options|tooltip|inline|group|confirm|display|active|minval|maxval|step|defval|title|options|tooltip|inline|group|confirm|display|active|minval|maxval|step|defval|title|tooltip|inline|group|confirm|display|active|defval|title|options|tooltip|inline|group|confirm|display|active|defval|title|tooltip|inline|group|display|active|confirm|defval|title|options|tooltip|inline|group|confirm|display|active|defval|title|tooltip|inline|group|confirm|display|active|defval|title|tooltip|group|confirm|display|active|defval|title|tooltip|inline|group|confirm|display|active|defval|title|options|tooltip|inline|group|confirm|display|active|int|x|label|x|id|id|id|id|id|point|text|xloc|yloc|color|style|textcolor|size|textalign|tooltip|text_font_family|force_overlay|text_formatting|x|y|id|color|id|point|id|size|id|style|id|text|id|text_font_family|id|text_formatting|id|textalign|id|textcolor|id|tooltip|id|x|id|x|xloc|id|x|y|id|y|id|yloc|library|title|overlay|dynamic_requests|line|x|id|id|id|x|id|id|id|id|first_point|second_point|xloc|extend|color|style|width|force_overlay|x1|y1|x2|y2|id|color|id|extend|id|point|id|point|id|style|id|width|id|x|id|x|id|x1|x2|xloc|id|x|y|id|x|y|id|y|id|y|linefill|x|id|id|id|line1|line2|color|id|color|message|formatString|arg0|arg1|message|formatString|arg0|arg1|message|formatString|arg0|arg1|id|id|key|id|id|key|id|id|key|value|id|id2|id|key|id|id|number|angle|angle|angle|number0|number1|number|angle|number|number|number|number|number0|number1|number0|number1|base|exponent|min|max|seed|number|precision|number|number|angle|number|source|length|angle|radians|degrees|id|column|array_id|id|row|array_id|id|id|column|id|id1|id2|id|id|id1|id2|id|id|id|id|value|from_row|to_row|from_column|to_column|id|row|column|id|id|id|id|id|id|id|id|id|id|id|id1|id2|id|id|id|id|id1|id2|rows|columns|initial_value|id|id|power|id|id|column|id|row|id|rows|columns|id|id|row|id|id|row|column|value|id|column|order|id|from_row|to_row|from_column|to_column|id1|id2|id|column1|column2|id|row1|row2|id|id|max_bars_back|var|num|minute|time|timezone|month|time|timezone|na|x|nz|source|replacement|series|title|color|linewidth|style|trackprice|histbase|offset|join|editable|show_last|display|format|precision|force_overlay|linestyle|series|title|colorup|colordown|offset|minheight|maxheight|editable|show_last|display|format|precision|force_overlay|open|high|low|close|title|color|editable|show_last|display|format|precision|force_overlay|open|high|low|close|title|color|wickcolor|editable|show_last|bordercolor|display|format|precision|force_overlay|series|title|char|location|color|offset|text|textcolor|editable|size|show_last|display|format|precision|force_overlay|series|title|style|location|color|offset|text|textcolor|editable|size|show_last|display|format|precision|force_overlay|id|points|curved|closed|xloc|line_color|fill_color|line_style|line_width|force_overlay|from|to|ignore_invalid_currency|ticker|field|gaps|lookahead|ignore_invalid_symbol|currency|ticker|field|gaps|lookahead|ignore_invalid_symbol|currency|country_code|field|gaps|ignore_invalid_symbol|symbol|financial_id|period|gaps|ignore_invalid_symbol|currency|ticker|gaps|index|ignore_invalid_symbol|symbol|timeframe|expression|gaps|lookahead|ignore_invalid_symbol|currency|calc_bars_count|symbol|timeframe|expression|ignore_invalid_symbol|currency|ignore_invalid_timeframe|calc_bars_count|source|symbol|expression|ignore_invalid_symbol|calc_bars_count|ticker|field|gaps|lookahead|ignore_invalid_symbol|message|second|time|timezone|source|str|source|str|formatString|arg0|arg1|time|format|timezone|string|source|source|regex|source|str|source|repeat|separator|source|target|replacement|occurrence|source|target|replacement|string|separator|source|str|source|begin_pos|end_pos|string|value|format|source|source|strategy|title|shorttitle|overlay|format|precision|scale|pyramiding|calc_on_order_fills|calc_on_every_tick|max_bars_back|backtest_fill_limits_assumption|default_qty_type|default_qty_value|initial_capital|currency|slippage|commission_type|commission_value|process_orders_on_close|close_entries_rule|margin_long|margin_short|explicit_plot_zorder|max_lines_count|max_labels_count|max_boxes_count|calc_bars_count|risk_free_rate|use_bar_magnifier|fill_orders_on_standard_ohlc|max_polylines_count|dynamic_requests|behind_chart|id|id|comment|qty|qty_percent|alert_message|immediately|disable_alert|comment|alert_message|immediately|disable_alert|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|value|value|fill_price|id|direction|qty|limit|stop|oca_name|oca_type|comment|alert_message|disable_alert|id|from_entry|qty|qty_percent|profit|limit|loss|stop|trail_price|trail_points|trail_offset|oca_name|comment|comment_profit|comment_loss|comment_trailing|alert_message|alert_profit|alert_loss|alert_trailing|disable_alert|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|trade_num|id|direction|qty|limit|stop|oca_name|oca_type|comment|alert_message|disable_alert|value|count|alert_message|value|type|alert_message|count|alert_message|value|type|alert_message|contracts|string|x|symbol|symbol|series|length|offset|sigma|floor|length|condition|series|length|mult|series|length|mult|source|length|source|length|series|length|source|length|source1|source2|length|source1|source2|source1|source2|source1|source2|source|source|length|diLength|adxSmoothing|source|length|source|length|source|length|source|length|source|length|series|length|mult|useTrueRange|series|length|mult|useTrueRange|source|length|offset|source|length|source|length|source|fastlen|slowlen|siglen|source|source|length|series|length|source|source|length|source|length|source|length|percentage|source|length|percentage|source|length|type|anchor|developing|leftbars|rightbars|source|leftbars|rightbars|source|source|length|source|length|source|length|source|length|source|length|source|length|start|inc|max|source|length|source|length|biased|source|high|low|length|factor|atrPeriod|source|handle_na|source|short_length|long_length|condition|source|occurrence|source|length|biased|source|anchor|stdev_mult|source|length|source|length|length|table|x|table_id|column|row|text|width|height|text_color|text_halign|text_valign|text_size|tooltip|text_font_family|text_formatting|table_id|column|row|table_id|column|row|height|table_id|column|row|text|table_id|column|row|text_color|table_id|column|row|text_font_family|table_id|column|row|text_formatting|table_id|column|row|text_halign|table_id|column|row|text_size|table_id|column|row|text_valign|table_id|column|row|tooltip|table_id|column|row|width|table_id|start_column|start_row|end_column|end_row|table_id|table_id|start_column|start_row|end_column|end_row|position|columns|rows|frame_color|frame_width|border_color|border_width|force_overlay|table_id|table_id|border_color|table_id|border_width|table_id|frame_color|table_id|frame_width|table_id|position|symbol|from_tickerid|symbol|symbol|reversal|param|style|symbol|number_of_lines|tickerid|session|adjustment|backadjustment|settlement_as_close|prefix|ticker|session|adjustment|backadjustment|settlement_as_close|symbol|source|style|param|reversal|symbol|style|param|request_wicks|source|symbol|time|timeframe|session|bars_back|timeframe_bars_back|timezone|time_close|timeframe|session|bars_back|timeframe_bars_back|timezone|timeframe|seconds|timeframe|timestamp|dateString|year|month|day|hour|minute|second|timezone|weekofyear|time|timezone|year|time|timezone)\\s*(?=\\()",
 					"captures": {
-						"1": { "name": "support.function.builtin.pine" }
+						"1": {
+							"name": "support.function.builtin.pine"
+						}
 					}
 				}
 			]
@@ -278,123 +408,255 @@
 		"method-calls": {
 			"patterns": [
 				{
-					"name": "meta.method-call.ta.pine",
-					"match": "\\b(ta)\\.(sma|ema|wma|vwma|rma|swma|alma|rsi|macd|cci|mfi|bb|bbw|kc|kcw|stoch|atr|tr|highest|lowest|highestbars|lowestbars|valuewhen|barssince|change|mom|roc|cross|crossover|crossunder|pivothigh|pivotlow|vwap|sar|supertrend|linreg|median|mode|percentile_linear_interpolation|percentile_nearest_rank|percentrank|cum|dev|stdev|variance|correlation|cog|falling|rising|pivot_point_levels)\\s*(?=\\()",
+					"name": "meta.method-call.array.pine",
+					"match": "\\b(array)\\.(abs|avg|binary_search|binary_search_leftmost|binary_search_rightmost|clear|concat|copy|covariance|every|fill|first|from|get|includes|indexof|insert|join|last|lastindexof|max|median|min|mode|new_bool|new_box|new_color|new_float|new_int|new_label|new_line|new_linefill|new_string|new_table|percentile_linear_interpolation|percentile_nearest_rank|percentrank|pop|push|range|remove|reverse|set|shift|size|slice|some|sort|sort_indices|standardize|stdev|sum|unshift|variance)\\s*(?=\\()",
 					"captures": {
-						"1": { "name": "support.namespace.ta.pine" },
-						"2": { "name": "entity.name.function.ta.pine" }
+						"1": {
+							"name": "support.namespace.array.pine"
+						},
+						"2": {
+							"name": "entity.name.function.array.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.box.pine",
+					"match": "\\b(box)\\.(copy|delete|get_bottom|get_left|get_right|get_top|new|set_bgcolor|set_border_color|set_border_style|set_border_width|set_bottom|set_bottom_right_point|set_extend|set_left|set_lefttop|set_right|set_rightbottom|set_text|set_text_color|set_text_font_family|set_text_formatting|set_text_halign|set_text_size|set_text_valign|set_text_wrap|set_top|set_top_left_point|set_xloc)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.box.pine"
+						},
+						"2": {
+							"name": "entity.name.function.box.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.color.pine",
+					"match": "\\b(color)\\.(b|from_gradient|g|new|r|rgb|t)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.color.pine"
+						},
+						"2": {
+							"name": "entity.name.function.color.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.input.pine",
+					"match": "\\b(input)\\.(bool|color|enum|float|int|price|session|source|string|symbol|text_area|time|timeframe)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.input.pine"
+						},
+						"2": {
+							"name": "entity.name.function.input.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.label.pine",
+					"match": "\\b(label)\\.(copy|delete|get_text|get_x|get_y|new|set_color|set_point|set_size|set_style|set_text|set_text_font_family|set_text_formatting|set_textalign|set_textcolor|set_tooltip|set_x|set_xloc|set_xy|set_y|set_yloc)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.label.pine"
+						},
+						"2": {
+							"name": "entity.name.function.label.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.line.pine",
+					"match": "\\b(line)\\.(copy|delete|get_price|get_x1|get_x2|get_y1|get_y2|new|set_color|set_extend|set_first_point|set_second_point|set_style|set_width|set_x1|set_x2|set_xloc|set_xy1|set_xy2|set_y1|set_y2)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.line.pine"
+						},
+						"2": {
+							"name": "entity.name.function.line.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.linefill.pine",
+					"match": "\\b(linefill)\\.(delete|get_line1|get_line2|new|set_color)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.linefill.pine"
+						},
+						"2": {
+							"name": "entity.name.function.linefill.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.log.pine",
+					"match": "\\b(log)\\.(error|info|warning)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.log.pine"
+						},
+						"2": {
+							"name": "entity.name.function.log.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.map.pine",
+					"match": "\\b(map)\\.(clear|contains|copy|get|keys|put|put_all|remove|size|values)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.map.pine"
+						},
+						"2": {
+							"name": "entity.name.function.map.pine"
+						}
 					}
 				},
 				{
 					"name": "meta.method-call.math.pine",
 					"match": "\\b(math)\\.(abs|acos|asin|atan|avg|ceil|cos|exp|floor|log|log10|max|min|pow|random|round|round_to_mintick|sign|sin|sqrt|sum|tan|todegrees|toradians)\\s*(?=\\()",
 					"captures": {
-						"1": { "name": "support.namespace.math.pine" },
-						"2": { "name": "entity.name.function.math.pine" }
-					}
-				},
-				{
-					"name": "meta.method-call.input.pine",
-					"match": "\\b(input)\\.(int|float|bool|string|timeframe|symbol|session|source|color|price|time|text_area|enum)\\s*(?=\\()",
-					"captures": {
-						"1": { "name": "support.namespace.input.pine" },
-						"2": { "name": "entity.name.function.input.pine" }
-					}
-				},
-				{
-					"name": "meta.method-call.request.pine",
-					"match": "\\b(request)\\.(security|security_lower_tf|dividends|splits|earnings|quandl|financial|economic|seed)\\s*(?=\\()",
-					"captures": {
-						"1": { "name": "support.namespace.request.pine" },
-						"2": { "name": "entity.name.function.request.pine" }
-					}
-				},
-				{
-					"name": "meta.method-call.str.pine",
-					"match": "\\b(str)\\.(contains|endswith|startswith|format|length|lower|upper|match|pos|replace|replace_all|split|substring|tonumber|tostring)\\s*(?=\\()",
-					"captures": {
-						"1": { "name": "support.namespace.str.pine" },
-						"2": { "name": "entity.name.function.str.pine" }
-					}
-				},
-				{
-					"name": "meta.method-call.color.pine",
-					"match": "\\b(color)\\.(new|rgb|from_gradient|r|g|b|t)\\s*(?=\\()",
-					"captures": {
-						"1": { "name": "support.namespace.color.pine" },
-						"2": { "name": "entity.name.function.color.pine" }
-					}
-				},
-				{
-					"name": "meta.method-call.array.pine",
-					"match": "\\b(array)\\.(new|new_int|new_float|new_bool|new_color|new_string|new_line|new_label|new_box|new_table|from|push|pop|unshift|shift|get|set|size|clear|concat|copy|includes|indexof|insert|join|lastindexof|remove|reverse|slice|sort|sum|min|max|avg|median|mode|variance|stdev|covariance|range|fill)\\s*(?=\\()",
-					"captures": {
-						"1": { "name": "support.namespace.array.pine" },
-						"2": { "name": "entity.name.function.array.pine" }
+						"1": {
+							"name": "support.namespace.math.pine"
+						},
+						"2": {
+							"name": "entity.name.function.math.pine"
+						}
 					}
 				},
 				{
 					"name": "meta.method-call.matrix.pine",
-					"match": "\\b(matrix)\\.(new|copy|get|set|fill|rows|columns|elements_count|add_row|add_col|remove_row|remove_col|swap_rows|swap_columns|reverse|transpose|sort|avg|max|min|median|mode|sum|pow|mult|det|inv|pinv|rank|is_zero|is_identity|is_binary|is_square|is_stochastic|is_symmetric|is_antisymmetric|trace|eigenvalues|eigenvectors|kron)\\s*(?=\\()",
+					"match": "\\b(matrix)\\.(add_col|add_row|avg|col|columns|concat|copy|det|diff|eigenvalues|eigenvectors|elements_count|fill|get|inv|is_antidiagonal|is_antisymmetric|is_binary|is_diagonal|is_identity|is_square|is_stochastic|is_symmetric|is_triangular|is_zero|kron|max|median|min|mode|mult|pinv|pow|rank|remove_col|remove_row|reshape|reverse|row|rows|set|sort|submatrix|sum|swap_columns|swap_rows|trace|transpose)\\s*(?=\\()",
 					"captures": {
-						"1": { "name": "support.namespace.matrix.pine" },
-						"2": { "name": "entity.name.function.matrix.pine" }
+						"1": {
+							"name": "support.namespace.matrix.pine"
+						},
+						"2": {
+							"name": "entity.name.function.matrix.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.polyline.pine",
+					"match": "\\b(polyline)\\.(delete|new)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.polyline.pine"
+						},
+						"2": {
+							"name": "entity.name.function.polyline.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.request.pine",
+					"match": "\\b(request)\\.(currency_rate|dividends|earnings|economic|financial|quandl|security|security_lower_tf|seed|splits)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.request.pine"
+						},
+						"2": {
+							"name": "entity.name.function.request.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.runtime.pine",
+					"match": "\\b(runtime)\\.(error)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.runtime.pine"
+						},
+						"2": {
+							"name": "entity.name.function.runtime.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.str.pine",
+					"match": "\\b(str)\\.(contains|endswith|format|format_time|length|lower|match|pos|repeat|replace|replace_all|split|startswith|substring|tonumber|tostring|trim|upper)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.str.pine"
+						},
+						"2": {
+							"name": "entity.name.function.str.pine"
+						}
 					}
 				},
 				{
 					"name": "meta.method-call.strategy.pine",
-					"match": "\\b(strategy)\\.(entry|close|close_all|exit|order|cancel|cancel_all|risk\\.allow_entry_in|risk\\.max_cons_loss_days|risk\\.max_drawdown|risk\\.max_intraday_filled_orders|risk\\.max_intraday_loss|risk\\.max_position_size)\\s*(?=\\()",
+					"match": "\\b(strategy)\\.(cancel|cancel_all|close|close_all|convert_to_account|convert_to_symbol|default_entry_qty|entry|exit|order)\\s*(?=\\()",
 					"captures": {
-						"1": { "name": "support.namespace.strategy.pine" },
-						"2": { "name": "entity.name.function.strategy.pine" }
+						"1": {
+							"name": "support.namespace.strategy.pine"
+						},
+						"2": {
+							"name": "entity.name.function.strategy.pine"
+						}
 					}
 				},
 				{
-					"name": "meta.method-call.label.pine",
-					"match": "\\b(label)\\.(new|copy|delete|delete_all|get_x|get_y|get_text|get_text_color|get_size|get_style|get_color|get_textcolor|get_tooltip|set_x|set_y|set_text|set_text_color|set_size|set_style|set_color|set_textcolor|set_tooltip|set_xy|set_xloc|set_yloc)\\s*(?=\\()",
+					"name": "meta.method-call.syminfo.pine",
+					"match": "\\b(syminfo)\\.(prefix|ticker)\\s*(?=\\()",
 					"captures": {
-						"1": { "name": "support.namespace.label.pine" },
-						"2": { "name": "entity.name.function.label.pine" }
+						"1": {
+							"name": "support.namespace.syminfo.pine"
+						},
+						"2": {
+							"name": "entity.name.function.syminfo.pine"
+						}
 					}
 				},
 				{
-					"name": "meta.method-call.line.pine",
-					"match": "\\b(line)\\.(new|copy|delete|delete_all|get_x1|get_x2|get_y1|get_y2|get_color|get_width|get_style|set_x1|set_x2|set_y1|set_y2|set_color|set_width|set_style|set_xy1|set_xy2|set_xloc|set_extend)\\s*(?=\\()",
+					"name": "meta.method-call.ta.pine",
+					"match": "\\b(ta)\\.(alma|atr|barssince|bb|bbw|cci|change|cmo|cog|correlation|cross|crossover|crossunder|cum|dev|dmi|ema|falling|highest|highestbars|hma|kc|kcw|linreg|lowest|lowestbars|macd|max|median|mfi|min|mode|mom|percentile_linear_interpolation|percentile_nearest_rank|percentrank|pivot_point_levels|pivothigh|pivotlow|range|rci|rising|rma|roc|rsi|sar|sma|stdev|stoch|supertrend|swma|tr|tsi|valuewhen|variance|vwap|vwma|wma|wpr)\\s*(?=\\()",
 					"captures": {
-						"1": { "name": "support.namespace.line.pine" },
-						"2": { "name": "entity.name.function.line.pine" }
-					}
-				},
-				{
-					"name": "meta.method-call.box.pine",
-					"match": "\\b(box)\\.(new|copy|delete|delete_all|get_left|get_right|get_top|get_bottom|get_bgcolor|get_border_color|get_border_width|get_border_style|get_text|get_text_size|get_text_color|set_left|set_right|set_top|set_bottom|set_bgcolor|set_border_color|set_border_width|set_border_style|set_text|set_text_size|set_text_color|set_lefttop|set_rightbottom)\\s*(?=\\()",
-					"captures": {
-						"1": { "name": "support.namespace.box.pine" },
-						"2": { "name": "entity.name.function.box.pine" }
+						"1": {
+							"name": "support.namespace.ta.pine"
+						},
+						"2": {
+							"name": "entity.name.function.ta.pine"
+						}
 					}
 				},
 				{
 					"name": "meta.method-call.table.pine",
-					"match": "\\b(table)\\.(new|cell|delete|delete_all|clear|cell_set_text|cell_set_bgcolor|cell_set_text_color|cell_set_text_size|cell_set_text_halign|cell_set_text_valign|cell_set_width|cell_set_height|cell_set_tooltip|merge_cells)\\s*(?=\\()",
+					"match": "\\b(table)\\.(cell|cell_set_bgcolor|cell_set_height|cell_set_text|cell_set_text_color|cell_set_text_font_family|cell_set_text_formatting|cell_set_text_halign|cell_set_text_size|cell_set_text_valign|cell_set_tooltip|cell_set_width|clear|delete|merge_cells|new|set_bgcolor|set_border_color|set_border_width|set_frame_color|set_frame_width|set_position)\\s*(?=\\()",
 					"captures": {
-						"1": { "name": "support.namespace.table.pine" },
-						"2": { "name": "entity.name.function.table.pine" }
-					}
-				},
-				{
-					"name": "meta.method-call.timeframe.pine",
-					"match": "\\b(timeframe)\\.(in_seconds|from_seconds)\\s*(?=\\()",
-					"captures": {
-						"1": { "name": "support.namespace.timeframe.pine" },
-						"2": { "name": "entity.name.function.timeframe.pine" }
+						"1": {
+							"name": "support.namespace.table.pine"
+						},
+						"2": {
+							"name": "entity.name.function.table.pine"
+						}
 					}
 				},
 				{
 					"name": "meta.method-call.ticker.pine",
-					"match": "\\b(ticker)\\.(new|standard|heikinashi|renko|linebreak|kagi|pointfigure|modify|inherit)\\s*(?=\\()",
+					"match": "\\b(ticker)\\.(heikinashi|inherit|kagi|linebreak|modify|new|pointfigure|renko|standard)\\s*(?=\\()",
 					"captures": {
-						"1": { "name": "support.namespace.ticker.pine" },
-						"2": { "name": "entity.name.function.ticker.pine" }
+						"1": {
+							"name": "support.namespace.ticker.pine"
+						},
+						"2": {
+							"name": "entity.name.function.ticker.pine"
+						}
+					}
+				},
+				{
+					"name": "meta.method-call.timeframe.pine",
+					"match": "\\b(timeframe)\\.(change|from_seconds|in_seconds)\\s*(?=\\()",
+					"captures": {
+						"1": {
+							"name": "support.namespace.timeframe.pine"
+						},
+						"2": {
+							"name": "entity.name.function.timeframe.pine"
+						}
 					}
 				}
 			]
@@ -402,60 +664,20 @@
 		"namespaces": {
 			"patterns": [
 				{
-					"name": "support.namespace.ta.pine",
-					"match": "\\bta(?=\\.)"
+					"name": "support.namespace.array.pine",
+					"match": "\\barray(?=\\.)"
 				},
 				{
-					"name": "support.namespace.math.pine",
-					"match": "\\bmath(?=\\.)"
-				},
-				{
-					"name": "support.namespace.input.pine",
-					"match": "\\binput(?=\\.)"
-				},
-				{
-					"name": "support.namespace.request.pine",
-					"match": "\\brequest(?=\\.)"
-				},
-				{
-					"name": "support.namespace.str.pine",
-					"match": "\\bstr(?=\\.)"
+					"name": "support.namespace.box.pine",
+					"match": "\\bbox(?=\\.)"
 				},
 				{
 					"name": "support.namespace.color.pine",
 					"match": "\\bcolor(?=\\.)"
 				},
 				{
-					"name": "support.namespace.array.pine",
-					"match": "\\barray(?=\\.)"
-				},
-				{
-					"name": "support.namespace.matrix.pine",
-					"match": "\\bmatrix(?=\\.)"
-				},
-				{
-					"name": "support.namespace.map.pine",
-					"match": "\\bmap(?=\\.)"
-				},
-				{
-					"name": "support.namespace.strategy.pine",
-					"match": "\\bstrategy(?=\\.)"
-				},
-				{
-					"name": "support.namespace.syminfo.pine",
-					"match": "\\bsyminfo(?=\\.)"
-				},
-				{
-					"name": "support.namespace.barstate.pine",
-					"match": "\\bbarstate(?=\\.)"
-				},
-				{
-					"name": "support.namespace.timeframe.pine",
-					"match": "\\btimeframe(?=\\.)"
-				},
-				{
-					"name": "support.namespace.chart.pine",
-					"match": "\\bchart(?=\\.)"
+					"name": "support.namespace.input.pine",
+					"match": "\\binput(?=\\.)"
 				},
 				{
 					"name": "support.namespace.label.pine",
@@ -466,8 +688,52 @@
 					"match": "\\bline(?=\\.)"
 				},
 				{
-					"name": "support.namespace.box.pine",
-					"match": "\\bbox(?=\\.)"
+					"name": "support.namespace.linefill.pine",
+					"match": "\\blinefill(?=\\.)"
+				},
+				{
+					"name": "support.namespace.log.pine",
+					"match": "\\blog(?=\\.)"
+				},
+				{
+					"name": "support.namespace.map.pine",
+					"match": "\\bmap(?=\\.)"
+				},
+				{
+					"name": "support.namespace.math.pine",
+					"match": "\\bmath(?=\\.)"
+				},
+				{
+					"name": "support.namespace.matrix.pine",
+					"match": "\\bmatrix(?=\\.)"
+				},
+				{
+					"name": "support.namespace.polyline.pine",
+					"match": "\\bpolyline(?=\\.)"
+				},
+				{
+					"name": "support.namespace.request.pine",
+					"match": "\\brequest(?=\\.)"
+				},
+				{
+					"name": "support.namespace.runtime.pine",
+					"match": "\\bruntime(?=\\.)"
+				},
+				{
+					"name": "support.namespace.str.pine",
+					"match": "\\bstr(?=\\.)"
+				},
+				{
+					"name": "support.namespace.strategy.pine",
+					"match": "\\bstrategy(?=\\.)"
+				},
+				{
+					"name": "support.namespace.syminfo.pine",
+					"match": "\\bsyminfo(?=\\.)"
+				},
+				{
+					"name": "support.namespace.ta.pine",
+					"match": "\\bta(?=\\.)"
 				},
 				{
 					"name": "support.namespace.table.pine",
@@ -478,8 +744,120 @@
 					"match": "\\bticker(?=\\.)"
 				},
 				{
-					"name": "support.namespace.runtime.pine",
-					"match": "\\bruntime(?=\\.)"
+					"name": "support.namespace.timeframe.pine",
+					"match": "\\btimeframe(?=\\.)"
+				},
+				{
+					"name": "support.namespace.adjustment.pine",
+					"match": "\\badjustment(?=\\.)"
+				},
+				{
+					"name": "support.namespace.alert.pine",
+					"match": "\\balert(?=\\.)"
+				},
+				{
+					"name": "support.namespace.backadjustment.pine",
+					"match": "\\bbackadjustment(?=\\.)"
+				},
+				{
+					"name": "support.namespace.barmerge.pine",
+					"match": "\\bbarmerge(?=\\.)"
+				},
+				{
+					"name": "support.namespace.currency.pine",
+					"match": "\\bcurrency(?=\\.)"
+				},
+				{
+					"name": "support.namespace.dayofweek.pine",
+					"match": "\\bdayofweek(?=\\.)"
+				},
+				{
+					"name": "support.namespace.display.pine",
+					"match": "\\bdisplay(?=\\.)"
+				},
+				{
+					"name": "support.namespace.dividends.pine",
+					"match": "\\bdividends(?=\\.)"
+				},
+				{
+					"name": "support.namespace.earnings.pine",
+					"match": "\\bearnings(?=\\.)"
+				},
+				{
+					"name": "support.namespace.extend.pine",
+					"match": "\\bextend(?=\\.)"
+				},
+				{
+					"name": "support.namespace.font.pine",
+					"match": "\\bfont(?=\\.)"
+				},
+				{
+					"name": "support.namespace.format.pine",
+					"match": "\\bformat(?=\\.)"
+				},
+				{
+					"name": "support.namespace.hline.pine",
+					"match": "\\bhline(?=\\.)"
+				},
+				{
+					"name": "support.namespace.location.pine",
+					"match": "\\blocation(?=\\.)"
+				},
+				{
+					"name": "support.namespace.order.pine",
+					"match": "\\border(?=\\.)"
+				},
+				{
+					"name": "support.namespace.plot.pine",
+					"match": "\\bplot(?=\\.)"
+				},
+				{
+					"name": "support.namespace.position.pine",
+					"match": "\\bposition(?=\\.)"
+				},
+				{
+					"name": "support.namespace.scale.pine",
+					"match": "\\bscale(?=\\.)"
+				},
+				{
+					"name": "support.namespace.session.pine",
+					"match": "\\bsession(?=\\.)"
+				},
+				{
+					"name": "support.namespace.settlement_as_close.pine",
+					"match": "\\bsettlement_as_close(?=\\.)"
+				},
+				{
+					"name": "support.namespace.shape.pine",
+					"match": "\\bshape(?=\\.)"
+				},
+				{
+					"name": "support.namespace.size.pine",
+					"match": "\\bsize(?=\\.)"
+				},
+				{
+					"name": "support.namespace.splits.pine",
+					"match": "\\bsplits(?=\\.)"
+				},
+				{
+					"name": "support.namespace.text.pine",
+					"match": "\\btext(?=\\.)"
+				},
+				{
+					"name": "support.namespace.xloc.pine",
+					"match": "\\bxloc(?=\\.)"
+				},
+				{
+					"name": "support.namespace.yloc.pine",
+					"match": "\\byloc(?=\\.)"
+				},
+				{
+					"name": "support.namespace.barstate.pine",
+					"match": "\\bbarstate(?=\\.)"
+				},
+				{
+					"name": "support.namespace.chart.pine",
+					"match": "\\bchart(?=\\.)"
 				}
 			]
 		},
@@ -487,11 +865,31 @@
 			"patterns": [
 				{
 					"name": "variable.language.builtin.pine",
-					"match": "\\b(open|high|low|close|volume|time|bar_index|last_bar_index|last_bar_time|hl2|hlc3|ohlc4|hlcc4|year|month|weekofyear|dayofmonth|dayofweek|hour|minute|second|timenow|ask|bid)\\b"
+					"match": "\\b(ask|bar_index|bid|close|dayofmonth|dayofweek|high|hl2|hlc3|hlcc4|hour|last_bar_index|last_bar_time|low|minute|month|na|ohlc4|open|second|time|time_close|time_tradingday|timenow|volume|weekofyear|year)\\b"
 				},
 				{
 					"name": "variable.other.property.pine",
-					"match": "\\b(syminfo|barstate|strategy|chart|timeframe|runtime)\\.[a-z_][a-z0-9_]*\\b"
+					"match": "\\bsyminfo\\.(tickerid|ticker|prefix|type|session|timezone|currency|basecurrency|description|mintick|pointvalue)\\b"
+				},
+				{
+					"name": "variable.other.property.pine",
+					"match": "\\bbarstate\\.(isfirst|islast|ishistory|isrealtime|isnew|isconfirmed|islastconfirmedhistory)\\b"
+				},
+				{
+					"name": "variable.other.property.pine",
+					"match": "\\btimeframe\\.(period|multiplier|isseconds|isminutes|isdaily|isweekly|ismonthly|isdwm|isintraday)\\b"
+				},
+				{
+					"name": "variable.other.property.pine",
+					"match": "\\bchart\\.(bg_color|fg_color|is_standard|is_heikinashi|is_renko|is_kagi|is_linebreak|is_pnf|is_range|left_visible_bar_time|right_visible_bar_time)\\b"
+				},
+				{
+					"name": "variable.other.property.pine",
+					"match": "\\bsession\\.(ismarket|ispremarket|ispostmarket)\\b"
+				},
+				{
+					"name": "variable.other.property.pine",
+					"match": "\\bstrategy\\.(position_size|position_avg_price|equity|openprofit|netprofit|grossprofit|grossloss|closedtrades|opentrades|wintrades|losstrades|initial_capital)\\b"
 				},
 				{
 					"name": "variable.parameter.pine",
