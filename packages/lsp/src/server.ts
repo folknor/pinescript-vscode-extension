@@ -18,6 +18,7 @@ import { setupDefinitionHandler } from "./handlers/definition";
 import { setupDocumentHandlers } from "./handlers/documents";
 import { setupFormattingHandler } from "./handlers/formatting";
 import { setupHoverHandler } from "./handlers/hover";
+import { setupReferencesHandler } from "./handlers/references";
 import { setupSignatureHandler } from "./handlers/signature";
 import { setupSymbolsHandler } from "./handlers/symbols";
 
@@ -57,6 +58,7 @@ setupSignatureHandler(connection, languageService);
 setupFormattingHandler(connection, languageService);
 setupSymbolsHandler(connection, languageService);
 setupDefinitionHandler(connection, languageService);
+setupReferencesHandler(connection, languageService);
 
 // ========== Start Listening ==========
 

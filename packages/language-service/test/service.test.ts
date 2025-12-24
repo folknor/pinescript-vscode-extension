@@ -188,6 +188,98 @@ describe("PineLanguageService", () => {
 		});
 	});
 
+	describe("Find References", () => {
+		it("should find all variable references", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+myVar = 42
+x = myVar + 1
+y = myVar * 2
+`,
+				1,
+			);
+			const refs = service.getReferences("test.pine", {
+				line: 1,
+				character: 0,
+			});
+
+			// Should find definition + 2 usages = 3 references
+			expect(refs.length).toBe(3);
+		});
+
+		it("should find function references", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+myFunc() =>
+    42
+
+x = myFunc()
+y = myFunc()
+`,
+				1,
+			);
+			const refs = service.getReferences("test.pine", {
+				line: 1,
+				character: 0,
+			});
+
+			// Definition + 2 calls = 3 references
+			expect(refs.length).toBe(3);
+		});
+
+		it("should exclude declaration when requested", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+myVar = 42
+x = myVar + 1
+`,
+				1,
+			);
+			const refs = service.getReferences(
+				"test.pine",
+				{ line: 1, character: 0 },
+				{ includeDeclaration: false },
+			);
+
+			// Should find only 1 usage (not the declaration)
+			expect(refs.length).toBe(1);
+		});
+
+		it("should find references in function bodies", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+globalVar = 10
+
+myFunc() =>
+    x = globalVar
+    globalVar + 1
+`,
+				1,
+			);
+			const refs = service.getReferences("test.pine", {
+				line: 1,
+				character: 0,
+			});
+
+			// Definition + 2 usages in function = 3 references
+			expect(refs.length).toBe(3);
+		});
+
+		it("should return empty array for unknown symbols", () => {
+			service.openDocument("test.pine", "//@version=6\nx = 1", 1);
+			const refs = service.getReferences("test.pine", {
+				line: 1,
+				character: 5, // position with no symbol
+			});
+
+			expect(refs.length).toBe(0);
+		});
+	});
+
 	describe("Go to Definition", () => {
 		it("should find variable definition", () => {
 			service.openDocument(

@@ -23,5 +23,6 @@ export function getCapabilities(): ServerCapabilities {
 		documentFormattingProvider: true,
 		documentSymbolProvider: true,
 		definitionProvider: true,
+		referencesProvider: true,
 	};
 }

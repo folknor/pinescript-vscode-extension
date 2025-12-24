@@ -12,6 +12,8 @@ import {
 	getDiagnostics as getDiagnosticsImpl,
 	getDocumentSymbols as getDocumentSymbolsImpl,
 	getHover as getHoverImpl,
+	getReferences as getReferencesImpl,
+	type ReferencesOptions,
 	getSignatureHelp as getSignatureHelpImpl,
 	getSymbolInfo as getSymbolInfoImpl,
 } from "./features";
@@ -21,6 +23,7 @@ import type {
 	DocumentSymbol,
 	FormattingOptions,
 	HoverInfo,
+	Location,
 	Position,
 	SignatureHelp,
 	SymbolInfo,
@@ -152,6 +155,19 @@ export class PineLanguageService {
 		const doc = this.documents.get(uri);
 		if (!doc) return null;
 		return getDefinitionImpl(doc, position);
+	}
+
+	/**
+	 * Find all references to a symbol at a position.
+	 */
+	getReferences(
+		uri: string,
+		position: Position,
+		options?: ReferencesOptions,
+	): Location[] {
+		const doc = this.documents.get(uri);
+		if (!doc) return [];
+		return getReferencesImpl(doc, position, options);
 	}
 
 	// ========== Static Helpers (no document needed) ==========
