@@ -1,0 +1,23 @@
+// @test syntax/tuple-after-expression
+// @expects parse: success
+
+// Test that [ at start of new line after expression is treated as tuple, not subscript
+
+// After switch expression
+x = switch y
+    1 => a
+[d, e] = 2
+
+// After for loop
+for i = 0 to 10
+    x = i
+[f, g] = [1, 2]
+
+// After if statement
+if condition
+    result = 1
+[h, j] = [3, 4]
+
+// After variable declaration
+value = 42
+[m, n] = [value, value * 2]

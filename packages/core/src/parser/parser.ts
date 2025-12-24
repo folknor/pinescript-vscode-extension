@@ -317,6 +317,18 @@ export class Parser {
 			}
 		}
 
+		// Check for user-defined type annotation: TypeName varName = expr
+		// This handles UDT declarations like: Candle cdl = data.get(i)
+		if (
+			this.check(TokenType.IDENTIFIER) &&
+			this.peekNext()?.type === TokenType.IDENTIFIER &&
+			this.tokens[this.current + 2]?.type === TokenType.ASSIGN &&
+			this.tokens[this.current + 2]?.value === "="
+		) {
+			const typeName = this.advance().value; // consume type name
+			return this.variableDeclaration(null, typeName);
+		}
+
 		// Check if it's an identifier followed by = (variable declaration without var)
 		// But only if it's '=' not ':='
 		// Also handles comma-separated declarations: x = 1, y = 2, z = 3
@@ -1760,11 +1772,8 @@ export class Parser {
 				const nextToken = this.peekNext();
 				const _nextNextToken = this.tokens[this.current + 2];
 
-				// Allow continuation if next token is an operator, function call, or array access
-				// But break if it looks like a new statement
-				// Heuristic: [ at start of line (column <= ~10) is likely a tuple declaration,
-				// while [ deeper in the line is likely array access continuation
-				const TUPLE_START_COLUMN_THRESHOLD = 10;
+				// Allow continuation if next token is an operator, function call, or dot access
+				// But break if it looks like a new statement (LBRACKET is always treated as new statement)
 				if (
 					nextToken &&
 					(nextToken.type === TokenType.MULTIPLY ||
@@ -1775,9 +1784,6 @@ export class Parser {
 						(nextToken.type === TokenType.KEYWORD &&
 							["and", "or"].includes(nextToken.value)) ||
 						nextToken.type === TokenType.LPAREN ||
-						// LBRACKET at line start is likely a tuple declaration, not array access
-						(nextToken.type === TokenType.LBRACKET &&
-							nextToken.column > TUPLE_START_COLUMN_THRESHOLD) ||
 						nextToken.type === TokenType.DOT)
 				) {
 					// Skip the newline and continue
@@ -1899,7 +1905,14 @@ export class Parser {
 					line: expr.line,
 					column: expr.column,
 				};
-			} else if (this.match(TokenType.LBRACKET)) {
+			} else if (this.check(TokenType.LBRACKET)) {
+				// Check if [ is on a new line at the start - likely a tuple declaration, not array access
+				const bracketToken = this.peek();
+				if (bracketToken.line > expr.line && (bracketToken.column || 0) <= 1) {
+					// [ at start of new line - not subscript access
+					break;
+				}
+				this.advance(); // consume [
 				// Array/index access
 				const index = this.expression();
 				this.consume(TokenType.RBRACKET, 'Expected "]"');

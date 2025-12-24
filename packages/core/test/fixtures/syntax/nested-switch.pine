@@ -1,0 +1,39 @@
+// @test syntax/nested-switch
+// @expects parse: success
+
+// Test 1: Tuple declaration after for loop inside switch case
+switch x
+    a =>
+        for i = 0 to 10
+            y = 1
+        [result1, result2] = [1, 2]
+    b =>
+        z = 2
+
+// Test 2: Inline switch expression with tuple assignment inside for loop
+for i = 0 to 10
+    [a, b] = switch value
+        1 => [10, 20]
+        => [0, 0]
+    sum = a + b
+
+// Test 3: Nested switch-for-tuple with multiple cases
+switch dataType
+    TypeA =>
+        for i = 0 to 5
+            [x, y] = switch condition
+                true => [1.0, 2.0]
+                => [0.0, 0.0]
+            result = x + y
+    TypeB =>
+        for j = 0 to 3
+            z = j * 2
+
+// Test 4: User-defined type annotation in for loop inside switch
+switch mode
+    ModeA =>
+        for i = 0 to 10
+            MyType obj = getValue(i)
+            processObj(obj)
+    ModeB =>
+        defaultResult = na
