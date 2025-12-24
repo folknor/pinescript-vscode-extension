@@ -178,14 +178,12 @@ Files with newline errors have almost no type errors (only 15 total).
 1. ~~Polymorphic functions returning wrong type~~ ✅ **FIXED** (2025-12-23)
 2. ~~`simple<T>` types not recognized as numeric~~ ✅ **FIXED** (2025-12-23)
 3. ~~Color arithmetic rejected~~ ✅ **FIXED** (2025-12-23)
-4. Function overloads not supported (e.g., `line.new` has 2 signatures)
+4. ~~Function overloads not supported~~ ✅ **FIXED** (2025-12-23) - `hasOverloads()` skips positional type checking
 5. Array element types not tracked through symbol table
 
-**Breakdown (after all type fixes):**
+**Breakdown (after overload fix):**
 - 157 errors (38%) involve `unknown` type (mostly array element types)
-- 256 errors (62%) are other type mismatches:
-  - 207 argument type mismatches (mostly function overload issues)
-  - ~50 remaining misc type issues
+- Remaining type mismatches mostly from untracked types
 
 ### Revised Priority List
 
@@ -194,7 +192,7 @@ Files with newline errors have almost no type errors (only 15 total).
 | **1** | ~~Lexer: handle `.1` floats~~ | ~~200 errors~~ | Low | ✅ **FIXED** |
 | **2** | ~~Polymorphic functions~~ | ~~51 errors~~ | Medium | ✅ **FIXED** |
 | **3** | ~~Type coercion (`simple<T>`, color arithmetic)~~ | ~~48 errors~~ | Low | ✅ **FIXED** |
-| **4** | Function overloads (e.g., `line.new`) | ~207 errors | High | |
+| **4** | ~~Function overloads (e.g., `line.new`)~~ | ~~207 errors~~ | High | ✅ **FIXED** |
 | **5** | Array element type tracking | ~157 "unknown" errors | Medium | |
 | **6** | Parser: library/export function definitions | ~100+ errors (38 files) | Medium | |
 
