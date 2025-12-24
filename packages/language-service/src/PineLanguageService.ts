@@ -8,6 +8,7 @@ import {
 	getAllVariableNames,
 	getCompletions as getCompletionsImpl,
 	getDiagnostics as getDiagnosticsImpl,
+	getDocumentSymbols as getDocumentSymbolsImpl,
 	getHover as getHoverImpl,
 	getSignatureHelp as getSignatureHelpImpl,
 	getSymbolInfo as getSymbolInfoImpl,
@@ -15,6 +16,7 @@ import {
 import type {
 	CompletionItem,
 	Diagnostic,
+	DocumentSymbol,
 	FormattingOptions,
 	HoverInfo,
 	Position,
@@ -130,6 +132,15 @@ export class PineLanguageService {
 		const doc = this.documents.get(uri);
 		if (!doc) return [];
 		return formatImpl(doc, options);
+	}
+
+	/**
+	 * Get document symbols (outline) for a document.
+	 */
+	getDocumentSymbols(uri: string): DocumentSymbol[] {
+		const doc = this.documents.get(uri);
+		if (!doc) return [];
+		return getDocumentSymbolsImpl(doc);
 	}
 
 	// ========== Static Helpers (no document needed) ==========

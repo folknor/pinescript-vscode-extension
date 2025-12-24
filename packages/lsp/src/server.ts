@@ -18,6 +18,7 @@ import { setupDocumentHandlers } from "./handlers/documents";
 import { setupFormattingHandler } from "./handlers/formatting";
 import { setupHoverHandler } from "./handlers/hover";
 import { setupSignatureHandler } from "./handlers/signature";
+import { setupSymbolsHandler } from "./handlers/symbols";
 
 // Create LSP connection using stdio
 const connection = createConnection(ProposedFeatures.all);
@@ -53,6 +54,7 @@ setupCompletionHandler(connection, languageService);
 setupHoverHandler(connection, languageService);
 setupSignatureHandler(connection, languageService);
 setupFormattingHandler(connection, languageService);
+setupSymbolsHandler(connection, languageService);
 
 // ========== Start Listening ==========
 

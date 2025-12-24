@@ -13,3 +13,4 @@ export {
 	getSymbolInfo,
 } from "./lookup";
 export { getSignatureHelp } from "./signatures";
+export { getDocumentSymbols } from "./symbols";

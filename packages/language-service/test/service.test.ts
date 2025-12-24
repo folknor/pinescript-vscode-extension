@@ -3,6 +3,7 @@ import {
 	PineLanguageService,
 	DiagnosticSeverity,
 	CompletionItemKind,
+	SymbolKind,
 } from "../src";
 
 describe("PineLanguageService", () => {
@@ -184,6 +185,106 @@ describe("PineLanguageService", () => {
 		it("should ensure final newline", () => {
 			const result = PineLanguageService.formatCode("x = 1");
 			expect(result).toBe("x = 1\n");
+		});
+	});
+
+	describe("Document Symbols", () => {
+		it("should return function symbols", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+myFunc(a, b) =>
+    a + b
+`,
+				1,
+			);
+			const symbols = service.getDocumentSymbols("test.pine");
+
+			expect(symbols.length).toBeGreaterThan(0);
+			const func = symbols.find((s) => s.name.startsWith("myFunc"));
+			expect(func).toBeDefined();
+			expect(func?.kind).toBe(SymbolKind.Function);
+			expect(func?.name).toBe("myFunc(a, b)");
+		});
+
+		it("should return variable symbols", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+x = 1
+var y = 2
+`,
+				1,
+			);
+			const symbols = service.getDocumentSymbols("test.pine");
+
+			const x = symbols.find((s) => s.name === "x");
+			const y = symbols.find((s) => s.name === "y");
+			expect(x).toBeDefined();
+			expect(x?.kind).toBe(SymbolKind.Variable);
+			expect(y).toBeDefined();
+			expect(y?.kind).toBe(SymbolKind.Variable);
+		});
+
+		it("should return constant symbols", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+const PI = 3.14159
+`,
+				1,
+			);
+			const symbols = service.getDocumentSymbols("test.pine");
+
+			const pi = symbols.find((s) => s.name === "PI");
+			expect(pi).toBeDefined();
+			expect(pi?.kind).toBe(SymbolKind.Constant);
+		});
+
+		it("should return import symbols", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+import TradingView/ta/5 as ta
+`,
+				1,
+			);
+			const symbols = service.getDocumentSymbols("test.pine");
+
+			const imp = symbols.find((s) => s.name === "ta");
+			expect(imp).toBeDefined();
+			expect(imp?.kind).toBe(SymbolKind.Module);
+		});
+
+		it("should return correct ranges for functions", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+myFunc() =>
+    x = 1
+    x + 1
+`,
+				1,
+			);
+			const symbols = service.getDocumentSymbols("test.pine");
+
+			const func = symbols.find((s) => s.name.startsWith("myFunc"));
+			expect(func).toBeDefined();
+			// Function starts at line 1 (0-indexed)
+			expect(func?.range.start.line).toBe(1);
+			// Selection range should cover just the name
+			expect(func?.selectionRange.start.line).toBe(1);
+		});
+
+		it("should return empty array for empty document", () => {
+			service.openDocument("test.pine", "", 1);
+			const symbols = service.getDocumentSymbols("test.pine");
+			expect(symbols).toEqual([]);
+		});
+
+		it("should return empty array for unknown document", () => {
+			const symbols = service.getDocumentSymbols("unknown.pine");
+			expect(symbols).toEqual([]);
 		});
 	});
 

@@ -21,5 +21,6 @@ export function getCapabilities(): ServerCapabilities {
 			triggerCharacters: ["(", ","],
 		},
 		documentFormattingProvider: true,
+		documentSymbolProvider: true,
 	};
 }

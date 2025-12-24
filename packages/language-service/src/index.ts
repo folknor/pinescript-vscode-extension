@@ -18,6 +18,7 @@ export {
 	getSymbolInfo,
 } from "./features/lookup";
 export { getSignatureHelp } from "./features/signatures";
+export { getDocumentSymbols } from "./features/symbols";
 export type { HoverOptions } from "./PineLanguageService";
 export { PineLanguageService } from "./PineLanguageService";
 // Types

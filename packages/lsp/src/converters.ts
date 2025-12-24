@@ -10,9 +10,11 @@ import {
 	type CompletionItemKind as LSPCompletionItemKind,
 	type Diagnostic as LSPDiagnostic,
 	type DiagnosticSeverity as LSPDiagnosticSeverity,
+	type DocumentSymbol as LSPDocumentSymbol,
 	type Hover as LSPHover,
 	type InsertTextFormat as LSPInsertTextFormat,
 	type SignatureHelp as LSPSignatureHelp,
+	type SymbolKind as LSPSymbolKind,
 	type TextEdit as LSPTextEdit,
 	MarkupKind,
 	type ParameterInformation,
@@ -21,6 +23,7 @@ import {
 import type {
 	CompletionItem,
 	Diagnostic,
+	DocumentSymbol,
 	HoverInfo,
 	SignatureHelp,
 	TextEdit,
@@ -101,5 +104,18 @@ export function convertTextEdit(edit: TextEdit): LSPTextEdit {
 	return {
 		range: edit.range,
 		newText: edit.newText,
+	};
+}
+
+/**
+ * Convert language-service DocumentSymbol to LSP DocumentSymbol.
+ */
+export function convertDocumentSymbol(symbol: DocumentSymbol): LSPDocumentSymbol {
+	return {
+		name: symbol.name,
+		kind: symbol.kind as LSPSymbolKind,
+		range: symbol.range,
+		selectionRange: symbol.selectionRange,
+		children: symbol.children?.map(convertDocumentSymbol),
 	};
 }
