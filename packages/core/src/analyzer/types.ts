@@ -109,11 +109,17 @@ export namespace TypeChecker {
 		return false;
 	}
 
+	// Check if type is an na variant (na, const<na>, series<na>)
+	function isNaType(type: PineType): boolean {
+		const t = type as string;
+		return t === "na" || t === "const<na>" || t === "series<na>" || t.endsWith("<na>");
+	}
+
 	// Check if type1 is assignable to type2
 	export function isAssignable(from: PineType, to: PineType): boolean {
 		if (from === to) return true;
 		if (to === "unknown" || from === "unknown") return true;
-		if (from === "na") return true; // na is assignable to any type
+		if (isNaType(from)) return true; // na is assignable to any type (const<na>, series<na>, etc.)
 
 		// Handle union types in target (e.g., "series int/float" accepts both int and float)
 		if ((to as string).includes("/")) {
@@ -244,6 +250,11 @@ export namespace TypeChecker {
 		// This prevents cascading false positives from user-defined functions
 		// and other cases where type inference fails
 		if (left === "unknown" || right === "unknown") {
+			return true;
+		}
+
+		// na can be compared/operated with any type
+		if (isNaType(left) || isNaType(right)) {
 			return true;
 		}
 

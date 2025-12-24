@@ -1193,6 +1193,17 @@ export class UnifiedPineValidator {
 						break;
 					}
 
+					// Check if it's a known function (some functions can be accessed without parentheses)
+					// e.g., ta.tr is a function but can be used as ta.tr without ()
+					const funcSig = this.functionSignatures.get(propertyName);
+					if (funcSig) {
+						// Return the function's return type
+						type = funcSig.returns
+							? mapReturnTypeToPineType(funcSig.returns)
+							: "unknown";
+						break;
+					}
+
 					// Check if namespace exists but property doesn't (v6 only)
 					if (version === "6") {
 						if (KNOWN_NAMESPACES.includes(namespaceName)) {
