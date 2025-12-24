@@ -24,5 +24,8 @@ export function getCapabilities(): ServerCapabilities {
 		documentSymbolProvider: true,
 		definitionProvider: true,
 		referencesProvider: true,
+		renameProvider: {
+			prepareProvider: true,
+		},
 	};
 }

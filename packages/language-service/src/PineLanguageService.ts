@@ -16,6 +16,10 @@ import {
 	type ReferencesOptions,
 	getSignatureHelp as getSignatureHelpImpl,
 	getSymbolInfo as getSymbolInfoImpl,
+	prepareRename as prepareRenameImpl,
+	type PrepareRenameResult,
+	rename as renameImpl,
+	type RenameResult,
 } from "./features";
 import type {
 	CompletionItem,
@@ -168,6 +172,24 @@ export class PineLanguageService {
 		const doc = this.documents.get(uri);
 		if (!doc) return [];
 		return getReferencesImpl(doc, position, options);
+	}
+
+	/**
+	 * Prepare rename: check if symbol can be renamed and return its range.
+	 */
+	prepareRename(uri: string, position: Position): PrepareRenameResult | null {
+		const doc = this.documents.get(uri);
+		if (!doc) return null;
+		return prepareRenameImpl(doc, position);
+	}
+
+	/**
+	 * Rename a symbol at a position.
+	 */
+	rename(uri: string, position: Position, newName: string): RenameResult | null {
+		const doc = this.documents.get(uri);
+		if (!doc) return null;
+		return renameImpl(doc, position, newName);
 	}
 
 	// ========== Static Helpers (no document needed) ==========

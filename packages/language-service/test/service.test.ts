@@ -188,6 +188,78 @@ describe("PineLanguageService", () => {
 		});
 	});
 
+	describe("Rename Symbol", () => {
+		it("should rename variable and all references", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+myVar = 42
+x = myVar + 1
+y = myVar * 2
+`,
+				1,
+			);
+			const result = service.rename(
+				"test.pine",
+				{ line: 1, character: 0 },
+				"newName",
+			);
+
+			expect(result).not.toBeNull();
+			expect(result?.changes.length).toBe(3); // 3 occurrences
+			expect(result?.changes.every((c) => c.newText === "newName")).toBe(true);
+		});
+
+		it("should not rename built-in symbols", () => {
+			service.openDocument("test.pine", "//@version=6\nx = close", 1);
+			const result = service.rename(
+				"test.pine",
+				{ line: 1, character: 5 },
+				"newName",
+			);
+
+			expect(result).toBeNull();
+		});
+
+		it("should prepare rename for user-defined symbols", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+myVar = 42
+`,
+				1,
+			);
+			const result = service.prepareRename("test.pine", {
+				line: 1,
+				character: 2,
+			});
+
+			expect(result).not.toBeNull();
+			expect(result?.placeholder).toBe("myVar");
+		});
+
+		it("should not prepare rename for built-ins", () => {
+			service.openDocument("test.pine", "//@version=6\nx = close", 1);
+			const result = service.prepareRename("test.pine", {
+				line: 1,
+				character: 5,
+			});
+
+			expect(result).toBeNull();
+		});
+
+		it("should reject invalid identifier names", () => {
+			service.openDocument("test.pine", "//@version=6\nmyVar = 42", 1);
+			const result = service.rename(
+				"test.pine",
+				{ line: 1, character: 0 },
+				"123invalid", // Invalid: starts with number
+			);
+
+			expect(result).toBeNull();
+		});
+	});
+
 	describe("Find References", () => {
 		it("should find all variable references", () => {
 			service.openDocument(

@@ -21,6 +21,12 @@ export { getSignatureHelp } from "./features/signatures";
 export { getDocumentSymbols } from "./features/symbols";
 export { getDefinition, type DefinitionResult } from "./features/definition";
 export { getReferences, type ReferencesOptions } from "./features/references";
+export {
+	prepareRename,
+	rename,
+	type PrepareRenameResult,
+	type RenameResult,
+} from "./features/rename";
 export type { HoverOptions } from "./PineLanguageService";
 export { PineLanguageService } from "./PineLanguageService";
 // Types
