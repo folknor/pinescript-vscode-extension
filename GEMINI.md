@@ -136,6 +136,12 @@ Discovered automatically via `discover:behavior`:
 
 ---
 
+## Future Work (Out of Scope)
+
+- **Library imports for IntelliSense** - Handle `import User/Lib/1` for local development in LSP/VS Code extension (fetch/cache library definitions)
+
+---
+
 ## Comparison Tool
 
 Compare CLI output against TradingView's pine-lint:
