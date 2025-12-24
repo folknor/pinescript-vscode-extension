@@ -1124,7 +1124,7 @@ export class Parser {
 
 			// Check for default case (just =>)
 			if (this.match(TokenType.ARROW)) {
-				const result = this.expression();
+				const result = this.parseSwitchCaseBody(switchIndent || 0);
 				cases.push({ result });
 				continue;
 			}
@@ -1132,7 +1132,7 @@ export class Parser {
 			// Parse condition => result
 			const condition = this.expression();
 			if (this.match(TokenType.ARROW)) {
-				const result = this.expression();
+				const result = this.parseSwitchCaseBody(switchIndent || 0);
 				cases.push({ condition, result });
 			} else {
 				// Not a valid case, stop parsing
@@ -1147,6 +1147,122 @@ export class Parser {
 			cases,
 			line: startToken.line,
 			column: startToken.column,
+		};
+	}
+
+	/**
+	 * Parse switch case body (single-line expression or multi-line block)
+	 * For multi-line case bodies like:
+	 *     condition =>
+	 *         stmt1
+	 *         stmt2
+	 *         resultExpr
+	 */
+	private parseSwitchCaseBody(caseIndent: number): AST.Expression {
+		const arrowToken = this.previous();
+
+		// Check if there's content on the same line as =>
+		if (!this.check(TokenType.NEWLINE) && !this.isAtEnd()) {
+			// Single-line case: condition => expression
+			return this.expression();
+		}
+
+		// Multi-line case body: parse statements until indentation decreases
+		// Skip newlines after =>
+		while (this.check(TokenType.NEWLINE)) {
+			this.advance();
+		}
+
+		if (this.isAtEnd()) {
+			// No body after =>, return na as placeholder
+			return {
+				type: "Identifier",
+				name: "na",
+				line: arrowToken.line,
+				column: arrowToken.column,
+			};
+		}
+
+		// Get the body indentation (should be greater than case indentation)
+		const firstBodyToken = this.peek();
+		const bodyIndent = firstBodyToken.indent || 0;
+
+		// If not more indented than case, treat as empty body
+		if (bodyIndent <= caseIndent) {
+			return {
+				type: "Identifier",
+				name: "na",
+				line: arrowToken.line,
+				column: arrowToken.column,
+			};
+		}
+
+		// Parse statements in the body
+		const bodyStatements: AST.Statement[] = [];
+
+		while (!this.isAtEnd()) {
+			// Skip newlines
+			while (this.check(TokenType.NEWLINE)) {
+				this.advance();
+			}
+
+			if (this.isAtEnd()) break;
+
+			const currentToken = this.peek();
+			const currentIndent = currentToken.indent || 0;
+
+			// Stop if indentation has decreased to or below case level
+			if (currentIndent <= caseIndent) {
+				break;
+			}
+
+			// Also stop if we've returned to the same indentation as case line
+			// (which means we're at the next case)
+			if (currentIndent === caseIndent) {
+				break;
+			}
+
+			// Parse the next statement
+			const stmt = this.statement();
+			if (stmt) {
+				bodyStatements.push(stmt);
+			} else {
+				break;
+			}
+		}
+
+		// The result is the last statement's expression
+		// If the last statement is an ExpressionStatement, use its expression
+		// Otherwise wrap the statements somehow
+		if (bodyStatements.length === 0) {
+			return {
+				type: "Identifier",
+				name: "na",
+				line: arrowToken.line,
+				column: arrowToken.column,
+			};
+		}
+
+		const lastStmt = bodyStatements[bodyStatements.length - 1];
+		if (lastStmt.type === "ExpressionStatement") {
+			// The last expression is the result
+			// For now, just return the last expression (we lose the other statements in the AST)
+			// TODO: Consider adding a BlockExpression node to preserve all statements
+			return lastStmt.expression;
+		}
+
+		// If the last statement isn't an expression, still try to return something
+		// This handles cases like variable declarations that should return their value
+		if (lastStmt.type === "VariableDeclaration" && lastStmt.init) {
+			return lastStmt.init;
+		}
+
+		// Fallback: return na
+		return {
+			type: "Identifier",
+			name: "na",
+			line: lastStmt.line,
+			column: lastStmt.column,
 		};
 	}
 

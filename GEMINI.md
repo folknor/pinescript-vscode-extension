@@ -132,6 +132,7 @@ Discovered automatically via `discover:behavior`:
 - **Multi-word type annotations** - `simple int`, `series float` in params now typed correctly
 - **Comma operator support** - `a := 1, b := 2` and `func1(), func2()` now parse correctly
 - **Array element type tracking** - `array.new<float>()` → `array<float>`, `array.get(arr)` → element type
+- **Multi-line switch case bodies** - `condition => \n    stmt1\n    resultExpr` now parses (scope WIP)
 
 ---
 

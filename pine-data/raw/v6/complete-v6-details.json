@@ -1,12 +1,12 @@
 {
   "metadata": {
-    "extractedAt": "2025-12-23T21:50:29.672Z",
+    "extractedAt": "2025-12-24T09:20:32.328Z",
     "source": "https://www.tradingview.com/pine-script-reference/v6/",
     "totalFunctions": 457,
     "successfulScrapes": 457,
     "failedScrapes": 0,
-    "cachedResults": 0,
-    "forceRefresh": true,
+    "cachedResults": 457,
+    "forceRefresh": false,
     "method": "Puppeteer"
   },
   "functions": {
