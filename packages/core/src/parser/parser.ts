@@ -1350,13 +1350,12 @@ export class Parser {
 			// Collect type keywords (qualifiers and base types)
 			const typeKeywords: string[] = [];
 			while (this.isTypeKeyword()) {
-				// Check what follows: if it's an identifier, < (generic), or type keyword, this is part of the type
+				// Check what follows: if it's an identifier, < (generic), or any keyword, this is part of the type
 				// If it's = or , or ), this keyword is the parameter name
 				const next = this.peekNext();
 				if (
 					next?.type === TokenType.IDENTIFIER ||
-					(next?.type === TokenType.KEYWORD &&
-						Parser.TYPE_KEYWORDS.has(next.value)) ||
+					next?.type === TokenType.KEYWORD || // Any keyword can be a param name (e.g., 'type', 'color')
 					(next?.type === TokenType.COMPARE && next.value === "<")
 				) {
 					// More type info or param name follows
@@ -1391,17 +1390,18 @@ export class Parser {
 
 			if (typeKeywords.length > 0) {
 				typeAnnotation = { name: typeKeywords.join(" ") };
-				// Next token should be the parameter name (identifier or type keyword used as name)
+				// Next token should be the parameter name (identifier or keyword used as name)
+				// Keywords like 'type', 'color', 'string' etc. can be used as param names
 				if (this.check(TokenType.IDENTIFIER)) {
 					paramName = this.advance().value;
-				} else if (this.isTypeKeyword()) {
-					// Type keyword used as parameter name
+				} else if (this.check(TokenType.KEYWORD)) {
+					// Keyword used as parameter name (e.g., string type, color color)
 					paramName = this.advance().value;
 				} else {
 					throw new Error("Expected parameter name after type");
 				}
-			} else if (this.isTypeKeyword()) {
-				// Type keyword used as parameter name (e.g., color = color.white)
+			} else if (this.check(TokenType.KEYWORD)) {
+				// Keyword used as parameter name (e.g., color = color.white, type = "SMA")
 				paramName = this.advance().value;
 			} else {
 				// First token should be identifier (could be type or param name)
