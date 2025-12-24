@@ -43,10 +43,17 @@ pnpm run test:snippet -- --filter text 'code'  # Filter errors
 pnpm run debug:internals -- lookup hour      # Check symbol in pine-data
 pnpm run debug:internals -- parse 'x = 1'    # Show AST
 pnpm run debug:internals -- validate 'code'  # Full validation details
+pnpm run debug:internals -- tokens 'code'    # Show lexer tokens with line/indent
 pnpm run debug:internals -- symbols hour     # List matching symbols
 pnpm run debug:internals -- analyze --summary          # Discrepancy summary
 pnpm run debug:internals -- analyze --cli-errors       # CLI error summary
 pnpm run debug:internals -- analyze --filter "token"   # Filter by message
+pnpm run debug:internals -- corpus --summary           # v6 parse error stats
+pnpm run debug:internals -- corpus --errors            # Files with parse errors
+
+# Convenience aliases
+pnpm run debug:tokens 'code'                 # Shortcut for tokens command
+pnpm run debug:corpus --summary              # Shortcut for corpus analysis
 ```
 
 ### For LLM Agents
@@ -60,6 +67,8 @@ pnpm run debug:internals -- analyze --filter "token"   # Filter by message
 | `for f in plan/pine-lint-vs-cli-differences/*.json; do jq ... $f; done` | `pnpm run debug:internals -- analyze --filter "..."` |
 | Grepping for function definitions in pine-data | `pnpm run debug:internals -- lookup <name>` |
 | Creating temp files to test Parser/Validator | `pnpm run debug:internals -- parse 'code'` or `validate 'code'` |
+| Debugging lexer tokens and indentation | `pnpm run debug:tokens 'code'` |
+| Scanning pinescripts for v6 parse errors | `pnpm run debug:corpus --summary` or `--errors` |
 
 The dev tools handle temp files, JSON parsing, and output formatting automatically.
 
@@ -149,6 +158,8 @@ Discovered automatically via `discover:behavior`:
 ## Current Status
 
 **42 of 49 v6 scripts parse cleanly (86%)**
+
+Run `pnpm run debug:corpus --summary` for fresh stats.
 
 Breakdown:
 - 42 scripts: No parse errors

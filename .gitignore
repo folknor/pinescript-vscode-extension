@@ -47,5 +47,9 @@ GEMINI.md
 # Personal
 pinescripts
 plan
-dev-tools
 scripts
+
+# Dev tools - track utility scripts but ignore temp files
+dev-tools/*
+!dev-tools/*.js
+!dev-tools/analysis/

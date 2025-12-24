@@ -136,6 +136,8 @@
 		"scrape:force": "node --experimental-strip-types packages/pipeline/src/scrape.ts --force",
 		"test:snippet": "node dev-tools/test-snippet.js",
 		"debug:internals": "node dev-tools/debug-internals.js",
+		"debug:tokens": "node dev-tools/debug-internals.js tokens",
+		"debug:corpus": "node dev-tools/debug-internals.js corpus",
 		"prepare": "husky"
 	},
 	"devDependencies": {
