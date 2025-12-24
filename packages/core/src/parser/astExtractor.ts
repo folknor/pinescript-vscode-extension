@@ -109,7 +109,6 @@ function getVariableType(varName: string): string | undefined {
 
 export class ASTExtractor {
 	private scopeCounter = 0;
-	private currentScopeId: string | undefined = undefined;
 	private extractedVariables: PineLintVariable[] = [];
 
 	/**
@@ -117,7 +116,6 @@ export class ASTExtractor {
 	 */
 	extract(ast: Program): PineLintResult {
 		this.scopeCounter = 0;
-		this.currentScopeId = undefined;
 		this.extractedVariables = [];
 
 		const variables = this.extractVariables(ast);
@@ -180,41 +178,15 @@ export class ASTExtractor {
 				}
 			} else if (stmt.type === "ForStatement") {
 				const forStmt = stmt as ForStatement;
-				// Extract the iterator variable
-				const iterVar: PineLintVariable = {
-					name: forStmt.iterator,
-					type: "series int",
-					definition: {
-						start: { line: forStmt.line, column: forStmt.column },
-						end: {
-							line: forStmt.line,
-							column: forStmt.column + forStmt.iterator.length,
-						},
-					},
-				};
-				if (scopeId) {
-					iterVar.scopeId = scopeId;
-				}
-				variables.push(iterVar);
+				variables.push(this.createIteratorVariable(
+					forStmt.iterator, forStmt.line, forStmt.column, "series int", scopeId
+				));
 				this.walkStatements(forStmt.body, variables, scopeId);
 			} else if (stmt.type === "ForInStatement") {
 				const forInStmt = stmt as ForInStatement;
-				// Extract the iterator variable
-				const iterVar: PineLintVariable = {
-					name: forInStmt.iterator,
-					type: "undetermined type", // Collection element type
-					definition: {
-						start: { line: forInStmt.line, column: forInStmt.column },
-						end: {
-							line: forInStmt.line,
-							column: forInStmt.column + forInStmt.iterator.length,
-						},
-					},
-				};
-				if (scopeId) {
-					iterVar.scopeId = scopeId;
-				}
-				variables.push(iterVar);
+				variables.push(this.createIteratorVariable(
+					forInStmt.iterator, forInStmt.line, forInStmt.column, "undetermined type", scopeId
+				));
 				this.walkStatements(forInStmt.body, variables, scopeId);
 			} else if (stmt.type === "WhileStatement") {
 				const loopStmt = stmt as { body: Statement[] };
@@ -314,6 +286,30 @@ export class ASTExtractor {
 	}
 
 	/**
+	 * Create an iterator variable for for/for-in loops
+	 */
+	private createIteratorVariable(
+		name: string,
+		line: number,
+		column: number,
+		type: string,
+		scopeId: string | undefined,
+	): PineLintVariable {
+		const variable: PineLintVariable = {
+			name,
+			type,
+			definition: {
+				start: { line, column },
+				end: { line, column: column + name.length },
+			},
+		};
+		if (scopeId) {
+			variable.scopeId = scopeId;
+		}
+		return variable;
+	}
+
+	/**
 	 * Infer the type of a variable from its declaration
 	 */
 	private inferVariableType(varDecl: VariableDeclaration): string {
@@ -389,15 +385,15 @@ export class ASTExtractor {
 			case "CallExpression": {
 				const call = expr as CallExpression;
 				const funcName = this.getCalleeString(call.callee);
+				const funcDef = FUNCTIONS_BY_NAME.get(funcName);
 
 				// Handle generic type arguments: array.new<float>() -> array<float>
 				if (call.typeArguments && call.typeArguments.length > 0) {
 					const typeArg = call.typeArguments[0];
-					// array.new<T> returns array<T>, matrix.new<T> returns matrix<T>
-					if (funcName === "array.new" || funcName.startsWith("array.new")) {
+					if (funcName.startsWith("array.new")) {
 						return `array<${typeArg}>`;
 					}
-					if (funcName === "matrix.new" || funcName.startsWith("matrix.new")) {
+					if (funcName.startsWith("matrix.new")) {
 						return `matrix<${typeArg}>`;
 					}
 					if (funcName === "map.new") {
@@ -405,71 +401,46 @@ export class ASTExtractor {
 					}
 				}
 
-				// Check for polymorphic functions like input() - use data-driven approach
+				// Handle input functions - polymorphic return type based on defval
 				if (funcName === "input") {
 					const argInfos = call.arguments.map((arg) => ({
 						name: arg.name,
 						type: this.inferExpressionType(arg.value),
 					}));
-					const argTypes = argInfos.map((info) => info.type);
 					const polyType = getPolymorphicReturnType(
 						funcName,
-						argTypes as import("../analyzer/types").PineType[],
+						argInfos.map((info) => info.type) as import("../analyzer/types").PineType[],
 						argInfos as ArgumentInfo[],
 					);
-					if (polyType) {
-						// Return as input type (e.g., "input int", "input float")
-						return `input ${polyType}`;
-					}
-					return "input int"; // Fallback for unknown input type
+					return polyType ? `input ${polyType}` : "input int";
 				}
 
-				// Check specific input functions (input.int, input.float, etc.)
-				if (funcName.startsWith("input.")) {
-					const returnType = getFunctionReturnType(funcName);
-					if (returnType) {
-						// Format as "input int", "input float", etc.
-						const baseType = returnType.replace(/^(series|simple)\s*/, "");
-						return `input ${baseType}`;
-					}
+				// Handle input.* functions (input.int, input.float, etc.)
+				if (funcName.startsWith("input.") && funcDef?.returns) {
+					const baseType = funcDef.returns.replace(/^(series|simple)\s*/, "");
+					return `input ${baseType}`;
 				}
 
-				// Check qualifier-preserving functions (math.*)
-				// These functions preserve input qualifier and type (e.g., math.abs(const int) -> const int)
-				if (funcName.startsWith("math.") && call.arguments.length > 0) {
-					const funcDef = FUNCTIONS_BY_NAME.get(funcName);
-					if (funcDef) {
-						const argType = this.inferExpressionType(call.arguments[0].value);
-						// Preserve the qualifier and base type from the argument
-						return argType;
-					}
+				// Math functions preserve input qualifier and type
+				if (funcName.startsWith("math.") && funcDef && call.arguments.length > 0) {
+					return this.inferExpressionType(call.arguments[0].value);
 				}
 
-				// Check for array element-returning functions (polymorphic on array element type)
-				// Uses pine-data flags.polymorphic === "element" instead of hardcoded list
-				const funcDef2 = FUNCTIONS_BY_NAME.get(funcName);
-				if (funcDef2?.flags?.polymorphic === "element" && call.arguments.length > 0) {
-					// Get the type of the array argument
+				// Array element-returning functions (polymorphic on array element type)
+				if (funcDef?.flags?.polymorphic === "element" && call.arguments.length > 0) {
 					const arrayArgType = this.inferExpressionType(call.arguments[0].value);
-					// Extract element type from array<T>
 					const arrayMatch = arrayArgType.match(/^array<(.+)>$/);
 					if (arrayMatch) {
-						const elementType = arrayMatch[1];
-						// If function has explicit return type (e.g., array.max returns float), use it
-						if (funcDef2.returns && !funcDef2.returns.includes("<type>")) {
-							return funcDef2.returns;
+						// If function has explicit return type, use it; otherwise use element type
+						if (funcDef.returns && !funcDef.returns.includes("<type>")) {
+							return funcDef.returns;
 						}
-						return elementType;
+						return arrayMatch[1];
 					}
 				}
 
-				// Check function return type from pine-data
-				const funcReturnType = getFunctionReturnType(funcName);
-				if (funcReturnType) {
-					return funcReturnType;
-				}
-
-				return "undetermined type";
+				// Default: use return type from pine-data
+				return funcDef?.returns || "undetermined type";
 			}
 
 			case "MemberExpression": {
