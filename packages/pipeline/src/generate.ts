@@ -1180,10 +1180,10 @@ export const TYPE_KEYWORDS: Set<string> = new Set([
 }
 
 function generateVersionIndex(
-	functions: GeneratedFunction[],
-	variables: GeneratedVariable[],
-	constants: GeneratedConstant[],
-	keywords: string[],
+	_functions: GeneratedFunction[],
+	_variables: GeneratedVariable[],
+	_constants: GeneratedConstant[],
+	_keywords: string[],
 ): void {
 	console.log("Generating index.ts...");
 

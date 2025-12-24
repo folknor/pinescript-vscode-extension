@@ -128,7 +128,7 @@ export async function checkPineScriptFile(
 	filePath: string,
 	options?: PineLintOptions,
 ): Promise<PineLintResponse> {
-	const fs = await import("fs/promises");
+	const fs = await import("node:fs/promises");
 
 	try {
 		const pineCode = await fs.readFile(filePath, "utf-8");

@@ -1,5 +1,5 @@
 import type { ParsedDocument } from "../documents/ParsedDocument";
-import type { FormattingOptions, Range, TextEdit } from "../types";
+import type { FormattingOptions, TextEdit } from "../types";
 
 /**
  * Format a document.

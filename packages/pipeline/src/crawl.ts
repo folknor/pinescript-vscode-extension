@@ -197,7 +197,9 @@ export async function crawlPineScriptReference(): Promise<CrawlResult> {
 				// Extract keywords
 				keywordRegex.lastIndex = 0;
 				let match: RegExpExecArray | null;
-				while ((match = keywordRegex.exec(text)) !== null) {
+				for (;;) {
+					match = keywordRegex.exec(text);
+					if (match === null) break;
 					allDiscoveredItems.keywords.add(match[1]);
 				}
 

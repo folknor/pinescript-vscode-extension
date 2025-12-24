@@ -130,7 +130,7 @@ function analyzePolymorphism(
 }
 
 // Analyze argument ordering test results
-function analyzeArgumentOrdering(
+function _analyzeArgumentOrdering(
 	response: PineLintResponse,
 	functionName: string,
 ): "flexible" | "positional-only" {
@@ -261,24 +261,24 @@ function addSpecialCases(
 	behaviors: Record<string, FunctionBehavior>,
 ): Record<string, FunctionBehavior> {
 	// max_bars_back has reserved keyword parameter 'var'
-	behaviors["max_bars_back"] = {
+	behaviors.max_bars_back = {
 		polymorphic: false,
 		argumentOrdering: "positional-only",
 		reason: "parameter 'var' is reserved keyword",
 	};
 
 	// Refine input polymorphism
-	if (behaviors["input"]?.polymorphic) {
-		behaviors["input"].polymorphic = {
-			...behaviors["input"].polymorphic,
+	if (behaviors.input?.polymorphic) {
+		behaviors.input.polymorphic = {
+			...behaviors.input.polymorphic,
 			returnTypeParam: "defval",
 		};
 	}
 
 	// Refine nz polymorphism
-	if (behaviors["nz"]?.polymorphic) {
-		behaviors["nz"].polymorphic = {
-			...behaviors["nz"].polymorphic,
+	if (behaviors.nz?.polymorphic) {
+		behaviors.nz.polymorphic = {
+			...behaviors.nz.polymorphic,
 			returnTypeParam: "source",
 		};
 	}

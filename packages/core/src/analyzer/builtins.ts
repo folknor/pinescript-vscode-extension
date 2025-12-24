@@ -5,9 +5,7 @@ import {
 	getFunctionBehavior as _getFunctionBehavior,
 	CONSTANTS_BY_NAME,
 	FUNCTIONS_BY_NAME,
-	getReturnTypeParam,
 	type PineFunction,
-	type PineParameter,
 	VARIABLES_BY_NAME,
 } from "../../../../pine-data/v6";
 import type { PineType } from "./types";

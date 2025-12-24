@@ -1,6 +1,6 @@
 import { UnifiedPineValidator } from "../../../core/src/analyzer/checker";
 import type { ParsedDocument } from "../documents/ParsedDocument";
-import { type Diagnostic, DiagnosticSeverity, type Range } from "../types";
+import { type Diagnostic, DiagnosticSeverity } from "../types";
 
 /**
  * Get all diagnostics for a document.

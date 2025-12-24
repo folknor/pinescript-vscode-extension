@@ -869,7 +869,7 @@
 				},
 				{
 					"name": "variable.other.property.pine",
-					"match": "\\bsyminfo\\.(tickerid|ticker|prefix|type|session|timezone|currency|basecurrency|description|mintick|pointvalue)\\b"
+					"match": "\\bsyminfo\\.(tickerid|ticker|prefix|type|session|timezone|currency|basecurrency|description|mintick|pointvalue|country|industry|root)\\b"
 				},
 				{
 					"name": "variable.other.property.pine",
@@ -877,7 +877,7 @@
 				},
 				{
 					"name": "variable.other.property.pine",
-					"match": "\\btimeframe\\.(period|multiplier|isseconds|isminutes|isdaily|isweekly|ismonthly|isdwm|isintraday)\\b"
+					"match": "\\btimeframe\\.(period|multiplier|isseconds|isminutes|isdaily|isweekly|ismonthly|isdwm|isintraday|isticks|main_period)\\b"
 				},
 				{
 					"name": "variable.other.property.pine",
@@ -885,11 +885,11 @@
 				},
 				{
 					"name": "variable.other.property.pine",
-					"match": "\\bsession\\.(ismarket|ispremarket|ispostmarket)\\b"
+					"match": "\\bsession\\.(ismarket|ispremarket|ispostmarket|isfirstbar|isfirstbar_regular)\\b"
 				},
 				{
 					"name": "variable.other.property.pine",
-					"match": "\\bstrategy\\.(position_size|position_avg_price|equity|openprofit|netprofit|grossprofit|grossloss|closedtrades|opentrades|wintrades|losstrades|initial_capital)\\b"
+					"match": "\\bstrategy\\.(position_size|position_avg_price|equity|openprofit|netprofit|grossprofit|grossloss|closedtrades|opentrades|wintrades|losstrades|initial_capital|openprofit_percent|netprofit_percent|max_drawdown_percent)\\b"
 				},
 				{
 					"name": "variable.parameter.pine",

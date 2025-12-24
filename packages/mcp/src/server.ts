@@ -212,7 +212,7 @@ export async function main() {
 				returns: f.returns,
 				description:
 					f.description.length > 100
-						? f.description.substring(0, 100) + "..."
+						? `${f.description.substring(0, 100)}...`
 						: f.description,
 			}));
 

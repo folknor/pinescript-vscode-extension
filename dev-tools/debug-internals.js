@@ -130,7 +130,7 @@ function cmdTokens(code) {
 
 	console.log("Tokens:\n");
 	console.log("  #   Type            Value              Line  Col   Indent");
-	console.log("  " + "-".repeat(65));
+	console.log(`  ${"-".repeat(65)}`);
 
 	let idx = 0;
 	for (const t of tokens) {
@@ -138,7 +138,7 @@ function cmdTokens(code) {
 		if (t.type === "WHITESPACE") continue;
 
 		const value = t.value.replace(/\n/g, "\\n").replace(/\t/g, "\\t");
-		const displayValue = value.length > 16 ? value.slice(0, 13) + "..." : value;
+		const displayValue = value.length > 16 ? `${value.slice(0, 13)}...` : value;
 
 		console.log(
 			`  ${idx.toString().padStart(3)}  ` +
@@ -371,7 +371,7 @@ function cmdAnalyze(args) {
 					}
 				}
 			}
-		} catch (e) {
+		} catch (_e) {
 			// Skip invalid JSON files
 		}
 	}
@@ -508,7 +508,7 @@ function cmdCorpus(args) {
 				} else {
 					results.clean.push(`${dir}/${file}`);
 				}
-			} catch (e) {
+			} catch (_e) {
 				results.failed.push(`${dir}/${file}`);
 			}
 		}
@@ -548,7 +548,7 @@ function cmdCorpus(args) {
 		console.log("\nParse error types by frequency:");
 		const sorted = [...errorCounts.entries()].sort((a, b) => b[1] - a[1]);
 		for (const [msg, count] of sorted.slice(0, 20)) {
-			const displayMsg = msg.length > 60 ? msg.slice(0, 57) + "..." : msg;
+			const displayMsg = msg.length > 60 ? `${msg.slice(0, 57)}...` : msg;
 			console.log(`  ${count.toString().padStart(4)} x ${displayMsg}`);
 		}
 		if (sorted.length > 20) {

@@ -170,9 +170,8 @@ export function getNamespaceCompletions(namespace: string): CompletionItem[] {
 	const nsFuncs = FUNCTIONS_BY_NAMESPACE.get(namespace);
 	if (nsFuncs) {
 		for (const func of nsFuncs) {
-			const shortName = func.name.includes(".")
-				? func.name.split(".").pop()!
-				: func.name;
+			const parts = func.name.split(".");
+			const shortName = parts.length > 1 ? parts[parts.length - 1] : func.name;
 			items.push(
 				createCompletionItem(shortName, CompletionItemKind.Function, {
 					syntax: func.syntax,
@@ -189,9 +188,9 @@ export function getNamespaceCompletions(namespace: string): CompletionItem[] {
 	const nsVars = VARIABLES_BY_NAMESPACE.get(namespace);
 	if (nsVars) {
 		for (const variable of nsVars) {
-			const shortName = variable.name.includes(".")
-				? variable.name.split(".").pop()!
-				: variable.name;
+			const parts = variable.name.split(".");
+			const shortName =
+				parts.length > 1 ? parts[parts.length - 1] : variable.name;
 			items.push(
 				createCompletionItem(shortName, CompletionItemKind.Variable, {
 					type: variable.type as string,

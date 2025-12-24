@@ -47,21 +47,23 @@ function extractFunctions(content: string): Map<string, string[]> {
 	// Match function names like "name": "ta.sma" or "name": "alert"
 	const regex =
 		/"name":\s*"([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)"/g;
-	let match;
-	while ((match = regex.exec(content)) !== null) {
+	let match: RegExpExecArray | null;
+	for (;;) {
+		match = regex.exec(content);
+		if (match === null) break;
 		const fullName = match[1];
 		if (fullName.includes(".")) {
 			const [namespace, funcName] = fullName.split(".");
 			if (!byNamespace.has(namespace)) {
 				byNamespace.set(namespace, []);
 			}
-			byNamespace.get(namespace)!.push(funcName);
+			byNamespace.get(namespace)?.push(funcName);
 		} else {
 			// Global function
 			if (!byNamespace.has("_global")) {
 				byNamespace.set("_global", []);
 			}
-			byNamespace.get("_global")!.push(fullName);
+			byNamespace.get("_global")?.push(fullName);
 		}
 	}
 
@@ -74,14 +76,16 @@ function extractConstants(content: string): Map<string, string[]> {
 
 	// Match constant names like "name": "color.red"
 	const regex = /"name":\s*"([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*)"/g;
-	let match;
-	while ((match = regex.exec(content)) !== null) {
+	let match: RegExpExecArray | null;
+	for (;;) {
+		match = regex.exec(content);
+		if (match === null) break;
 		const fullName = match[1];
 		const [namespace, constName] = fullName.split(".");
 		if (!byNamespace.has(namespace)) {
 			byNamespace.set(namespace, []);
 		}
-		byNamespace.get(namespace)!.push(constName);
+		byNamespace.get(namespace)?.push(constName);
 	}
 
 	return byNamespace;
@@ -97,15 +101,17 @@ function extractVariables(content: string): {
 	// Match variable names like "name": "close" or "name": "syminfo.tickerid"
 	const regex =
 		/"name":\s*"([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)"/g;
-	let match;
-	while ((match = regex.exec(content)) !== null) {
+	let match: RegExpExecArray | null;
+	for (;;) {
+		match = regex.exec(content);
+		if (match === null) break;
 		const fullName = match[1];
 		if (fullName.includes(".")) {
 			const [namespace, varName] = fullName.split(".");
 			if (!namespaced.has(namespace)) {
 				namespaced.set(namespace, []);
 			}
-			namespaced.get(namespace)!.push(varName);
+			namespaced.get(namespace)?.push(varName);
 		} else {
 			standalone.push(fullName);
 		}
@@ -507,7 +513,7 @@ function main() {
 		const grammar = generateGrammar(data);
 		const output = JSON.stringify(grammar, null, "\t");
 
-		fs.writeFileSync(OUTPUT_FILE, output + "\n");
+		fs.writeFileSync(OUTPUT_FILE, `${output}\n`);
 		console.log(`\nWritten: ${OUTPUT_FILE}`);
 		console.log(`  Size: ${(output.length / 1024).toFixed(1)} KB`);
 	} catch (error) {

@@ -43,7 +43,7 @@ export namespace TypeChecker {
 	function normalizeType(type: string): PineType {
 		// Handle union types by taking the first option (e.g., "int/float" -> "int")
 		if (type.includes("/")) {
-			const parts = type.split("/");
+			const _parts = type.split("/");
 			// For "series int/float", we want "series int" (first variant)
 			type = type.replace(/\/\w+/, "");
 		}

@@ -119,7 +119,7 @@ async function main() {
 		};
 		// Write to stdout and wait for drain before exiting
 		const jsonOutput = JSON.stringify(output, null, 2);
-		process.stdout.write(jsonOutput + "\n", () => {
+		process.stdout.write(`${jsonOutput}\n`, () => {
 			process.exit(0);
 		});
 	} catch (e: unknown) {

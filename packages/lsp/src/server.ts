@@ -30,7 +30,7 @@ const languageService = new PineLanguageService();
 
 // ========== Lifecycle Handlers ==========
 
-connection.onInitialize((params: InitializeParams): InitializeResult => {
+connection.onInitialize((_params: InitializeParams): InitializeResult => {
 	connection.console.log("Pine Script Language Server initialized");
 
 	return {

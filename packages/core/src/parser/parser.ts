@@ -175,7 +175,8 @@ export class Parser {
 						if (
 							isLineStart &&
 							currentToken.line > startToken.line &&
-							currentToken.indent! < bodyIndent
+							currentToken.indent !== undefined &&
+							currentToken.indent < bodyIndent
 						) {
 							break;
 						}
@@ -1813,8 +1814,7 @@ export class Parser {
 				// Consume type identifier(s) - could be "float", "int", "box", "chart.point", etc.
 				// Also handles map<key, value> syntax with multiple type arguments
 				if (this.check(TokenType.IDENTIFIER) || this.check(TokenType.KEYWORD)) {
-					// Parse one or more type arguments (for map<K, V>)
-					do {
+					while (true) {
 						let typeArg = this.advance().value;
 
 						// Handle dotted type names like chart.point
@@ -1824,7 +1824,7 @@ export class Parser {
 								this.check(TokenType.IDENTIFIER) ||
 								this.check(TokenType.KEYWORD)
 							) {
-								typeArg += "." + this.advance().value;
+								typeArg += `.${this.advance().value}`;
 							}
 						}
 
@@ -1844,7 +1844,7 @@ export class Parser {
 										this.check(TokenType.IDENTIFIER) ||
 										this.check(TokenType.KEYWORD)
 									) {
-										typeArg += "." + this.advance().value;
+										typeArg += `.${this.advance().value}`;
 									}
 								}
 							}
@@ -1855,11 +1855,22 @@ export class Parser {
 						}
 
 						typeArgs.push(typeArg);
-					} while (
-						this.check(TokenType.COMMA) &&
-						(this.advance(),
-						this.check(TokenType.IDENTIFIER) || this.check(TokenType.KEYWORD))
-					);
+
+						// Check for another type argument (comma followed by identifier/keyword)
+						if (!this.check(TokenType.COMMA)) {
+							break;
+						}
+						this.advance();
+						if (
+							!(
+								this.check(TokenType.IDENTIFIER) ||
+								this.check(TokenType.KEYWORD)
+							)
+						) {
+							break;
+						}
+						// Continue loop to parse the next type arg
+					}
 
 					// Consume closing >
 					if (this.check(TokenType.COMPARE) && this.peek().value === ">") {

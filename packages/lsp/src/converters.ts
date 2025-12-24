@@ -16,16 +16,12 @@ import {
 	type TextEdit as LSPTextEdit,
 	MarkupKind,
 	type ParameterInformation,
-	SignatureInformation,
 } from "vscode-languageserver/node";
 
 import type {
 	CompletionItem,
-	CompletionItemKind,
 	Diagnostic,
-	DiagnosticSeverity,
 	HoverInfo,
-	InsertTextFormat,
 	SignatureHelp,
 	TextEdit,
 } from "../../language-service/src/types";
