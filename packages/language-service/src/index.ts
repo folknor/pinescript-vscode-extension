@@ -31,6 +31,7 @@ export {
 	getCodeActions,
 	type CodeActionContext,
 } from "./features/codeActions";
+export { getFoldingRanges } from "./features/folding";
 export { getInlayHints } from "./features/inlayHints";
 export type { HoverOptions } from "./PineLanguageService";
 export { PineLanguageService } from "./PineLanguageService";
@@ -45,6 +46,8 @@ export {
 	// Diagnostics
 	DiagnosticSeverity,
 	type DocumentSymbol,
+	type FoldingRange,
+	FoldingRangeKind,
 	type FormattingOptions,
 	// Hover
 	type HoverInfo,

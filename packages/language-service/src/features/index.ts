@@ -23,4 +23,5 @@ export {
 	type RenameResult,
 } from "./rename";
 export { getCodeActions, type CodeActionContext } from "./codeActions";
+export { getFoldingRanges } from "./folding";
 export { getInlayHints } from "./inlayHints";

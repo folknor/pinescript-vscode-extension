@@ -202,3 +202,16 @@ export interface InlayHint {
 	paddingLeft?: boolean;
 	paddingRight?: boolean;
 }
+
+// Folding Ranges
+export enum FoldingRangeKind {
+	Comment = "comment",
+	Imports = "imports",
+	Region = "region",
+}
+
+export interface FoldingRange {
+	startLine: number;
+	endLine: number;
+	kind?: FoldingRangeKind;
+}

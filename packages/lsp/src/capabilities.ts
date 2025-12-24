@@ -32,5 +32,6 @@ export function getCapabilities(): ServerCapabilities {
 			codeActionKinds: [CodeActionKind.QuickFix],
 		},
 		inlayHintProvider: true,
+		foldingRangeProvider: true,
 	};
 }

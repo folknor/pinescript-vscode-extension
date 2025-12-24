@@ -13,6 +13,7 @@ import {
 	getDefinition as getDefinitionImpl,
 	getDiagnostics as getDiagnosticsImpl,
 	getDocumentSymbols as getDocumentSymbolsImpl,
+	getFoldingRanges as getFoldingRangesImpl,
 	getHover as getHoverImpl,
 	getInlayHints as getInlayHintsImpl,
 	getReferences as getReferencesImpl,
@@ -29,6 +30,7 @@ import type {
 	CompletionItem,
 	Diagnostic,
 	DocumentSymbol,
+	FoldingRange,
 	FormattingOptions,
 	HoverInfo,
 	InlayHint,
@@ -218,6 +220,15 @@ export class PineLanguageService {
 		const doc = this.documents.get(uri);
 		if (!doc) return [];
 		return getInlayHintsImpl(doc, range);
+	}
+
+	/**
+	 * Get folding ranges for a document.
+	 */
+	getFoldingRanges(uri: string): FoldingRange[] {
+		const doc = this.documents.get(uri);
+		if (!doc) return [];
+		return getFoldingRangesImpl(doc);
 	}
 
 	// ========== Static Helpers (no document needed) ==========

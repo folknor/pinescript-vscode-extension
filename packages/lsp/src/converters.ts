@@ -13,6 +13,8 @@ import {
 	type Diagnostic as LSPDiagnostic,
 	type DiagnosticSeverity as LSPDiagnosticSeverity,
 	type DocumentSymbol as LSPDocumentSymbol,
+	type FoldingRange as LSPFoldingRange,
+	FoldingRangeKind as LSPFoldingRangeKind,
 	type Hover as LSPHover,
 	type InlayHint as LSPInlayHint,
 	type InlayHintKind as LSPInlayHintKind,
@@ -29,6 +31,7 @@ import type {
 	CompletionItem,
 	Diagnostic,
 	DocumentSymbol,
+	FoldingRange,
 	HoverInfo,
 	InlayHint,
 	SignatureHelp,
@@ -172,5 +175,16 @@ export function convertInlayHint(hint: InlayHint): LSPInlayHint {
 		kind: hint.kind as LSPInlayHintKind,
 		paddingLeft: hint.paddingLeft,
 		paddingRight: hint.paddingRight,
+	};
+}
+
+/**
+ * Convert language-service FoldingRange to LSP FoldingRange.
+ */
+export function convertFoldingRange(range: FoldingRange): LSPFoldingRange {
+	return {
+		startLine: range.startLine,
+		endLine: range.endLine,
+		kind: range.kind as LSPFoldingRangeKind | undefined,
 	};
 }

@@ -6,6 +6,7 @@ import {
 	SymbolKind,
 	CodeActionKind,
 	InlayHintKind,
+	FoldingRangeKind,
 } from "../src";
 
 describe("PineLanguageService", () => {
@@ -747,6 +748,92 @@ x = ta.ema(ta.sma(close, 14), 21)
 
 			// Should have hints for both ta.sma and ta.ema
 			expect(hints.length).toBeGreaterThanOrEqual(4);
+		});
+	});
+
+	describe("Folding Ranges", () => {
+		it("should fold function bodies", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+myFunc() =>
+    x = 1
+    y = 2
+    x + y
+`,
+				1,
+			);
+			const ranges = service.getFoldingRanges("test.pine");
+
+			expect(ranges.length).toBeGreaterThan(0);
+			// Function should be foldable from line 1 to line 4 (0-indexed)
+			const funcFold = ranges.find(
+				(r) => r.startLine === 1 && r.endLine === 4,
+			);
+			expect(funcFold).toBeDefined();
+		});
+
+		it("should fold if/else blocks", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+if close > open
+    x = 1
+    y = 2
+`,
+				1,
+			);
+			const ranges = service.getFoldingRanges("test.pine");
+
+			expect(ranges.length).toBeGreaterThan(0);
+			// If block should be foldable
+			const ifFold = ranges.find((r) => r.startLine === 1);
+			expect(ifFold).toBeDefined();
+		});
+
+		it("should fold for loops", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+for i = 0 to 10
+    x = i
+    y = x + 1
+`,
+				1,
+			);
+			const ranges = service.getFoldingRanges("test.pine");
+
+			expect(ranges.length).toBeGreaterThan(0);
+			// For loop should be foldable
+			const forFold = ranges.find((r) => r.startLine === 1);
+			expect(forFold).toBeDefined();
+		});
+
+		it("should fold multi-line comment blocks", () => {
+			service.openDocument(
+				"test.pine",
+				`x = 1
+// This is a comment block
+// with multiple lines
+// describing something
+y = 2
+`,
+				1,
+			);
+			const ranges = service.getFoldingRanges("test.pine");
+
+			const commentFold = ranges.find(
+				(r) => r.kind === FoldingRangeKind.Comment,
+			);
+			expect(commentFold).toBeDefined();
+			expect(commentFold?.startLine).toBe(1);
+			expect(commentFold?.endLine).toBe(3);
+		});
+
+		it("should return empty array for empty document", () => {
+			service.openDocument("test.pine", "", 1);
+			const ranges = service.getFoldingRanges("test.pine");
+			expect(ranges).toEqual([]);
 		});
 	});
 });
