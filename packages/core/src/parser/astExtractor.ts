@@ -22,6 +22,10 @@ import {
 	getPolymorphicReturnType,
 	type ArgumentInfo,
 } from "../analyzer/builtins";
+import {
+	FUNCTIONS_BY_NAME,
+	VARIABLES_BY_NAME,
+} from "../../../../pine-data/v6";
 
 // Pine-lint compatible interfaces
 export interface PineLintPosition {
@@ -87,114 +91,21 @@ export interface PineLintOutput {
 	error?: string;
 }
 
-// Input function patterns that determine variable type
-const INPUT_FUNCTIONS: Record<string, string> = {
-	"input.int": "input int",
-	"input.float": "input float",
-	"input.bool": "input bool",
-	"input.string": "input string",
-	"input.color": "input color",
-	"input.source": "series float",
-	"input.timeframe": "input string",
-	"input.symbol": "input string",
-	"input.session": "input string",
-	"input.time": "input int",
-	"input.text_area": "input string",
-	// Note: plain "input" is handled separately with polymorphic return type detection
-};
+// Helper: Get function return type from pine-data
+function getFunctionReturnType(funcName: string): string | undefined {
+	const func = FUNCTIONS_BY_NAME.get(funcName);
+	return func?.returns;
+}
 
-// TA functions that return series types (when args are series)
-const SERIES_FUNCTIONS: Record<string, string> = {
-	"ta.sma": "series float",
-	"ta.ema": "series float",
-	"ta.wma": "series float",
-	"ta.vwma": "series float",
-	"ta.rsi": "series float",
-	"ta.macd": "series float",
-	"ta.stoch": "series float",
-	"ta.cci": "series float",
-	"ta.atr": "series float",
-	"ta.tr": "series float",
-	"ta.bb": "series float",
-	"ta.highest": "series float",
-	"ta.lowest": "series float",
-	"ta.crossover": "series bool",
-	"ta.crossunder": "series bool",
-	"ta.cross": "series bool",
-	"ta.pivothigh": "series float",
-	"ta.pivotlow": "series float",
-	"ta.change": "series float",
-	"ta.mom": "series float",
-	"ta.roc": "series float",
-	"ta.variance": "series float",
-	"ta.stdev": "series float",
-	"ta.correlation": "series float",
-	"ta.cum": "series float",
-	"ta.valuewhen": "series float",
-	"ta.barssince": "series int",
-	"ta.percentile_linear_interpolation": "series float",
-	"ta.percentile_nearest_rank": "series float",
-	"str.tostring": "series string",
-	"str.format": "series string",
-	"str.length": "series int",
-	"str.contains": "series bool",
-	"str.replace": "series string",
-	"str.split": "array<string>",
-	"request.security": "series float",
-	"request.security_lower_tf": "array<float>",
-	"array.new_float": "array<float>",
-	"array.new_int": "array<int>",
-	"array.new_bool": "array<bool>",
-	"array.new_string": "array<string>",
-	"array.new_color": "array<color>",
-	"array.from": "array<float>",
-	"array.size": "series int",
-	"array.get": "series float",
-	"array.push": "void",
-	"array.pop": "series float",
-	"array.avg": "series float",
-	"array.sum": "series float",
-	"array.max": "series float",
-	"array.min": "series float",
-};
-
-// Functions that preserve the qualifier of their input (const in -> const out, series in -> series out)
-const QUALIFIER_PRESERVING_FUNCTIONS: Record<
-	string,
-	{ int: string; float: string }
-> = {
-	"math.abs": { int: "int", float: "float" },
-	"math.max": { int: "int", float: "float" },
-	"math.min": { int: "int", float: "float" },
-	"math.round": { int: "int", float: "int" },
-	"math.floor": { int: "int", float: "int" },
-	"math.ceil": { int: "int", float: "int" },
-	"math.sqrt": { int: "float", float: "float" },
-	"math.pow": { int: "float", float: "float" },
-	"math.log": { int: "float", float: "float" },
-	"math.log10": { int: "float", float: "float" },
-	"math.exp": { int: "float", float: "float" },
-	"math.sign": { int: "int", float: "int" },
-	"math.avg": { int: "float", float: "float" },
-	"math.sum": { int: "int", float: "float" },
-};
-
-// Built-in series variables
-const BUILTIN_SERIES: Record<string, string> = {
-	close: "series float",
-	open: "series float",
-	high: "series float",
-	low: "series float",
-	volume: "series float",
-	time: "series int",
-	hl2: "series float",
-	hlc3: "series float",
-	ohlc4: "series float",
-	hlcc4: "series float",
-	bar_index: "series int",
-	timenow: "simple int",
-	na: "na",
-};
+// Helper: Get variable type from pine-data
+function getVariableType(varName: string): string | undefined {
+	const variable = VARIABLES_BY_NAME.get(varName);
+	if (variable?.type) {
+		// Normalize format: "series<float>" -> "series float"
+		return variable.type.replace(/<(\w+)>/, " $1");
+	}
+	return undefined;
+}
 
 export class ASTExtractor {
 	private scopeCounter = 0;
@@ -353,9 +264,10 @@ export class ASTExtractor {
 		if (tupleDecl.init.type === "CallExpression") {
 			const call = tupleDecl.init as CallExpression;
 			const funcName = this.getCalleeString(call.callee);
-			// Most tuple-returning functions return series float
-			if (SERIES_FUNCTIONS[funcName]) {
-				baseType = SERIES_FUNCTIONS[funcName];
+			// Get return type from pine-data
+			const returnType = getFunctionReturnType(funcName);
+			if (returnType) {
+				baseType = returnType;
 			}
 		}
 
@@ -459,9 +371,10 @@ export class ASTExtractor {
 
 			case "Identifier": {
 				const id = expr as Identifier;
-				// Check built-in series
-				if (BUILTIN_SERIES[id.name]) {
-					return BUILTIN_SERIES[id.name];
+				// Check built-in variables from pine-data
+				const varType = getVariableType(id.name);
+				if (varType) {
+					return varType;
 				}
 				// Check already-extracted variables
 				const variable = this.extractedVariables.find(
@@ -512,24 +425,24 @@ export class ASTExtractor {
 				}
 
 				// Check specific input functions (input.int, input.float, etc.)
-				if (INPUT_FUNCTIONS[funcName]) {
-					return INPUT_FUNCTIONS[funcName];
+				if (funcName.startsWith("input.")) {
+					const returnType = getFunctionReturnType(funcName);
+					if (returnType) {
+						// Format as "input int", "input float", etc.
+						const baseType = returnType.replace(/^(series|simple)\s*/, "");
+						return `input ${baseType}`;
+					}
 				}
 
 				// Check qualifier-preserving functions (math.*)
-				if (QUALIFIER_PRESERVING_FUNCTIONS[funcName]) {
-					const spec = QUALIFIER_PRESERVING_FUNCTIONS[funcName];
-					// Infer qualifier from first argument
-					if (call.arguments.length > 0) {
+				// These functions preserve input qualifier and type (e.g., math.abs(const int) -> const int)
+				if (funcName.startsWith("math.") && call.arguments.length > 0) {
+					const funcDef = FUNCTIONS_BY_NAME.get(funcName);
+					if (funcDef) {
 						const argType = this.inferExpressionType(call.arguments[0].value);
-						// Extract qualifier and base type
-						const isConst = argType.startsWith("const ");
-						const isInt = argType.includes("int");
-						const resultType = isInt ? spec.int : spec.float;
-						const qualifier = isConst ? "const" : "series";
-						return `${qualifier} ${resultType}`;
+						// Preserve the qualifier and base type from the argument
+						return argType;
 					}
-					return `series ${spec.float}`;
 				}
 
 				// Check for array element-returning functions (polymorphic on array element type)
@@ -561,9 +474,10 @@ export class ASTExtractor {
 					}
 				}
 
-				// Check series-returning functions
-				if (SERIES_FUNCTIONS[funcName]) {
-					return SERIES_FUNCTIONS[funcName];
+				// Check function return type from pine-data
+				const funcReturnType = getFunctionReturnType(funcName);
+				if (funcReturnType) {
+					return funcReturnType;
 				}
 
 				return "undetermined type";
@@ -573,9 +487,10 @@ export class ASTExtractor {
 				const member = expr as MemberExpression;
 				const fullName = this.getMemberExpressionString(member);
 
-				// Check built-in series
-				if (BUILTIN_SERIES[fullName]) {
-					return BUILTIN_SERIES[fullName];
+				// Check built-in variables from pine-data
+				const memberType = getVariableType(fullName);
+				if (memberType) {
+					return memberType;
 				}
 
 				return "undetermined type";

@@ -244,10 +244,10 @@ Deep analysis of `packages/core/src/` to identify and document code that "works 
 | `parser.ts:201-217,268-282` | Duplicated logic | Type keyword list duplicated | Low | Fix - use static |
 | `parser.ts:multiple` | Silent failures | `catch (_e)` for backtracking | Low | Keep |
 | `parser.ts:1924-1934` | Special case | `na` as Identifier | Low | Keep - documented |
-| `astExtractor.ts:91-104` | Data in wrong place | `INPUT_FUNCTIONS` hardcoded | High | Move to pine-data |
-| `astExtractor.ts:107-159` | Data in wrong place | `SERIES_FUNCTIONS` hardcoded | High | Move to pine-data |
-| `astExtractor.ts:162-180` | Data in wrong place | `QUALIFIER_PRESERVING` hardcoded | High | Move to pine-data |
-| `astExtractor.ts:183-197` | Data in wrong place | `BUILTIN_SERIES` hardcoded | High | Move to pine-data |
+| `astExtractor.ts:91-104` | Data in wrong place | `INPUT_FUNCTIONS` hardcoded | High | ✅ FIXED - uses pine-data |
+| `astExtractor.ts:107-159` | Data in wrong place | `SERIES_FUNCTIONS` hardcoded | High | ✅ FIXED - uses pine-data |
+| `astExtractor.ts:162-180` | Data in wrong place | `QUALIFIER_PRESERVING` hardcoded | High | ✅ FIXED - uses pine-data |
+| `astExtractor.ts:183-197` | Data in wrong place | `BUILTIN_SERIES` hardcoded | High | ✅ FIXED - uses pine-data |
 | `astExtractor.ts:536-547` | Data in wrong place | `arrayElementFuncs` hardcoded | Medium | Move to pine-data |
 | `astExtractor.ts:324` | Magic number | `+ 20` approx end column | Low | Keep |
 | `astExtractor.ts:multiple` | Magic strings | Default type fallbacks | Low | Keep |
@@ -256,18 +256,18 @@ Deep analysis of `packages/core/src/` to identify and document code that "works 
 | `semanticAnalyzer.ts:298-299` | TODO comment | "simplified check" incomplete | Low | Document |
 | `semanticAnalyzer.ts:432` | Magic number | `0, 0` for missing location | Low | Keep |
 | `checker.ts:1066-1070` | Dead code | `DEBUG_NA = false` left in | Low | Fix - remove |
-| `checker.ts:355-412` | Data in wrong place | Param name→type heuristics | High | Move to pine-data |
+| `checker.ts:355-412` | Data in wrong place | Param name→type heuristics | High | ✅ FIXED - removed heuristics, use "unknown" |
 | `checker.ts:108-154,258-308` | Duplicated logic | TupleDeclaration duplicated | Medium | Fix - extract |
 | `checker.ts:941-970` | Special case | plotshape/indicator validations | Medium | Move to pine-data |
 | `checker.ts:1076-1098` | Special case | array.new/request.security | Medium | Keep |
 | `checker.ts:761` | Silent failure | Complex callee ignored | Low | Document |
 | `builtins.ts:19-33` | Data in wrong place | `TOP_LEVEL_ONLY_FUNCTIONS` | Medium | Move to pine-data |
 | `builtins.ts:36-39` | Data in wrong place | `DEPRECATED_V5_CONSTANTS` | Low | Move to pine-data |
-| `builtins.ts:67-159` | Data in wrong place | Namespace properties hardcoded | High | Scrape |
-| `builtins.ts:163-180` | Data in wrong place | `KNOWN_NAMESPACES` hardcoded | Medium | Derive |
+| `builtins.ts:67-159` | Data in wrong place | Namespace properties hardcoded | High | ✅ FIXED - uses pine-data |
+| `builtins.ts:163-180` | Data in wrong place | `KNOWN_NAMESPACES` hardcoded | Medium | ✅ FIXED - derived from pine-data |
 | `builtins.ts:197-294` | Duplicated logic | Type mapping duplicated | Low | Extract |
 | `builtins.ts:319-320` | Silent failure | `catch (_e) { return null }` | Low | Document |
-| `types.ts:345-421` | Data in wrong place | `builtinTypes` redundant | High | Delete |
+| `types.ts:345-421` | Data in wrong place | `builtinTypes` redundant | High | ✅ FIXED - deleted |
 | `types.ts:113-173` | Duplicated logic | Coercion rules repetitive | Medium | Keep |
 
 ### 2. Test Infrastructure Overhaul

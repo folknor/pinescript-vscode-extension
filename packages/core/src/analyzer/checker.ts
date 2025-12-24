@@ -342,75 +342,13 @@ export class UnifiedPineValidator {
 				this.symbolTable.enterScope();
 				this.blockDepth++;
 
-				// Add function parameters to scope with proper type inference
-				for (let i = 0; i < statement.params.length; i++) {
-					const param = statement.params[i];
-					let paramType: PineType = "unknown";
-
-					// Use explicit type annotation if present
-					if (param.typeAnnotation) {
-						paramType = mapToPineType(param.typeAnnotation.name);
-					}
-					// Otherwise infer parameter type based on name and position
-					else if (i === 0) {
-						// First parameter is often series data
-						const paramName = param.name.toLowerCase();
-						if (
-							paramName.includes("price") ||
-							paramName.includes("src") ||
-							paramName.includes("val") ||
-							paramName.includes("close") ||
-							paramName.includes("open") ||
-							paramName.includes("high") ||
-							paramName.includes("low") ||
-							paramName === "price" ||
-							paramName === "src" ||
-							paramName === "val"
-						) {
-							paramType = "series<float>";
-						} else if (
-							paramName.includes("time") ||
-							paramName.includes("index")
-						) {
-							paramType = "series<int>";
-						} else if (
-							paramName.includes("bool") ||
-							paramName.includes("condition")
-						) {
-							paramType = "series<bool>";
-						} else {
-							// Default to series<float> for first parameter
-							paramType = "series<float>";
-						}
-					} else {
-						// Other parameters are often simple types
-						const paramName = param.name.toLowerCase();
-						if (
-							paramName.includes("length") ||
-							paramName.includes("period") ||
-							paramName.includes("window") ||
-							paramName.includes("count") ||
-							paramName.includes("len") ||
-							paramName.includes("n") ||
-							paramName.includes("size")
-						) {
-							paramType = "int";
-						} else if (
-							paramName.includes("overbought") ||
-							paramName.includes("oversold") ||
-							paramName.includes("level") ||
-							paramName.includes("threshold") ||
-							paramName.includes("frac") ||
-							paramName.includes("multiplier") ||
-							paramName.includes("offset") ||
-							paramName.includes("sigma")
-						) {
-							paramType = "float";
-						} else {
-							// Default to int for other parameters
-							paramType = "int";
-						}
-					}
+				// Add function parameters to scope
+				for (const param of statement.params) {
+					// Use explicit type annotation if present, otherwise "unknown"
+					// Using "unknown" for untyped params avoids false positives from heuristics
+					const paramType: PineType = param.typeAnnotation
+						? mapToPineType(param.typeAnnotation.name)
+						: "unknown";
 
 					this.symbolTable.define({
 						name: param.name,

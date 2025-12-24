@@ -58,12 +58,12 @@ function buildNamespaceProperties(): Record<string, PineType> {
 }
 
 // Namespace properties for property access type inference
-// Combined from pine-data and hardcoded values for backward compatibility
+// Built from pine-data with minimal backward-compatibility additions
 export const NAMESPACE_PROPERTIES: Record<string, PineType> = {
 	// Build from pine-data at initialization time
 	...buildNamespaceProperties(),
 
-	// v4/v5 input type constants (for backward compatibility - not in v6 data)
+	// Backward compatibility only (v4/v5 input type constants - not in v6 data)
 	"input.source": "string",
 	"input.resolution": "string",
 	"input.bool": "string",
@@ -77,107 +77,37 @@ export const NAMESPACE_PROPERTIES: Record<string, PineType> = {
 	"input.price": "string",
 	"input.time": "string",
 
-	// Namespace VARIABLES (not constants - these are runtime values, not in scraped data)
-	// syminfo namespace
-	"syminfo.tickerid": "simple<string>",
-	"syminfo.ticker": "simple<string>",
-	"syminfo.prefix": "simple<string>",
-	"syminfo.type": "simple<string>",
-	"syminfo.session": "simple<string>",
-	"syminfo.timezone": "simple<string>",
-	"syminfo.currency": "simple<string>",
-	"syminfo.basecurrency": "simple<string>",
-	"syminfo.root": "simple<string>",
-	"syminfo.pointvalue": "simple<float>",
-	"syminfo.mintick": "simple<float>",
-	"syminfo.description": "simple<string>",
-	"syminfo.sector": "simple<string>",
-	"syminfo.industry": "simple<string>",
-	"syminfo.country": "simple<string>",
-	"syminfo.volumetype": "simple<string>",
-
-	// barstate namespace
-	"barstate.isfirst": "series<bool>",
-	"barstate.islast": "series<bool>",
-	"barstate.isrealtime": "series<bool>",
-	"barstate.isnew": "series<bool>",
-	"barstate.isconfirmed": "series<bool>",
-	"barstate.ishistory": "series<bool>",
-	"barstate.islastconfirmedhistory": "series<bool>",
-
-	// timeframe namespace
-	"timeframe.period": "simple<string>",
-	"timeframe.multiplier": "simple<int>",
-	"timeframe.isseconds": "simple<bool>",
-	"timeframe.isminutes": "simple<bool>",
-	"timeframe.isdaily": "simple<bool>",
-	"timeframe.isweekly": "simple<bool>",
-	"timeframe.ismonthly": "simple<bool>",
-	"timeframe.isdwm": "simple<bool>",
-	"timeframe.isintraday": "simple<bool>",
-
-	// chart namespace
-	"chart.bg_color": "color",
-	"chart.fg_color": "color",
-	"chart.left_visible_bar_time": "series<int>",
-	"chart.right_visible_bar_time": "series<int>",
-	"chart.is_heikinashi": "simple<bool>",
-	"chart.is_kagi": "simple<bool>",
-	"chart.is_linebreak": "simple<bool>",
-	"chart.is_pnf": "simple<bool>",
-	"chart.is_range": "simple<bool>",
-	"chart.is_renko": "simple<bool>",
-	"chart.is_standard": "simple<bool>",
-
-	// session namespace
-	"session.ismarket": "series<bool>",
-	"session.ispremarket": "series<bool>",
-	"session.ispostmarket": "series<bool>",
-	"session.isfirstbar": "series<bool>",
-	"session.islastbar": "series<bool>",
-	"session.isfirstbar_regular": "series<bool>",
-	"session.islastbar_regular": "series<bool>",
-
-	// strategy namespace
-	"strategy.position_size": "series<float>",
-	"strategy.position_avg_price": "series<float>",
-	"strategy.equity": "series<float>",
-	"strategy.openprofit": "series<float>",
-	"strategy.netprofit": "series<float>",
-	"strategy.grossprofit": "series<float>",
-	"strategy.grossloss": "series<float>",
-	"strategy.max_drawdown": "series<float>",
-	"strategy.closedtrades": "series<int>",
-	"strategy.opentrades": "series<int>",
-	"strategy.wintrades": "series<int>",
-	"strategy.losstrades": "series<int>",
-	"strategy.eventrades": "series<int>",
-	"strategy.initial_capital": "simple<float>",
-
-	// color.grey alias (British spelling, not in TradingView docs)
-	"color.grey": "color",
-	"color.transparent": "color",
+	// Aliases not in TradingView docs
+	"color.grey": "color", // British spelling alias for color.gray
+	"color.transparent": "color", // Not in scraped data
 };
 
-// Known namespaces for property validation
-export const KNOWN_NAMESPACES = [
-	"plot",
-	"color",
-	"shape",
-	"size",
-	"location",
-	"barstate",
-	"timeframe",
-	"syminfo",
-	"chart",
-	"position",
-	"scale",
-	"display",
-	"format",
-	"xloc",
-	"yloc",
-	"input", // v4/v5 input namespace for backward compatibility
-];
+// Build known namespaces from pine-data
+function buildKnownNamespaces(): string[] {
+	const namespaces = new Set<string>();
+
+	// Extract namespace prefixes from functions, variables, and constants
+	for (const name of FUNCTIONS_BY_NAME.keys()) {
+		if (name.includes(".")) {
+			namespaces.add(name.split(".")[0]);
+		}
+	}
+	for (const name of VARIABLES_BY_NAME.keys()) {
+		if (name.includes(".")) {
+			namespaces.add(name.split(".")[0]);
+		}
+	}
+	for (const name of CONSTANTS_BY_NAME.keys()) {
+		if (name.includes(".")) {
+			namespaces.add(name.split(".")[0]);
+		}
+	}
+
+	return [...namespaces].sort();
+}
+
+// Known namespaces for property validation (derived from pine-data)
+export const KNOWN_NAMESPACES = buildKnownNamespaces();
 
 // Function signature interface
 export interface FunctionSignature {

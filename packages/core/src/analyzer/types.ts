@@ -336,91 +336,15 @@ export namespace TypeChecker {
 		return type === "string" || type === "series<string>" || type === "simple<string>";
 	}
 
-	// Map Pine Script function return types
+	// Legacy fallback for function return types
+	// All data is now in pine-data/v6 - this should rarely be called
 	export function getBuiltinReturnType(
-		functionName: string,
+		_functionName: string,
 		_args: PineType[],
 	): PineType {
-		// Common patterns
-		const builtinTypes: Record<string, PineType> = {
-			// Built-in variables
-			close: "series<float>",
-			open: "series<float>",
-			high: "series<float>",
-			low: "series<float>",
-			volume: "series<float>",
-			bar_index: "series<int>",
-			time: "series<int>",
-
-			// Input functions
-			"input.int": "int",
-			"input.float": "float",
-			"input.bool": "bool",
-			"input.string": "string",
-			"input.color": "color",
-			"input.timeframe": "string",
-			"input.source": "series<float>",
-			"input.session": "string",
-
-			// TA functions (most return series<float>)
-			"ta.sma": "series<float>",
-			"ta.ema": "series<float>",
-			"ta.rsi": "series<float>",
-			"ta.atr": "series<float>",
-			"ta.highest": "series<float>",
-			"ta.lowest": "series<float>",
-			"ta.change": "series<float>",
-			"ta.mom": "series<float>",
-			"ta.crossover": "series<bool>",
-			"ta.crossunder": "series<bool>",
-			"ta.cross": "series<bool>",
-			"ta.vwap": "series<float>",
-
-			// Math functions
-			"math.abs": "float",
-			"math.max": "float",
-			"math.min": "float",
-			"math.round": "float",
-			"math.floor": "int",
-			"math.ceil": "int",
-			"math.sqrt": "float",
-			"math.pow": "float",
-			"math.sign": "int",
-
-			// String functions
-			"str.tostring": "string",
-			"str.format": "string",
-			"str.length": "int",
-			"str.contains": "bool",
-			"str.upper": "string",
-			"str.lower": "string",
-
-			// Color functions
-			"color.new": "color",
-			"color.rgb": "color",
-			"color.from_gradient": "color",
-
-			// Drawing functions
-			plot: "void",
-			plotshape: "void",
-			plotchar: "void",
-			hline: "void",
-			bgcolor: "void",
-			barcolor: "void",
-			"label.new": "label",
-			"line.new": "line",
-			"box.new": "box",
-			"table.new": "table",
-
-			// Other
-			na: "na",
-			nz: "float",
-			indicator: "void",
-			strategy: "void",
-			alertcondition: "void",
-		};
-
-		return builtinTypes[functionName] || "unknown";
+		// Return unknown - the caller should use function signatures from pine-data
+		// If we hit this, it means the function isn't in pine-data and should be added there
+		return "unknown";
 	}
 
 	// Validate literal values
