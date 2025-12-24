@@ -1,5 +1,0 @@
-//@version=6
-indicator("Valid Indicator - Multiple Params",
-     shorttitle="VI",
-     overlay=true,
-     max_labels_count=500)

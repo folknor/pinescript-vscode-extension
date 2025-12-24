@@ -5,7 +5,7 @@ Pine Script v6 support for VS Code. Syntax highlighting, IntelliSense, diagnosti
 ## Requirements
 
 - VS Code 1.108+
-- Node 18+
+- Node 22.18+
 - pnpm
 
 ## Install
@@ -23,7 +23,7 @@ pnpm run build:prod     # production build
 pnpm run package        # create .vsix
 ```
 
-Output goes to `dist/`. Package goes to `build/`.
+Output goes to `dist/`.
 
 ## Use Locally
 
@@ -44,7 +44,7 @@ Or package and install:
 
 ```
 pnpm run package
-code --install-extension build/pine-tools-*.vsix
+code --install-extension dist/pine-tools-*.vsix
 ```
 
 Reload VS Code window after install. Use `pnpm run watch` for live development.
@@ -115,4 +115,4 @@ MIT
 
 ## Credits
 
-Original by Jaroslav Pantsjoha. Rewritten by folknor.
+Original barebones vscode extension by Jaroslav Pantsjoha. Completely rewritten by folknor.

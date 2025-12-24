@@ -1,4 +1,0 @@
-//@version=6
-indicator("Simple Test")
-sma = ta.sma(close, 20)
-plot(sma, "SMA")

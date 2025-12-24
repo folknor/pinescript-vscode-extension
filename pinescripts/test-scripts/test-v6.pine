@@ -1,3 +1,0 @@
-//@version=6
-indicator("Test v6")
-plot(close)
