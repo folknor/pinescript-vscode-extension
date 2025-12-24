@@ -7,6 +7,8 @@ import {
 	FUNCTIONS_BY_NAME,
 	CONSTANTS_BY_NAME,
 	VARIABLES_BY_NAME,
+	getFunctionBehavior,
+	getReturnTypeParam,
 } from "../../../../pine-data/v6";
 import type { PineType } from "./types";
 
@@ -315,17 +317,74 @@ export function hasOverloads(functionName: string): boolean {
 	return func.parameters.some((p) => p.type === "unknown");
 }
 
+// Argument info for polymorphic return type inference
+export interface ArgumentInfo {
+	name?: string; // Named argument name (undefined for positional)
+	type: PineType;
+}
+
 // Get the return type for a polymorphic function based on argument types
+// Supports both positional and named arguments using function-behavior.json data
 export function getPolymorphicReturnType(
 	functionName: string,
 	argTypes: PineType[],
+	argInfos?: ArgumentInfo[],
 ): PineType | null {
-	// Special case: the generic `input` function returns the type of its first argument
-	// e.g., input(close) returns series<float>, input(14) returns int
-	if (functionName === "input" && argTypes.length > 0) {
-		return argTypes[0] !== "unknown" ? argTypes[0] : null;
+	// Try data-driven approach first using function-behavior.json
+	const behavior = getFunctionBehavior(functionName);
+
+	if (behavior?.polymorphic) {
+		const returnTypeParam = behavior.polymorphic.returnTypeParam;
+
+		// Find the argument that determines return type
+		let determiningType: PineType | null = null;
+
+		if (argInfos && argInfos.length > 0) {
+			// First, check for named argument matching returnTypeParam
+			const namedArg = argInfos.find((arg) => arg.name === returnTypeParam);
+			if (namedArg) {
+				determiningType = namedArg.type;
+			} else {
+				// Fall back to positional: find position of returnTypeParam in function signature
+				const func = FUNCTIONS_BY_NAME.get(functionName);
+				if (func) {
+					const paramIndex = func.parameters.findIndex(
+						(p) => p.name === returnTypeParam,
+					);
+					if (paramIndex >= 0 && paramIndex < argInfos.length) {
+						// Only use positional if no named args before this position
+						const positionalArgs = argInfos.filter((a) => !a.name);
+						if (paramIndex < positionalArgs.length) {
+							determiningType = positionalArgs[paramIndex].type;
+						}
+					}
+				}
+			}
+		} else if (argTypes.length > 0) {
+			// Legacy: use first argument if no argInfos provided
+			// This maintains backward compatibility
+			const func = FUNCTIONS_BY_NAME.get(functionName);
+			if (func) {
+				const paramIndex = func.parameters.findIndex(
+					(p) => p.name === returnTypeParam,
+				);
+				if (paramIndex >= 0 && paramIndex < argTypes.length) {
+					determiningType = argTypes[paramIndex];
+				} else {
+					// Default to first argument
+					determiningType = argTypes[0];
+				}
+			} else {
+				determiningType = argTypes[0];
+			}
+		}
+
+		if (determiningType && determiningType !== "unknown") {
+			return determiningType;
+		}
 	}
 
+	// Fall back to flags-based polymorphic handling from pine-data
 	const polyType = getPolymorphicType(functionName);
 	if (!polyType || argTypes.length === 0) {
 		return null;
@@ -342,8 +401,6 @@ export function getPolymorphicReturnType(
 		case "element":
 			// Returns the element type of an array
 			// e.g., array.get(array<float>) -> float
-			// For now, we can't easily extract element type from array type
-			// So we return a reasonable default based on common usage
 			if (firstArgType === "unknown") return null;
 			// If it's an array type like "array<float>", extract the element type
 			const arrayMatch = firstArgType.match(/array<(.+)>/);

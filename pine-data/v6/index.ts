@@ -9,6 +9,7 @@ export * from "./functions";
 export * from "./variables";
 export * from "./constants";
 export * from "./keywords";
+export * from "./function-behavior";
 
 // Re-export types
 export type {

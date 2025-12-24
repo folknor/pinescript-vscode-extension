@@ -40,6 +40,7 @@ import {
 	getMinArgsForVariadic,
 	getPolymorphicReturnType,
 	hasOverloads,
+	type ArgumentInfo,
 } from "./builtins";
 
 // Re-export for backward compatibility
@@ -962,10 +963,13 @@ export class UnifiedPineValidator {
 				}
 
 				// First check if this is a polymorphic function
-				const argTypes = callExpr.arguments.map((arg) =>
-					this.inferExpressionType(arg.value, version),
-				);
-				const polyReturnType = getPolymorphicReturnType(funcName, argTypes);
+				// Build argument info with names for data-driven polymorphism
+				const argInfos: ArgumentInfo[] = callExpr.arguments.map((arg) => ({
+					name: arg.name,
+					type: this.inferExpressionType(arg.value, version),
+				}));
+				const argTypes = argInfos.map((info) => info.type);
+				const polyReturnType = getPolymorphicReturnType(funcName, argTypes, argInfos);
 				if (polyReturnType) {
 					type = polyReturnType;
 					break;

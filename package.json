@@ -116,9 +116,9 @@
 	},
 	"scripts": {
 		"clean": "rm -rf dist && rm -f build/*.vsix",
-		"build": "tsc -p . && chmod +x dist/packages/cli/src/cli.js",
-		"build:cli": "tsc -p . && chmod +x dist/packages/cli/src/cli.js",
-		"build:main": "tsc -p . && chmod +x dist/packages/cli/src/cli.js",
+		"build": "tsc -p . && cp pine-data/v6/*.json dist/pine-data/v6/ && chmod +x dist/packages/cli/src/cli.js",
+		"build:cli": "tsc -p . && cp pine-data/v6/*.json dist/pine-data/v6/ && chmod +x dist/packages/cli/src/cli.js",
+		"build:main": "tsc -p . && cp pine-data/v6/*.json dist/pine-data/v6/ && chmod +x dist/packages/cli/src/cli.js",
 		"watch": "tsc -w -p .",
 		"lint": "pnpm exec biome check",
 		"check": "pnpm exec biome check",

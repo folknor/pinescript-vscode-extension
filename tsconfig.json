@@ -72,7 +72,8 @@
 		"node_modules",
 		"dist",
 		"**/*.js",
-		"**/*.d.ts"
+		"**/*.d.ts",
+		"packages/pipeline/**/*.ts"
 	],
 	"ts-node": {
 		"esm": true

@@ -18,6 +18,10 @@ import type {
 	TypeDeclaration,
 	VariableDeclaration,
 } from "./ast";
+import {
+	getPolymorphicReturnType,
+	type ArgumentInfo,
+} from "../analyzer/builtins";
 
 // Pine-lint compatible interfaces
 export interface PineLintPosition {
@@ -96,7 +100,7 @@ const INPUT_FUNCTIONS: Record<string, string> = {
 	"input.session": "input string",
 	"input.time": "input int",
 	"input.text_area": "input string",
-	input: "input int", // Legacy input() function
+	// Note: plain "input" is handled separately with polymorphic return type detection
 };
 
 // TA functions that return series types (when args are series)
@@ -434,9 +438,13 @@ export class ASTExtractor {
 	private inferExpressionType(expr: Expression): string {
 		switch (expr.type) {
 			case "Literal": {
-				const lit = expr as { value: string | number | boolean };
+				const lit = expr as { value: string | number | boolean; raw?: string };
 				if (typeof lit.value === "number") {
-					return Number.isInteger(lit.value) ? "const int" : "const float";
+					// Check raw string for decimal point to properly detect floats like 2.0
+					const hasDecimalPoint = lit.raw?.includes(".");
+					return hasDecimalPoint || !Number.isInteger(lit.value)
+						? "const float"
+						: "const int";
 				}
 				if (typeof lit.value === "boolean") {
 					return "const bool";
@@ -460,7 +468,26 @@ export class ASTExtractor {
 				const call = expr as CallExpression;
 				const funcName = this.getCalleeString(call.callee);
 
-				// Check input functions
+				// Check for polymorphic functions like input() - use data-driven approach
+				if (funcName === "input") {
+					const argInfos = call.arguments.map((arg) => ({
+						name: arg.name,
+						type: this.inferExpressionType(arg.value),
+					}));
+					const argTypes = argInfos.map((info) => info.type);
+					const polyType = getPolymorphicReturnType(
+						funcName,
+						argTypes as import("../analyzer/types").PineType[],
+						argInfos as ArgumentInfo[],
+					);
+					if (polyType) {
+						// Return as input type (e.g., "input int", "input float")
+						return `input ${polyType}`;
+					}
+					return "input int"; // Fallback for unknown input type
+				}
+
+				// Check specific input functions (input.int, input.float, etc.)
 				if (INPUT_FUNCTIONS[funcName]) {
 					return INPUT_FUNCTIONS[funcName];
 				}
