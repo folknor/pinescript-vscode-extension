@@ -121,6 +121,19 @@ export namespace TypeChecker {
 		if (to === "unknown" || from === "unknown") return true;
 		if (isNaType(from)) return true; // na is assignable to any type (const<na>, series<na>, etc.)
 
+		// Array type coercion: array<type> (unresolved element type) is assignable to any array
+		// This handles cases where type inference couldn't determine the element type
+		const fromStr = from as string;
+		const toStr = to as string;
+		if (fromStr.startsWith("array<") && toStr.startsWith("array<")) {
+			const fromElement = fromStr.slice(6, -1); // Extract element type from array<T>
+			const toElement = toStr.slice(6, -1);
+			// If source element type is "type" (unresolved), allow assignment to any array
+			if (fromElement === "type") return true;
+			// If target element type is "type" (unresolved), allow any array to be assigned
+			if (toElement === "type") return true;
+		}
+
 		// Handle union types in target (e.g., "series int/float" accepts both int and float)
 		if ((to as string).includes("/")) {
 			if (isUnionTypeMatch(from as string, to as string)) return true;
