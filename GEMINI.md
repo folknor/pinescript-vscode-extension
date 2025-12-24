@@ -134,6 +134,8 @@ Discovered automatically via `discover:behavior`:
 - **Multi-line switch case bodies** - `condition => \n    stmt1\n    resultExpr` now parses (scope WIP)
 - **Multi-line ternary expressions** - `cond ? a :\n    b` and nested ternaries across lines now parse correctly
 - **Enum/type declaration bodies** - `enum Foo\n    Bar = "value"` body parsing fixed
+- **`na` as function callee** - `na(x)` now correctly resolves as function call (was parsed as Literal)
+- **Variable/function name collision** - built-in variables (hour, minute, etc.) no longer overwritten by same-name functions
 
 ---
 

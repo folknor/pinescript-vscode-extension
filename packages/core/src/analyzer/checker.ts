@@ -1062,6 +1062,13 @@ export class UnifiedPineValidator {
 					}
 				}
 
+				// DEBUG: trace na calls
+				const DEBUG_NA = false;
+				if (DEBUG_NA && funcName === "na") {
+					const sig = this.functionSignatures.get("na");
+					console.log(`DEBUG na call at line ${expr.line}: sig=${JSON.stringify(sig)}, sig.returns=${sig?.returns}`);
+				}
+
 				// Handle generic type arguments: array.new<float>() -> array<float>
 				if (callExpr.typeArguments && callExpr.typeArguments.length > 0) {
 					const typeArg = callExpr.typeArguments[0];

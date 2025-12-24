@@ -1921,12 +1921,13 @@ export class Parser {
 			};
 		}
 
+		// Parse 'na' as an Identifier so it works both as a constant and function call
+		// The analyzer handles na() returning bool and na as a constant value
 		if (this.match([TokenType.KEYWORD, ["na"]])) {
 			const token = this.previous();
 			return {
-				type: "Literal",
-				value: "na",
-				raw: "na",
+				type: "Identifier",
+				name: "na",
 				line: token.line,
 				column: token.column,
 			};

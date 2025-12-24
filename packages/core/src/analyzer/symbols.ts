@@ -100,6 +100,11 @@ export class SymbolTable {
 			// Skip namespaced functions (they're accessed via namespace)
 			if (name.includes(".")) continue;
 
+			// Don't overwrite variables with functions (e.g., hour is both a variable and function)
+			// The variable type is more useful for type checking; function calls get resolved separately
+			const existing = this.globalScope.lookup(name);
+			if (existing && existing.kind === "variable") continue;
+
 			this.globalScope.define({
 				name,
 				type: "unknown",
