@@ -191,6 +191,10 @@ export class ASTExtractor {
 			} else if (stmt.type === "WhileStatement") {
 				const loopStmt = stmt as { body: Statement[] };
 				this.walkStatements(loopStmt.body, variables, scopeId);
+			} else if (stmt.type === "SequenceStatement") {
+				// Handle comma-separated declarations: x = 1, y = 2, z = 3
+				const seqStmt = stmt as { statements: Statement[] };
+				this.walkStatements(seqStmt.statements, variables, scopeId);
 			}
 		}
 	}

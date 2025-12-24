@@ -207,6 +207,7 @@ export class Parser {
 		}
 
 		// Type-annotated variable declaration without var: int x = 1, float y = 2.0, array<float> z = array.new<float>()
+		// Also handles comma-separated: int _m2 = 0, int _m3 = 0, int _m4 = 0
 		if (this.isVarTypeKeyword()) {
 			const checkpoint = this.current;
 			let typeAnnotation = this.advance().value;
@@ -218,7 +219,52 @@ export class Parser {
 				this.peekNext()?.type === TokenType.ASSIGN
 			) {
 				// This is a type-annotated variable declaration
-				return this.variableDeclaration(null, typeAnnotation);
+				const firstDecl = this.variableDeclaration(null, typeAnnotation);
+
+				// Check for comma-separated declarations: int x = 0, int y = 0 OR int x = 0, y = 1
+				if (this.check(TokenType.COMMA)) {
+					const statements: AST.Statement[] = [firstDecl];
+					let lastType = typeAnnotation; // Track last used type for inheritance
+
+					while (this.match(TokenType.COMMA)) {
+						// Each subsequent part can be:
+						// 1. type identifier = expression (new type)
+						// 2. identifier = expression (inherits last type)
+						if (this.isVarTypeKeyword()) {
+							let nextType = this.advance().value;
+							nextType += this.parseGenericTypeSuffix();
+
+							if (
+								this.check(TokenType.IDENTIFIER) &&
+								this.peekNext()?.type === TokenType.ASSIGN
+							) {
+								const nextDecl = this.variableDeclaration(null, nextType);
+								statements.push(nextDecl);
+								lastType = nextType;
+							} else {
+								break;
+							}
+						} else if (
+							this.check(TokenType.IDENTIFIER) &&
+							this.peekNext()?.type === TokenType.ASSIGN
+						) {
+							// Untyped declaration - inherits last type
+							const nextDecl = this.variableDeclaration(null, lastType);
+							statements.push(nextDecl);
+						} else {
+							break;
+						}
+					}
+
+					return {
+						type: "SequenceStatement",
+						statements,
+						line: firstDecl.line,
+						column: firstDecl.column,
+					} as AST.SequenceStatement;
+				}
+
+				return firstDecl;
 			}
 
 			// Not a variable declaration, backtrack
@@ -272,12 +318,36 @@ export class Parser {
 
 		// Check if it's an identifier followed by = (variable declaration without var)
 		// But only if it's '=' not ':='
+		// Also handles comma-separated declarations: x = 1, y = 2, z = 3
 		if (
 			this.check(TokenType.IDENTIFIER) &&
 			this.peekNext()?.type === TokenType.ASSIGN &&
 			this.peekNext()?.value === "="
 		) {
-			return this.variableDeclaration(null);
+			const firstDecl = this.variableDeclaration(null);
+
+			// Check for comma-separated declarations
+			if (this.check(TokenType.COMMA)) {
+				const statements: AST.Statement[] = [firstDecl];
+
+				while (this.match(TokenType.COMMA)) {
+					// Each subsequent part should be: identifier = expression
+					if (!this.check(TokenType.IDENTIFIER)) {
+						break;
+					}
+					const nextDecl = this.variableDeclaration(null);
+					statements.push(nextDecl);
+				}
+
+				return {
+					type: "SequenceStatement",
+					statements,
+					line: firstDecl.line,
+					column: firstDecl.column,
+				};
+			}
+
+			return firstDecl;
 		}
 
 		// Check for assignment: target := expr or target = expr or target += expr (compound)
@@ -382,15 +452,6 @@ export class Parser {
 		let init: AST.Expression | null = null;
 		if (this.match(TokenType.ASSIGN)) {
 			init = this.expression();
-		}
-
-		// Check for illegal comma-separated declaration (Pine Script v6 doesn't support this)
-		// Extract the first variable but skip the rest (pine-lint behavior)
-		if (this.check(TokenType.COMMA)) {
-			// Skip everything until newline or EOF
-			while (!this.isAtEnd() && !this.check(TokenType.NEWLINE)) {
-				this.advance();
-			}
 		}
 
 		return {

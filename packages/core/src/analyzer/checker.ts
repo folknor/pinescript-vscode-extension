@@ -152,6 +152,11 @@ export class UnifiedPineValidator {
 				};
 				this.symbolTable.define(symbol);
 			}
+		} else if (statement.type === "SequenceStatement") {
+			// Handle comma-separated declarations: x = 1, y = 2, z = 3
+			for (const stmt of statement.statements) {
+				this.collectDeclarations(stmt, version);
+			}
 		}
 	}
 

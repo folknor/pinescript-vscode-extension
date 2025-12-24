@@ -1,0 +1,36 @@
+// @test syntax/comma-separated-declarations
+// @description Comma-separated variable declarations
+// @expects parse: success
+// @expects no-errors
+
+//@version=6
+indicator("Comma Separated Declaration Tests")
+
+// Basic comma-separated declarations (untyped)
+x = 1, y = 2, z = 3
+
+// Float declarations (untyped)
+sx = 0.0, sy = 0.0, sxx = 0.0
+
+// Typed comma-separated declarations
+int m1 = 0, int m2 = 0, int m3 = 0
+
+// Mixed typed with type inheritance: float f = 0.0, g = 1.0 (g inherits float)
+float f = 0.0, g = 1.0
+
+// Mixed types with explicit annotations
+int a = 1, float b = 2.5
+
+// Using declared variables
+sum = x + y + z
+floatSum = sx + sy + sxx
+intSum = m1 + m2 + m3
+mixedSum = f + g
+
+// Single declaration (should still work)
+single = 42
+
+plot(sum)
+plot(floatSum)
+plot(intSum)
+plot(mixedSum)
