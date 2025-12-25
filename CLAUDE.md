@@ -254,6 +254,7 @@ Issues discovered via differential testing (`pnpm run debug:diff`).
 | **Function argument types** | Some function-specific type requirements not enforced | `checker.ts` |
 | **Ternary branch types** | `?:` branches must have compatible types | `checker.ts` |
 | **Function consistency** | Warning when `ta.crossover`/`ta.rsi` etc. are in conditional scope | Optional |
+| **Unexpected token: =>** | Differential testing shows 11 "Unexpected token: =>" errors. Could be generator bug (creating `=>` outside switch) or parser edge case with switch expressions. | `differential-test.js` or `parser.ts` |
 
 Run `pnpm run debug:diff -- --count 20 --verbose` to see current discrepancies.
 
