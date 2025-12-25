@@ -105,7 +105,7 @@ Run `pnpm run debug:corpus --summary` for fresh stats.
 
 ### Test Suite
 
-**143 tests passing** (76 in `packages/core/test/` + 67 in `packages/language-service/test/`)
+**145 tests passing** (78 in `packages/core/test/` + 67 in `packages/language-service/test/`)
 
 ---
 
@@ -235,26 +235,25 @@ pnpm run rebuild:skip-tests  # Clean + build + package (no tests)
 
 Issues discovered via differential testing (`pnpm run debug:diff`).
 
-### Completed ✅
-
-| Issue | Description | Status |
-|-------|-------------|--------|
-| **Builtins as unused** | ~100 built-ins reported as "declared but never used" | ✅ Fixed in `symbols.ts` |
-| **Ternary condition type** | `?:` condition must be bool | ✅ Fixed in `checker.ts` |
-| **Logical operator types** | `and`/`or`/`not` require bool operands | ✅ Fixed in `checker.ts` + `types.ts` |
-| **Arithmetic on bool/color** | `+`/`-`/`*`/`/`/`%` reject bool/color | ✅ Fixed in `types.ts` |
-| **Comparison on color** | `<`/`>`/`<=`/`>=` reject color | ✅ Fixed in `types.ts` |
-| **Direct na comparison** | `x == na` must use `na(x)` | ✅ Fixed in `checker.ts` |
-
-### Remaining (Medium/Low Priority)
+### Completed
 
 | Issue | Description | Location |
 |-------|-------------|----------|
-| **Local scope restrictions** | `plotshape`/`plotchar`/`bgcolor` etc. can't be called from local scope | Already implemented |
-| **Function argument types** | Some function-specific type requirements not enforced | `checker.ts` |
+| **Builtins as unused** | ~100 built-ins reported as "declared but never used" | `symbols.ts` |
+| **Ternary condition type** | `?:` condition must be bool | `checker.ts` |
+| **Logical operator types** | `and`/`or`/`not` require bool operands | `checker.ts`, `types.ts` |
+| **Arithmetic on bool/color** | `+`/`-`/`*`/`/`/`%` reject bool/color | `types.ts` |
+| **Comparison on color** | `<`/`>`/`<=`/`>=` reject color | `types.ts` |
+| **Direct na comparison** | `x == na` must use `na(x)` | `checker.ts` |
+| **Local scope restrictions** | `plotshape`/`plotchar`/`bgcolor` etc. can't be called from local scope | `checker.ts` |
 | **Ternary branch types** | `?:` branches must have compatible types | `checker.ts` |
-| **Function consistency** | Warning when `ta.crossover`/`ta.rsi` etc. are in conditional scope | Optional |
-| **Unexpected token: =>** | Differential testing shows 11 "Unexpected token: =>" errors. Could be generator bug (creating `=>` outside switch) or parser edge case with switch expressions. | `differential-test.js` or `parser.ts` |
+| **Switch expression parsing** | Fixed discriminant parsing to not continue across newlines | `parser.ts` |
+
+### Remaining (Low Priority)
+
+| Issue | Description | Location |
+|-------|-------------|----------|
+| **Function consistency** | Warning when `ta.crossover`/`ta.rsi` etc. are in conditional scope | `checker.ts` |
 
 Run `pnpm run debug:diff -- --count 20 --verbose` to see current discrepancies.
 

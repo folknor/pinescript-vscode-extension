@@ -604,6 +604,30 @@ export class UnifiedPineValidator {
 			}
 		}
 
+		// Logical operators require bool operands (stricter check for better error messages)
+		if (expr.operator === "and" || expr.operator === "or") {
+			if (leftType !== "unknown" && !TypeChecker.isBoolType(leftType)) {
+				this.addError(
+					expr.line,
+					expr.column,
+					expr.operator.length,
+					`Operator '${expr.operator}' requires bool operands, but left operand is ${leftType}`,
+					DiagnosticSeverity.Error,
+				);
+				return; // Don't report additional errors for this expression
+			}
+			if (rightType !== "unknown" && !TypeChecker.isBoolType(rightType)) {
+				this.addError(
+					expr.line,
+					expr.column,
+					expr.operator.length,
+					`Operator '${expr.operator}' requires bool operands, but right operand is ${rightType}`,
+					DiagnosticSeverity.Error,
+				);
+				return; // Don't report additional errors for this expression
+			}
+		}
+
 		if (!TypeChecker.areTypesCompatible(leftType, rightType, expr.operator)) {
 			this.addError(
 				expr.line,
@@ -647,6 +671,88 @@ export class UnifiedPineValidator {
 				DiagnosticSeverity.Error,
 			);
 		}
+
+		// Check that both branches have compatible types
+		const conseqType = this.inferExpressionType(expr.consequent, version);
+		const altType = this.inferExpressionType(expr.alternate, version);
+
+		// Skip check if either type is unknown or na
+		if (
+			conseqType === "unknown" ||
+			altType === "unknown" ||
+			conseqType === "na" ||
+			altType === "na"
+		) {
+			return;
+		}
+
+		// Check if branches have the same type category (stricter than isAssignable)
+		// TradingView requires that ternary branches have compatible base types without
+		// arbitrary coercion (e.g., int and color are NOT compatible in ternary)
+		if (!this.areTernaryBranchTypesCompatible(conseqType, altType)) {
+			this.addError(
+				expr.line,
+				expr.column,
+				1,
+				`Ternary branches must have compatible types. Got '${conseqType}' and '${altType}'`,
+				DiagnosticSeverity.Error,
+			);
+		}
+	}
+
+	/**
+	 * Check if two types are compatible for use in ternary expression branches.
+	 * This is stricter than isAssignable - branches must have the same type category.
+	 *
+	 * TODO: Handle additional types: array<T>, matrix<T>, line, label, box, table.
+	 * Currently only handles numeric, bool, string, and color type categories.
+	 */
+	private areTernaryBranchTypesCompatible(
+		type1: PineType,
+		type2: PineType,
+	): boolean {
+		// Exact match is always OK
+		if (type1 === type2) return true;
+
+		// Get base types (strip series/simple qualifiers)
+		const base1 = this.getBaseType(type1);
+		const base2 = this.getBaseType(type2);
+
+		// Same base type is OK (e.g., int and series<int>)
+		if (base1 === base2) return true;
+
+		// Numeric types can be mixed (int <-> float)
+		if (
+			TypeChecker.isNumericType(type1) &&
+			TypeChecker.isNumericType(type2)
+		) {
+			return true;
+		}
+
+		// Bool types must match (no mixing with other types)
+		if (TypeChecker.isBoolType(type1) && TypeChecker.isBoolType(type2)) {
+			return true;
+		}
+
+		// String types must match
+		if (TypeChecker.isStringType(type1) && TypeChecker.isStringType(type2)) {
+			return true;
+		}
+
+		// Color types must match
+		if (TypeChecker.isColorType(type1) && TypeChecker.isColorType(type2)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Extract base type from qualified type (series<T> -> T, simple<T> -> T)
+	 */
+	private getBaseType(type: PineType): string {
+		const match = (type as string).match(/^(?:series|simple)<(.+)>$/);
+		return match ? match[1] : (type as string);
 	}
 
 	private validateCallExpression(

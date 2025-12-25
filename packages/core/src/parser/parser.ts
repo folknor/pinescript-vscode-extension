@@ -1095,8 +1095,36 @@ export class Parser {
 		// If there's an identifier or expression before the newline, parse it as discriminant
 		let discriminant: AST.Expression | undefined;
 		if (!this.check(TokenType.NEWLINE) && !this.isAtEnd()) {
-			// There's something on the same line as 'switch' - parse as discriminant
+			// Parse discriminant but only consume tokens on the same line as 'switch'.
+			// Save the current line to ensure we don't parse beyond it.
+			const discriminantLine = startToken.line;
+			const savedBracketDepth = this.bracketDepth;
+			const savedParenDepth = this.parenDepth;
+
+			// Temporarily set depths to prevent line continuation in postfix()
+			// This forces the parser to stop at newlines
+			this.bracketDepth = 0;
+			this.parenDepth = 0;
+
 			discriminant = this.expression();
+
+			// Restore depths
+			this.bracketDepth = savedBracketDepth;
+			this.parenDepth = savedParenDepth;
+
+			// Verify we didn't parse beyond the switch line
+			// If we did, it means the expression parser consumed case conditions
+			const currentToken = this.previous();
+			if (currentToken.line > discriminantLine) {
+				// We parsed beyond the switch line - this is likely due to line continuation
+				// In this case, treat the switch as having no discriminant
+				// We need to rewind to the first token after the switch keyword
+				this.current--; // Step back from current position
+				while (this.previous().line > discriminantLine) {
+					this.current--;
+				}
+				discriminant = undefined;
+			}
 		}
 
 		// Skip newlines after 'switch' (or discriminant)
