@@ -2,10 +2,16 @@ export {
 	getAllCompletions,
 	getCompletions,
 	getNamespaceCompletions,
+	registerLibraryContent,
+	clearLibraryContent,
 } from "./completions";
 export { getDiagnostics } from "./diagnostics";
 export { format, formatToString } from "./formatting";
-export { getHover } from "./hover";
+export {
+	getHover,
+	registerLibraryContentForHover,
+	clearLibraryContentForHover,
+} from "./hover";
 export {
 	getAllConstantNames,
 	getAllFunctionNames,
@@ -14,7 +20,12 @@ export {
 } from "./lookup";
 export { getSignatureHelp } from "./signatures";
 export { getDocumentSymbols } from "./symbols";
-export { getDefinition, type DefinitionResult } from "./definition";
+export {
+	getDefinition,
+	registerLibraryContentForDefinition,
+	clearLibraryContentForDefinition,
+	type DefinitionResult,
+} from "./definition";
 export { getReferences, type ReferencesOptions } from "./references";
 export {
 	prepareRename,
@@ -26,3 +37,15 @@ export { getCodeActions, type CodeActionContext } from "./codeActions";
 export { getFoldingRanges } from "./folding";
 export { getInlayHints } from "./inlayHints";
 export { getSemanticTokens, getSemanticTokensLegend } from "./semanticTokens";
+export {
+	getResolvedImports,
+	getUnresolvedImports,
+	parseLibrary,
+	clearLibraryCache,
+	getLibraryAliasBeforeDot,
+	getLibraryCompletions,
+	findLibraryExport,
+	type ResolvedImport,
+	type LibraryExport,
+	type ParsedLibrary,
+} from "./imports";

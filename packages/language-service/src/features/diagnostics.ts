@@ -1,6 +1,7 @@
 import { UnifiedPineValidator } from "../../../core/src/analyzer/checker";
 import type { ParsedDocument } from "../documents/ParsedDocument";
 import { type Diagnostic, DiagnosticSeverity } from "../types";
+import { getUnresolvedImports } from "./imports";
 
 /**
  * Get all diagnostics for a document.
@@ -269,6 +270,20 @@ function getPatternWarnings(doc: ParsedDocument): Diagnostic[] {
 			source: "pine-lint",
 		});
 		match = inputStringMatch.exec(text);
+	}
+
+	// 12. Library imports without /// @source directive
+	const unresolvedImports = getUnresolvedImports(doc);
+	for (const unresolved of unresolvedImports) {
+		warnings.push({
+			range: {
+				start: { line: unresolved.line - 1, character: 0 },
+				end: { line: unresolved.line - 1, character: 100 },
+			},
+			severity: DiagnosticSeverity.Information,
+			message: `Library "${unresolved.libraryPath}" has no local source. Add \`/// @source <path>\` above import for IntelliSense.`,
+			source: "pine-lint",
+		});
 	}
 
 	return warnings;

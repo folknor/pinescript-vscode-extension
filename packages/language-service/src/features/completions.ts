@@ -13,6 +13,11 @@ import {
 	InsertTextFormat,
 	type Position,
 } from "../types";
+import {
+	getLibraryAliasBeforeDot,
+	getLibraryCompletions,
+	parseLibrary,
+} from "./imports";
 
 // Keywords for Pine Script v6
 const V6_KEYWORDS = [
@@ -378,7 +383,16 @@ export function getCompletions(
 		}
 	}
 
-	// 2. Check if we're completing after a namespace dot (e.g., ta.)
+	// 2. Check if we're completing after a library alias dot (e.g., myLib.)
+	const libraryImport = getLibraryAliasBeforeDot(doc, position);
+	if (libraryImport) {
+		// Try to parse the library file and get its exports
+		// Note: In a real implementation, we'd need filesystem access to read the file
+		// For now, we return empty and let the caller provide library content
+		return getLibraryCompletionsForImport(doc, libraryImport.sourcePath);
+	}
+
+	// 3. Check if we're completing after a namespace dot (e.g., ta.)
 	const namespaceMatch = beforeCursor.match(/([a-z]+)\.\s*$/);
 	if (namespaceMatch) {
 		const namespace = namespaceMatch[1];
@@ -388,7 +402,7 @@ export function getCompletions(
 		}
 	}
 
-	// 3. Check if we're inside a function call and should suggest parameters
+	// 4. Check if we're inside a function call and should suggest parameters
 	const lastOpenParen = beforeCursor.lastIndexOf("(");
 	if (lastOpenParen !== -1) {
 		const beforeParen = beforeCursor.substring(0, lastOpenParen).trim();
@@ -403,6 +417,42 @@ export function getCompletions(
 		}
 	}
 
-	// 4. Return all completions (includes built-ins, keywords, and namespace hints)
+	// 5. Return all completions (includes built-ins, keywords, and namespace hints)
 	return getAllCompletions();
+}
+
+// Map to store library content for resolution
+// In a real LSP implementation, this would read from the filesystem
+const libraryContentCache = new Map<string, string>();
+
+/**
+ * Register library content for import resolution.
+ * This is called by the LSP server when it has access to the filesystem.
+ */
+export function registerLibraryContent(sourcePath: string, content: string): void {
+	libraryContentCache.set(sourcePath, content);
+}
+
+/**
+ * Clear registered library content.
+ */
+export function clearLibraryContent(): void {
+	libraryContentCache.clear();
+}
+
+/**
+ * Get completions for a library import.
+ */
+function getLibraryCompletionsForImport(
+	_doc: ParsedDocument,
+	sourcePath: string,
+): CompletionItem[] {
+	const content = libraryContentCache.get(sourcePath);
+	if (!content) {
+		// Library content not available - return empty
+		return [];
+	}
+
+	const library = parseLibrary(content, sourcePath);
+	return getLibraryCompletions(library);
 }

@@ -9,6 +9,7 @@ import {
 	FoldingRangeKind,
 	SemanticTokenType,
 } from "../src";
+import { parseLibrary, clearLibraryCache } from "../src/features/imports";
 
 describe("PineLanguageService", () => {
 	let service: PineLanguageService;
@@ -889,6 +890,67 @@ x = ta.sma(close, 14)
 			service.openDocument("test.pine", "", 1);
 			const result = service.getSemanticTokens("test.pine");
 			expect(result.data).toEqual([]);
+		});
+	});
+
+	describe("Library Imports", () => {
+		it("should detect imports without @source directive", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+import TradingView/ta/12 as taLib
+x = close
+`,
+				1,
+			);
+			const diagnostics = service.getDiagnostics("test.pine");
+
+			// Should have an info diagnostic about missing @source
+			const sourceInfo = diagnostics.find(
+				(d) =>
+					d.message.includes("TradingView/ta/12") &&
+					d.message.includes("@source"),
+			);
+			expect(sourceInfo).toBeDefined();
+		});
+
+		it("should not warn when @source directive is present", () => {
+			service.openDocument(
+				"test.pine",
+				`//@version=6
+/// @source ./libs/ta.pine
+import TradingView/ta/12 as taLib
+x = close
+`,
+				1,
+			);
+			const diagnostics = service.getDiagnostics("test.pine");
+
+			// Should NOT have an info diagnostic about missing @source for this import
+			const sourceInfo = diagnostics.find(
+				(d) =>
+					d.message.includes("TradingView/ta/12") &&
+					d.message.includes("@source"),
+			);
+			expect(sourceInfo).toBeUndefined();
+		});
+
+		it("should parse library exports", () => {
+			clearLibraryCache();
+
+			const libraryContent = `//@version=6
+export myFunc(src, length) =>
+    ta.sma(src, length)
+
+export anotherFunc() =>
+    close
+`;
+			const result = parseLibrary(libraryContent, "test-lib.pine");
+
+			expect(result.exports.length).toBe(2);
+			expect(result.exports[0].name).toBe("myFunc");
+			expect(result.exports[0].kind).toBe("function");
+			expect(result.exports[1].name).toBe("anotherFunc");
 		});
 	});
 });
