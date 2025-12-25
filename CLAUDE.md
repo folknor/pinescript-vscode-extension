@@ -1,6 +1,4 @@
-# pinescript-vscode-extension
-
-VS Code extension providing Pine Script v6 support: IntelliSense, validation, and CLI linting.
+# pine-tools
 
 ## Architecture: Data vs Syntax
 
@@ -74,52 +72,6 @@ The dev tools handle temp files, JSON parsing, and output formatting automatical
 
 ---
 
-## Project Structure
-
-```
-packages/
-├── pipeline/src/         # Data generation scripts
-│   ├── crawl.ts          # Crawl TradingView reference
-│   ├── scrape.ts         # Scrape function details
-│   ├── generate.ts       # Generate TypeScript data
-│   ├── generate-syntax.ts # Generate tmLanguage
-│   └── discover-function-behavior.ts
-├── core/src/             # Parser, analyzer, types (STABLE)
-│   ├── parser/           # Lexer, parser, AST
-│   └── analyzer/         # Type checker, builtins
-├── language-service/src/ # Editor-agnostic language service (COMPLETE)
-│   ├── PineLanguageService.ts  # Main facade class
-│   ├── features/         # Completions, hover, diagnostics, etc.
-│   └── documents/        # Document lifecycle management
-├── lsp/src/              # LSP server (COMPLETE)
-│   ├── server.ts         # JSON-RPC server over stdio
-│   ├── handlers/         # LSP protocol handlers
-│   └── converters.ts     # Type conversions
-├── mcp/src/              # MCP server for AI assistants (COMPLETE)
-│   ├── server.ts         # MCP server with tools/resources
-│   └── bin/pine-mcp.ts   # CLI entry point
-├── cli/src/              # CLI tool (STABLE)
-└── vscode/src/           # VS Code extension (IN PROGRESS)
-
-dev-tools/
-├── test-snippet.js       # Quick Pine snippet testing via CLI
-├── debug-internals.js    # Debug parser/validator/symbols directly
-└── analysis/             # Comparison tools
-
-pine-data/
-├── v6/                   # Generated data (safe to regenerate)
-│   ├── functions.ts      # 457 functions
-│   ├── variables.ts      # 80 variables
-│   ├── constants.ts      # 237 constants
-│   └── function-behavior.json  # Polymorphism metadata
-└── raw/v6/               # Scraped JSON data
-
-syntaxes/
-└── pine.tmLanguage.json  # Generated syntax highlighting
-```
-
----
-
 ## Current Status
 
 ### Package Status
@@ -155,58 +107,12 @@ Run `pnpm run debug:corpus --summary` for fresh stats.
 
 ---
 
-## Recently Completed
-
-### Full LSP Feature Implementation (December 2024)
-
-Implemented all planned LSP features (WI-1 through WI-10), bringing the extension to feature parity with best-in-class extensions:
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Go to Definition | ✅ Complete | Navigate to user-defined symbols and library exports |
-| Find References | ✅ Complete | Find all usages of any symbol |
-| Document Symbols | ✅ Complete | Outline view with functions, variables, imports |
-| Rename Symbol | ✅ Complete | Safe renaming with scope awareness |
-| Code Actions | ✅ Complete | Quick fixes for common issues |
-| Semantic Tokens | ✅ Complete | Rich syntax highlighting with built-in detection |
-| Inlay Hints | ✅ Complete | Parameter names at call sites |
-| Folding Ranges | ✅ Complete | Collapse functions, blocks, comments |
-| Enhanced Formatting | ✅ Complete | Operator spacing, comma spacing |
-| Library Import Resolution | ✅ Complete | `/// @source` directive support |
-
 **Library Import Resolution Usage:**
 ```pine
 /// @source ./libs/my-library.pine
 import User/MyLibrary/1 as myLib
 
 x = myLib.myFunction(close)  // IntelliSense works!
-```
-
-### Architecture Refactor (December 2024)
-
-Restructured the extension from monolithic to modular architecture:
-
-| Before | After |
-|--------|-------|
-| `packages/lsp/` imported `vscode` directly | Editor-agnostic `packages/language-service/` |
-| `packages/mcp/` was empty | Full MCP server with 4 tools, 3 resources |
-| `packages/vscode/extension.ts` 530 lines | Thin LSP client at 197 lines |
-
-**New Package Structure:**
-```
-packages/
-├── language-service/     # Shared brain (21 tests)
-│   ├── PineLanguageService.ts
-│   ├── features/         # completions, hover, diagnostics, etc.
-│   └── documents/        # Document lifecycle
-├── lsp/                  # LSP server (JSON-RPC over stdio)
-│   ├── server.ts
-│   ├── handlers/
-│   └── converters.ts
-├── mcp/                  # MCP server for AI assistants
-│   └── server.ts         # pine_validate, pine_lookup, etc.
-└── vscode/               # Thin LSP client
-    └── extension.ts      # 197 lines
 ```
 
 ---
@@ -279,140 +185,8 @@ string TT = "Line 1 " +
 
 ---
 
-## Feature Analysis: Comparison to Best-in-Class Extensions
-
-This section compares our Pine Script extension to industry-leading VS Code language extensions to identify gaps and prioritize improvements.
-
-### Reference Extensions
-
-| Extension | Language | Why It's Best-in-Class |
-|-----------|----------|------------------------|
-| **TypeScript** (built-in) | TS/JS | Gold standard for IDE features; same team builds language and tooling |
-| **Pylance** (Microsoft) | Python | Excellent type inference, fast, great UX for dynamic language |
-| **rust-analyzer** | Rust | Community-driven, excellent code navigation and refactoring |
-| **Go** (Google) | Go | Clean, fast, well-integrated with language tooling |
-
----
-
-### Feature Comparison Matrix
-
-| Feature | TypeScript | Pylance | rust-analyzer | **Pine Script** | Gap |
-|---------|------------|---------|---------------|-----------------|-----|
-| **Completions** | ✅ | ✅ | ✅ | ✅ | None |
-| **Hover docs** | ✅ | ✅ | ✅ | ✅ | None |
-| **Signature help** | ✅ | ✅ | ✅ | ✅ | None |
-| **Diagnostics** | ✅ | ✅ | ✅ | ✅ | None |
-| **Formatting** | ✅ | ✅ | ✅ | ✅ | None |
-| **Go to definition** | ✅ | ✅ | ✅ | ✅ | None |
-| **Find references** | ✅ | ✅ | ✅ | ✅ | None |
-| **Rename symbol** | ✅ | ✅ | ✅ | ✅ | None |
-| **Document symbols** | ✅ | ✅ | ✅ | ✅ | None |
-| **Workspace symbols** | ✅ | ✅ | ✅ | ❌ | Low priority |
-| **Code actions** | ✅ | ✅ | ✅ | ✅ | None |
-| **Semantic tokens** | ✅ | ✅ | ✅ | ✅ | None |
-| **Inlay hints** | ✅ | ✅ | ✅ | ✅ | None |
-| **Call hierarchy** | ✅ | ✅ | ✅ | ❌ | Low priority |
-| **Folding ranges** | ✅ | ✅ | ✅ | ✅ | None |
-| **Breadcrumbs** | ✅ | ✅ | ✅ | ✅ | None (via document symbols) |
-
----
-
-### Current Feature Assessment
-
-#### What We Do Well
-
-**1. Completions (IntelliSense)** - ✅ Excellent
-- 457 functions with full signatures, docs, and examples
-- Context-aware: knows when you're in a function call vs top-level
-- Parameter-aware: `color=` suggests `color.red`, `color.green`, etc.
-- Namespace completions: `ta.` shows all technical analysis functions
-- Snippet generation for function calls
-
-**2. Hover Documentation** - ✅ Excellent
-- Full markdown rendering with syntax blocks
-- Parameter descriptions included
-- Return type annotations
-- Deprecation warnings shown
-
-**3. Signature Help** - ✅ Excellent
-- Active parameter highlighting
-- Handles nested parentheses correctly
-- Shows all parameters with types and descriptions
-
-**4. Diagnostics** - ✅ Good
-- Parser errors with accurate line/column
-- Type checking for function arguments
-- 11 Pine-specific pattern warnings (common mistakes)
-- Real-time validation as you type
-
-#### What's Missing (Low Priority)
-
-**1. Workspace Symbols** - ❌ Not implemented
-- Cannot search symbols across multiple files
-- Single-file workflow is the norm for Pine Script
-
-**2. Call Hierarchy** - ❌ Not implemented
-- Cannot see incoming/outgoing calls for a function
-- Low value for typical Pine Script file sizes
-
----
-
-### What Makes Extensions Feel "Best-in-Class"
-
-Based on analysis of top extensions, users perceive quality through:
-
-1. **Navigation speed** - Can I jump to definitions instantly? ✅ Yes
-2. **Refactoring confidence** - Can I rename safely? ✅ Yes
-3. **Code understanding** - Can I see the outline/structure? ✅ Yes
-4. **Error recovery** - Does it suggest fixes? ✅ Yes
-5. **Responsiveness** - Is it fast? ✅ Yes
-6. **Completions quality** - Are suggestions relevant? ✅ Yes
-
-Our extension now provides a complete IDE experience for Pine Script development.
-
----
-
-### Completed Work Items
-
-All planned LSP features have been implemented:
-
-| Work Item | Feature | Files Created |
-|-----------|---------|---------------|
-| WI-1 | Go to Definition | `features/definition.ts`, `handlers/definition.ts` |
-| WI-2 | Find References | `features/references.ts`, `handlers/references.ts` |
-| WI-3 | Document Symbols | `features/symbols.ts`, `handlers/symbols.ts` |
-| WI-4 | Rename Symbol | `features/rename.ts`, `handlers/rename.ts` |
-| WI-5 | Code Actions | `features/codeActions.ts`, `handlers/codeActions.ts` |
-| WI-6 | Semantic Tokens | `features/semanticTokens.ts`, `handlers/semanticTokens.ts` |
-| WI-7 | Inlay Hints | `features/inlayHints.ts`, `handlers/inlayHints.ts` |
-| WI-8 | Folding Ranges | `features/folding.ts`, `handlers/folding.ts` |
-| WI-9 | Enhanced Formatting | `features/formatting.ts` (enhanced) |
-| WI-10 | Library Import Resolution | `features/imports.ts` |
-
-### Library Import Resolution
-
-Pine Script libraries use `import User/Library/Version` syntax, but there's no way to discover library source code. The `/// @source` directive solves this:
-
-```pine
-/// @source ./libs/my-library.pine
-import User/MyLibrary/1 as myLib
-
-x = myLib.myFunction(close)  // Full IntelliSense!
-```
-
-**Features enabled:**
-- Completions after `alias.`
-- Hover documentation for library functions
-- Go to definition into library source files
-- Info diagnostic when `/// @source` is missing
-
----
-
 ## Future Work
 
-- **Workspace symbols** - Search across multiple files (low priority for single-file Pine workflows)
-- **Call hierarchy** - Show incoming/outgoing calls for functions
-- **language-configuration.json autogeneration** - Consider generating from pine-data
 - **Fuzzer implementation** - Property-based testing for parser robustness
 
 ---
