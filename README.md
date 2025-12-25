@@ -83,6 +83,19 @@ node dist/packages/mcp/bin/pine-mcp.js
 
 For AI assistants. See `packages/mcp/README.md`.
 
+## Library Imports
+
+Pine libraries (`import User/Library/Version`) have no discoverable source. Use `/// @source` to enable IntelliSense:
+
+```pine
+/// @source ./libs/my-library.pine
+import User/MyLibrary/1 as myLib
+
+x = myLib.myFunction(close)  // completions, hover, go-to-definition
+```
+
+Place the directive immediately before the import. Path is relative to current file.
+
 ## Structure
 
 ```

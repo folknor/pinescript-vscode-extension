@@ -151,11 +151,36 @@ Run `pnpm run debug:corpus --summary` for fresh stats.
 
 ### Test Suite
 
-**72 tests passing** (51 in `packages/core/test/` + 21 in `packages/language-service/test/`)
+**118 tests passing** (51 in `packages/core/test/` + 67 in `packages/language-service/test/`)
 
 ---
 
 ## Recently Completed
+
+### Full LSP Feature Implementation (December 2024)
+
+Implemented all planned LSP features (WI-1 through WI-10), bringing the extension to feature parity with best-in-class extensions:
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Go to Definition | ✅ Complete | Navigate to user-defined symbols and library exports |
+| Find References | ✅ Complete | Find all usages of any symbol |
+| Document Symbols | ✅ Complete | Outline view with functions, variables, imports |
+| Rename Symbol | ✅ Complete | Safe renaming with scope awareness |
+| Code Actions | ✅ Complete | Quick fixes for common issues |
+| Semantic Tokens | ✅ Complete | Rich syntax highlighting with built-in detection |
+| Inlay Hints | ✅ Complete | Parameter names at call sites |
+| Folding Ranges | ✅ Complete | Collapse functions, blocks, comments |
+| Enhanced Formatting | ✅ Complete | Operator spacing, comma spacing |
+| Library Import Resolution | ✅ Complete | `/// @source` directive support |
+
+**Library Import Resolution Usage:**
+```pine
+/// @source ./libs/my-library.pine
+import User/MyLibrary/1 as myLib
+
+x = myLib.myFunction(close)  // IntelliSense works!
+```
 
 ### Architecture Refactor (December 2024)
 
@@ -277,18 +302,18 @@ This section compares our Pine Script extension to industry-leading VS Code lang
 | **Hover docs** | ✅ | ✅ | ✅ | ✅ | None |
 | **Signature help** | ✅ | ✅ | ✅ | ✅ | None |
 | **Diagnostics** | ✅ | ✅ | ✅ | ✅ | None |
-| **Formatting** | ✅ | ✅ | ✅ | ⚠️ Basic | Indentation, alignment |
-| **Go to definition** | ✅ | ✅ | ✅ | ❌ | **Major gap** |
-| **Find references** | ✅ | ✅ | ✅ | ❌ | **Major gap** |
-| **Rename symbol** | ✅ | ✅ | ✅ | ❌ | Medium gap |
-| **Document symbols** | ✅ | ✅ | ✅ | ❌ | Medium gap |
+| **Formatting** | ✅ | ✅ | ✅ | ✅ | None |
+| **Go to definition** | ✅ | ✅ | ✅ | ✅ | None |
+| **Find references** | ✅ | ✅ | ✅ | ✅ | None |
+| **Rename symbol** | ✅ | ✅ | ✅ | ✅ | None |
+| **Document symbols** | ✅ | ✅ | ✅ | ✅ | None |
 | **Workspace symbols** | ✅ | ✅ | ✅ | ❌ | Low priority |
-| **Code actions** | ✅ | ✅ | ✅ | ❌ | Medium gap |
-| **Semantic tokens** | ✅ | ✅ | ✅ | ❌ | Nice to have |
-| **Inlay hints** | ✅ | ✅ | ✅ | ❌ | Nice to have |
+| **Code actions** | ✅ | ✅ | ✅ | ✅ | None |
+| **Semantic tokens** | ✅ | ✅ | ✅ | ✅ | None |
+| **Inlay hints** | ✅ | ✅ | ✅ | ✅ | None |
 | **Call hierarchy** | ✅ | ✅ | ✅ | ❌ | Low priority |
-| **Folding ranges** | ✅ | ✅ | ✅ | ❌ | Nice to have |
-| **Breadcrumbs** | ✅ | ✅ | ✅ | ❌ | Depends on document symbols |
+| **Folding ranges** | ✅ | ✅ | ✅ | ✅ | None |
+| **Breadcrumbs** | ✅ | ✅ | ✅ | ✅ | None (via document symbols) |
 
 ---
 
@@ -320,41 +345,15 @@ This section compares our Pine Script extension to industry-leading VS Code lang
 - 11 Pine-specific pattern warnings (common mistakes)
 - Real-time validation as you type
 
-#### What's Missing or Incomplete
+#### What's Missing (Low Priority)
 
-**1. Go to Definition** - ❌ Not implemented
-- Cannot jump to where a variable/function is defined
-- Cannot navigate to user-defined function bodies
-- This is the #1 most-used navigation feature in any IDE
+**1. Workspace Symbols** - ❌ Not implemented
+- Cannot search symbols across multiple files
+- Single-file workflow is the norm for Pine Script
 
-**2. Find All References** - ❌ Not implemented
-- Cannot find all usages of a symbol
-- Essential for understanding code impact before changes
-
-**3. Rename Symbol** - ❌ Not implemented
-- Cannot safely rename variables/functions across file
-- Users must manually find/replace (error-prone)
-
-**4. Document Symbols (Outline)** - ❌ Not implemented
-- No outline view in sidebar
-- No breadcrumb navigation
-- Cannot quickly jump to functions/variables in file
-
-**5. Code Actions / Quick Fixes** - ❌ Not implemented
-- No "Extract to variable" refactoring
-- No "Add missing import" suggestions
-- No auto-fix for common errors
-
-**6. Formatting** - ⚠️ Basic only
-- Only trims trailing whitespace and normalizes blank lines
-- No indentation rules
-- No operator/parameter alignment
-- No configurable style options
-
-**7. Semantic Tokens** - ❌ Not implemented
-- TextMate grammar only (regex-based highlighting)
-- Cannot distinguish user variables from built-ins by color
-- Cannot highlight based on resolved types
+**2. Call Hierarchy** - ❌ Not implemented
+- Cannot see incoming/outgoing calls for a function
+- Low value for typical Pine Script file sizes
 
 ---
 
@@ -362,247 +361,57 @@ This section compares our Pine Script extension to industry-leading VS Code lang
 
 Based on analysis of top extensions, users perceive quality through:
 
-1. **Navigation speed** - Can I jump to definitions instantly? (We can't)
-2. **Refactoring confidence** - Can I rename safely? (We can't)
-3. **Code understanding** - Can I see the outline/structure? (We can't)
-4. **Error recovery** - Does it suggest fixes? (We don't)
-5. **Responsiveness** - Is it fast? (We are, actually)
-6. **Completions quality** - Are suggestions relevant? (Yes, we're good here)
+1. **Navigation speed** - Can I jump to definitions instantly? ✅ Yes
+2. **Refactoring confidence** - Can I rename safely? ✅ Yes
+3. **Code understanding** - Can I see the outline/structure? ✅ Yes
+4. **Error recovery** - Does it suggest fixes? ✅ Yes
+5. **Responsiveness** - Is it fast? ✅ Yes
+6. **Completions quality** - Are suggestions relevant? ✅ Yes
 
-Our extension excels at the "writing new code" experience but falls short on the "understanding/navigating existing code" experience.
+Our extension now provides a complete IDE experience for Pine Script development.
 
 ---
 
-### Work Items: Path to Best-in-Class
+### Completed Work Items
 
-#### Priority 1: Navigation (High Impact)
+All planned LSP features have been implemented:
 
-**WI-1: Go to Definition**
-- Implement `textDocument/definition` LSP handler
-- Track symbol definitions during parsing (variables, functions, parameters)
-- Build a symbol table mapping names to definition locations
-- Handle: user variables, user functions, function parameters, for-loop variables
-- Built-in symbols should show "this is a built-in" message or link to docs
-- Files: `language-service/src/features/definition.ts`, `lsp/src/server.ts`
-- Estimated complexity: Medium
+| Work Item | Feature | Files Created |
+|-----------|---------|---------------|
+| WI-1 | Go to Definition | `features/definition.ts`, `handlers/definition.ts` |
+| WI-2 | Find References | `features/references.ts`, `handlers/references.ts` |
+| WI-3 | Document Symbols | `features/symbols.ts`, `handlers/symbols.ts` |
+| WI-4 | Rename Symbol | `features/rename.ts`, `handlers/rename.ts` |
+| WI-5 | Code Actions | `features/codeActions.ts`, `handlers/codeActions.ts` |
+| WI-6 | Semantic Tokens | `features/semanticTokens.ts`, `handlers/semanticTokens.ts` |
+| WI-7 | Inlay Hints | `features/inlayHints.ts`, `handlers/inlayHints.ts` |
+| WI-8 | Folding Ranges | `features/folding.ts`, `handlers/folding.ts` |
+| WI-9 | Enhanced Formatting | `features/formatting.ts` (enhanced) |
+| WI-10 | Library Import Resolution | `features/imports.ts` |
 
-**WI-2: Find All References**
-- Implement `textDocument/references` LSP handler
-- Track all usages of each symbol during validation pass
-- Return list of locations where symbol is used
-- Files: `language-service/src/features/references.ts`, `lsp/src/server.ts`
-- Estimated complexity: Medium
+### Library Import Resolution
 
-**WI-3: Document Symbols (Outline)**
-- Implement `textDocument/documentSymbol` LSP handler
-- Walk AST to extract: functions, variables, imports
-- Return hierarchical symbol tree
-- Enables: outline view, breadcrumbs, go-to-symbol (Ctrl+Shift+O)
-- Files: `language-service/src/features/symbols.ts`, `lsp/src/server.ts`
-- Estimated complexity: Low
-
-#### Priority 2: Refactoring (Medium Impact)
-
-**WI-4: Rename Symbol**
-- Implement `textDocument/rename` and `textDocument/prepareRename` LSP handlers
-- Use references implementation to find all usages
-- Generate text edits for all locations
-- Validate: cannot rename built-ins, handle scope correctly
-- Files: `language-service/src/features/rename.ts`, `lsp/src/server.ts`
-- Estimated complexity: Medium (depends on WI-2)
-
-**WI-5: Basic Code Actions**
-- Implement `textDocument/codeAction` LSP handler
-- Start with quick fixes for existing diagnostics:
-  - "Add `//@version=6`" when missing
-  - "Change `input.string()` to `input.timeframe()`" for HTF inputs
-  - "Wrap with `not na()`" for time() boolean pitfall
-- Files: `language-service/src/features/codeActions.ts`, `lsp/src/server.ts`
-- Estimated complexity: Medium
-
-#### Priority 3: Code Intelligence (Lower Impact, Nice to Have)
-
-**WI-6: Semantic Tokens**
-- Implement `textDocument/semanticTokens/full` LSP handler
-- Provide token types: function, variable, parameter, property, keyword
-- Provide modifiers: declaration, definition, readonly, deprecated
-- Enables: theme-aware coloring that distinguishes user vs built-in symbols
-- Files: `language-service/src/features/semanticTokens.ts`, `lsp/src/server.ts`
-- Estimated complexity: Medium
-
-**WI-7: Inlay Hints**
-- Implement `textDocument/inlayHint` LSP handler
-- Show parameter names at call sites: `ta.sma(close, /*length:*/ 14)`
-- Show inferred types for variables: `x /*: float*/ = 1.5`
-- Files: `language-service/src/features/inlayHints.ts`, `lsp/src/server.ts`
-- Estimated complexity: Low
-
-**WI-8: Folding Ranges**
-- Implement `textDocument/foldingRange` LSP handler
-- Fold: function bodies, if/else blocks, for/while loops, switch cases
-- Files: `language-service/src/features/folding.ts`, `lsp/src/server.ts`
-- Estimated complexity: Low
-
-#### Priority 4: Formatting (Quality of Life)
-
-**WI-9: Enhanced Formatting**
-- Add indentation normalization (consistent 4-space or tab)
-- Add operator spacing rules (`a+b` → `a + b`)
-- Add alignment for multi-line function arguments
-- Consider using a configurable formatter like prettier-style
-- Files: `language-service/src/features/formatting.ts`
-- Estimated complexity: Medium-High
-
-#### Priority 5: External Integration
-
-**WI-10: Library Import Resolution**
-
-Pine Script libraries use `import User/Library/Version` syntax (e.g., `import TradingView/ta/12`), but this doesn't map to any discoverable location:
-- No local path convention exists
-- URLs are unpredictable (e.g., `TradingView/ta/12` → `tradingview.com/script/BICzyhq0-ta/` - the hash is opaque)
-- TradingView has no public API for fetching library source code
-
-**Solution: Triple-slash source directive**
+Pine Script libraries use `import User/Library/Version` syntax, but there's no way to discover library source code. The `/// @source` directive solves this:
 
 ```pine
-/// @source ./libs/ta-v12.pine
-import TradingView/ta/12 as ta
+/// @source ./libs/my-library.pine
+import User/MyLibrary/1 as myLib
+
+x = myLib.myFunction(close)  // Full IntelliSense!
 ```
 
-The `/// @source` comment immediately before an import tells the language service where to find the library source locally. This follows TypeScript's triple-slash reference pattern (`/// <reference path="..." />`).
-
-**Implementation steps:**
-1. In parser/lexer, detect `/// @source <path>` comments and attach to following import AST node
-2. When processing imports, check for attached source directive
-3. Parse the referenced library file
-4. Extract exported functions/variables/types (look for `export` keyword)
-5. Provide completions for `alias.` namespace (e.g., `ta.sma()`, `ta.ema()`)
-6. Include library symbols in hover, signature help, go-to-definition
-7. If no `/// @source` directive, show diagnostic: "Library source not specified. Add `/// @source <path>` above import."
-
-**Why this approach:**
-- Co-located with import (easy to see mapping)
-- No config files to manage
-- Per-import granularity
-- Portable (works in LSP, CLI, MCP)
-- Follows established triple-slash pattern from TypeScript
-
-**Files to create/modify:**
-- `packages/core/src/parser/parser.ts` - Attach source directive to import AST
-- `packages/language-service/src/features/imports.ts` - Import resolution and library parsing
-- `packages/language-service/src/features/completions.ts` - Add library completions
-- `packages/language-service/src/features/hover.ts` - Show library symbol docs
-
-**Estimated complexity:** High (cross-cutting feature affecting multiple systems)
+**Features enabled:**
+- Completions after `alias.`
+- Hover documentation for library functions
+- Go to definition into library source files
+- Info diagnostic when `/// @source` is missing
 
 ---
 
-### Implementation Plan
+## Future Work
 
-#### Why Parallelization Is Limited
-
-Almost every work item modifies the same shared files:
-- `lsp/src/server.ts` - handler setup
-- `lsp/src/capabilities.ts` - capability declaration
-- `language-service/src/PineLanguageService.ts` - method exposure
-- `language-service/src/types.ts` - type definitions
-
-Parallel subagents would create merge conflicts. **Execution must be mostly sequential.**
-
-#### Dependency Graph
-
-```
-WI-0 (Symbol Table) ─┬─→ WI-1 (Definition) ─→ WI-2 (References) ─→ WI-4 (Rename)
-                     │
-                     └─→ WI-6 (Semantic Tokens)
-
-WI-3 (Document Symbols) ─→ standalone (walks AST)
-WI-5 (Code Actions) ─→ standalone (uses existing diagnostics)
-WI-7 (Inlay Hints) ─→ standalone (uses existing type info)
-WI-8 (Folding Ranges) ─→ standalone (walks AST)
-WI-9 (Formatting) ─→ standalone
-WI-10 (Library Imports) ─→ standalone but touches many files
-```
-
-#### Execution Order
-
-**Phase 0: Symbol Table Infrastructure** (prerequisite for navigation)
-- Modify `checker.ts` to build symbol table during validation
-- Track: definition locations, reference locations, symbol kinds, scopes
-- This is new infrastructure that WI-1, WI-2, WI-6 depend on
-
-**Phase 1: Core Navigation** (sequential, high impact)
-1. WI-3: Document Symbols - enables outline view, Ctrl+Shift+O
-2. WI-1: Go to Definition - highest user impact
-3. WI-2: Find References - builds on symbol table from WI-1
-
-**Phase 2: Refactoring** (sequential, depends on Phase 1)
-4. WI-4: Rename Symbol - uses WI-2's reference finding
-
-**Phase 3: Polish Features** (sequential, but independent of Phases 1-2)
-5. WI-5: Code Actions - quick fixes for existing diagnostics
-6. WI-7: Inlay Hints - parameter names, type annotations
-7. WI-8: Folding Ranges - code folding
-
-**Phase 4: Advanced** (sequential)
-8. WI-6: Semantic Tokens - benefits from symbol table
-9. WI-9: Enhanced Formatting
-10. WI-10: Library Imports - most complex, do last
-
-#### Parallelization Opportunities
-
-**Minimal.** The only safe parallel execution:
-
-1. **Phase 0 + WI-9 in parallel**: Symbol table work is in `checker.ts`, formatting is in `formatting.ts` - no overlap.
-
-2. **Research in parallel**: Before starting implementation, research tasks can run in parallel:
-   - Subagent A: Research how rust-analyzer implements document symbols
-   - Subagent B: Research LSP semantic token protocol
-   - Subagent C: Prototype symbol table data structure
-
-After research, implementation must be sequential due to shared file modifications.
-
-#### Estimated Effort Per Phase
-
-| Phase | Work Items | New Files | Modified Files | Complexity |
-|-------|------------|-----------|----------------|------------|
-| 0 | Symbol Table | 0 | 2-3 | Medium |
-| 1 | WI-3, WI-1, WI-2 | 6 | 4 | Medium |
-| 2 | WI-4 | 2 | 4 | Low |
-| 3 | WI-5, WI-7, WI-8 | 6 | 4 | Low-Medium |
-| 4 | WI-6, WI-9, WI-10 | 3 | 5+ | Medium-High |
-
----
-
-### Architecture Notes for Implementation
-
-The language service already tracks parsed documents with full ASTs. To implement navigation:
-
-1. **Symbol Table** - During parsing/validation, build a map:
-   ```typescript
-   interface SymbolInfo {
-     name: string;
-     kind: 'variable' | 'function' | 'parameter';
-     definitionLocation: Location;
-     references: Location[];
-     type?: string;
-   }
-   ```
-
-2. **Scope Tracking** - Pine has simple scoping:
-   - Global scope (top-level declarations)
-   - Function scope (parameters + local vars)
-   - Block scope (for-loop variables, if-block variables)
-
-3. **Built-in Detection** - Check `FUNCTIONS_BY_NAME`, `VARIABLES_BY_NAME`, `CONSTANTS_BY_NAME` before treating as user-defined.
-
-The `UnifiedPineValidator` in `checker.ts` already walks the AST and tracks some symbol info. Extending it to build a proper symbol table is the key infrastructure work.
-
----
-
-## Future Work (Out of Scope for Current Items)
-
-- **Library imports for IntelliSense** - Handle `import User/Lib/1` for local development in LSP/VS Code extension (fetch/cache library definitions)
+- **Workspace symbols** - Search across multiple files (low priority for single-file Pine workflows)
+- **Call hierarchy** - Show incoming/outgoing calls for functions
 - **language-configuration.json autogeneration** - Consider generating from pine-data
 - **Fuzzer implementation** - Property-based testing for parser robustness
 
