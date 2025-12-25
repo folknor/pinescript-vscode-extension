@@ -231,7 +231,11 @@ pnpm run rebuild:skip-tests  # Clean + build + package (no tests)
 
 ## Future Work
 
-- *No major items pending*
+- **Differential testing** - Generate random Pine scripts, validate against both TradingView's pine-lint and internal LSP, identify discrepancies. Requires:
+  1. Extend fuzzer to generate complete valid scripts (with `//@version=6` header, `indicator()`/`strategy()` call)
+  2. Submit to TradingView pine-lint via Puppeteer (already a devDep)
+  3. Compare diagnostics between pine-lint and internal validator
+  4. Track false positives/negatives to improve internal validator
 
 ---
 
