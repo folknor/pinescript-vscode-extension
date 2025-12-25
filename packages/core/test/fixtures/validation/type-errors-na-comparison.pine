@@ -1,0 +1,17 @@
+// @test validation/type-errors-na-comparison
+// @description Direct na comparison is invalid - must use na() function
+// @expects parse: success
+// @expects errors: 2
+
+//@version=6
+indicator("NA Comparison Errors")
+
+// Direct na comparison is invalid (errors)
+bool bad1 = close == na
+bool bad2 = close != na
+
+// Correct way to check for na
+bool good1 = na(close)
+bool good2 = not na(close)
+
+plot(close)

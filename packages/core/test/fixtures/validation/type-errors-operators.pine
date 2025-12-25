@@ -1,0 +1,28 @@
+// @test validation/type-errors-operators
+// @description Type errors for operators (ternary, logical, arithmetic, comparison)
+// @expects parse: success
+// @expects errors: 10
+
+//@version=6
+indicator("Operator Type Errors")
+
+// Ternary condition must be bool (error)
+x1 = 5 ? 1 : 2
+
+// Logical operators require bool (errors)
+x2 = 1 and true
+x3 = true or 2
+x4 = not 5
+
+// Arithmetic on bool (errors)
+x5 = true + 1
+x6 = 1 - false
+
+// Arithmetic on color (errors)
+x7 = color.red + 1
+x8 = 2 * color.blue
+
+// Comparison on color (error)
+x9 = color.red > color.blue
+
+plot(close)
