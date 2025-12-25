@@ -233,38 +233,27 @@ pnpm run rebuild:skip-tests  # Clean + build + package (no tests)
 
 ## TODO: Type Checker Improvements
 
-Issues discovered via differential testing (`pnpm run debug:diff`). These are errors TradingView catches that we don't.
+Issues discovered via differential testing (`pnpm run debug:diff`).
 
-### High Priority (False Negatives)
+### Completed ✅
+
+| Issue | Description | Status |
+|-------|-------------|--------|
+| **Builtins as unused** | ~100 built-ins reported as "declared but never used" | ✅ Fixed in `symbols.ts` |
+| **Ternary condition type** | `?:` condition must be bool | ✅ Fixed in `checker.ts` |
+| **Logical operator types** | `and`/`or`/`not` require bool operands | ✅ Fixed in `checker.ts` + `types.ts` |
+| **Arithmetic on bool/color** | `+`/`-`/`*`/`/`/`%` reject bool/color | ✅ Fixed in `types.ts` |
+| **Comparison on color** | `<`/`>`/`<=`/`>=` reject color | ✅ Fixed in `types.ts` |
+| **Direct na comparison** | `x == na` must use `na(x)` | ✅ Fixed in `checker.ts` |
+
+### Remaining (Medium/Low Priority)
 
 | Issue | Description | Location |
 |-------|-------------|----------|
-| **Ternary condition type** | `?:` condition must be bool, not int/float/color/string. TV: "Cannot call operator ?: with argument expr0=..." | `checker.ts` |
-| **Logical operator types** | `and`/`or`/`not` operands must be bool. TV: "Cannot call operator and with argument..." | `checker.ts` |
-| **Arithmetic on bool** | `+`/`-`/`*`/`/`/`%` don't accept bool operands. TV: "Cannot call operator + with argument expr0=true" | `checker.ts` |
-| **Arithmetic on color** | `+`/`-`/`*`/`/`/`%` don't accept color operands (except special cases) | `checker.ts` |
-| **Comparison on color** | `<`/`>`/`<=`/`>=` don't work with color types | `checker.ts` |
-| **Direct na comparison** | `x == na` is invalid, must use `na(x)`. TV: "Cannot compare a value to na directly" | `checker.ts` |
-
-### Medium Priority
-
-| Issue | Description | Location |
-|-------|-------------|----------|
-| **Local scope restrictions** | `plotshape`/`plotchar`/`bgcolor` etc. can't be called from local scope | `checker.ts` |
-| **Function argument types** | Some function-specific type requirements not enforced (e.g., `alertcondition` condition must be bool, `hline` price must be input float) | `checker.ts` |
+| **Local scope restrictions** | `plotshape`/`plotchar`/`bgcolor` etc. can't be called from local scope | Already implemented |
+| **Function argument types** | Some function-specific type requirements not enforced | `checker.ts` |
 | **Ternary branch types** | `?:` branches must have compatible types | `checker.ts` |
-
-### Low Priority (Warnings)
-
-| Issue | Description | Location |
-|-------|-------------|----------|
-| **Function consistency** | Warning when `ta.crossover`/`ta.rsi` etc. are in conditional scope | N/A (optional) |
-
-### Known False Positive (Bug)
-
-| Issue | Description | Location |
-|-------|-------------|----------|
-| **Builtins as unused** | ~100 built-ins reported as "declared but never used". This is the most common false positive. | `checker.ts:collectUnusedVariables()` |
+| **Function consistency** | Warning when `ta.crossover`/`ta.rsi` etc. are in conditional scope | Optional |
 
 Run `pnpm run debug:diff -- --count 20 --verbose` to see current discrepancies.
 
