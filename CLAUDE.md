@@ -103,7 +103,7 @@ Run `pnpm run debug:corpus --summary` for fresh stats.
 
 ### Test Suite
 
-**118 tests passing** (51 in `packages/core/test/` + 67 in `packages/language-service/test/`)
+**143 tests passing** (76 in `packages/core/test/` + 67 in `packages/language-service/test/`)
 
 ---
 
@@ -231,7 +231,7 @@ pnpm run rebuild:skip-tests  # Clean + build + package (no tests)
 
 ## Future Work
 
-- **Fuzzer implementation** - Property-based testing for parser robustness
+- *No major items pending*
 
 ---
 
