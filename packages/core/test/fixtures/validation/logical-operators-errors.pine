@@ -1,0 +1,21 @@
+// @test validation/logical-operators-errors
+// @description Error messages for invalid logical operator operands
+// @expects parse: success
+// @expects errors: 4
+
+//@version=6
+indicator("Logical Operator Errors")
+
+// Error: left operand is int, not bool
+x = 123 or false
+
+// Error: right operand is string, not bool
+y = true and "hello"
+
+// Error: left operand is color, not bool
+z = color.red or true
+
+// Error: right operand is float, not bool
+w = false and 3.14
+
+plot(close)

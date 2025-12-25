@@ -1,0 +1,24 @@
+// @test validation/ternary-branch-types
+// @description Ternary expression branches must have compatible types
+// @expects parse: success
+// @expects errors: 3
+
+//@version=6
+indicator("Ternary Branch Type Errors")
+
+// Error: int and color are incompatible
+x = true ? 123 : color.red
+
+// Error: string and bool are incompatible
+y = true ? "hello" : false
+
+// Error: color and string are incompatible
+z = true ? color.blue : "blue"
+
+// Valid: int and float are compatible (both numeric)
+a = true ? 123 : 45.6
+
+// Valid: same types
+b = true ? "hello" : "world"
+
+plot(close)

@@ -1,0 +1,38 @@
+// @test syntax/switch-negative-cases
+// @description Switch expressions with negative number case conditions
+// @expects parse: success
+
+//@version=6
+indicator("Switch Negative Cases")
+
+x = 0
+result1 = switch x
+    -1 => "negative one"
+    0 => "zero"
+    1 => "one"
+    => "other"
+
+result2 = switch x
+    -100 => "minus hundred"
+    -50 => "minus fifty"
+    -1 => "minus one"
+    => "non-negative"
+
+idx = bar_index % 5
+result3 = switch idx
+    -2 => "neg two"
+    -1 => "neg one"
+    0 => "zero"
+    1 => "one"
+    2 => "two"
+    => "other"
+
+val = 1.5
+result4 = switch val
+    -1.5 => "minus 1.5"
+    -0.5 => "minus 0.5"
+    0.0 => "zero"
+    0.5 => "plus 0.5"
+    => "other"
+
+plot(close)

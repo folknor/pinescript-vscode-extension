@@ -604,7 +604,10 @@ export class UnifiedPineValidator {
 			}
 		}
 
-		// Logical operators require bool operands (stricter check for better error messages)
+		// Logical operators require bool operands.
+		// Note: TypeChecker.areTypesCompatible (types.ts) also checks this, but we check here
+		// first to provide better error messages that identify which operand is wrong.
+		// The areTypesCompatible check below serves as a fallback for edge cases.
 		if (expr.operator === "and" || expr.operator === "or") {
 			if (leftType !== "unknown" && !TypeChecker.isBoolType(leftType)) {
 				this.addError(

@@ -1095,36 +1095,9 @@ export class Parser {
 		// If there's an identifier or expression before the newline, parse it as discriminant
 		let discriminant: AST.Expression | undefined;
 		if (!this.check(TokenType.NEWLINE) && !this.isAtEnd()) {
-			// Parse discriminant but only consume tokens on the same line as 'switch'.
-			// Save the current line to ensure we don't parse beyond it.
-			const discriminantLine = startToken.line;
-			const savedBracketDepth = this.bracketDepth;
-			const savedParenDepth = this.parenDepth;
-
-			// Temporarily set depths to prevent line continuation in postfix()
-			// This forces the parser to stop at newlines
-			this.bracketDepth = 0;
-			this.parenDepth = 0;
-
-			discriminant = this.expression();
-
-			// Restore depths
-			this.bracketDepth = savedBracketDepth;
-			this.parenDepth = savedParenDepth;
-
-			// Verify we didn't parse beyond the switch line
-			// If we did, it means the expression parser consumed case conditions
-			const currentToken = this.previous();
-			if (currentToken.line > discriminantLine) {
-				// We parsed beyond the switch line - this is likely due to line continuation
-				// In this case, treat the switch as having no discriminant
-				// We need to rewind to the first token after the switch keyword
-				this.current--; // Step back from current position
-				while (this.previous().line > discriminantLine) {
-					this.current--;
-				}
-				discriminant = undefined;
-			}
+			// Parse discriminant using a restricted method that stops at newlines.
+			// This prevents "switch x\n    -1 => ..." from being parsed as "switch (x - 1)".
+			discriminant = this.parseSwitchDiscriminant(startToken.line);
 		}
 
 		// Skip newlines after 'switch' (or discriminant)
@@ -1190,6 +1163,117 @@ export class Parser {
 	}
 
 	/**
+	 * Parse switch discriminant expression, stopping at newlines.
+	 * This is a restricted version of expression() that doesn't continue
+	 * parsing across newlines for binary operators. This prevents:
+	 *   switch x
+	 *       -1 => ...
+	 * from being parsed as "switch (x - 1)" instead of "switch x" with case "-1".
+	 */
+	private parseSwitchDiscriminant(switchLine: number): AST.Expression {
+		// Parse the first operand
+		let expr = this.unary();
+
+		// Continue parsing binary operators only if they're on the same line
+		while (!this.isAtEnd()) {
+			// Stop at newline - don't continue to next line
+			if (this.check(TokenType.NEWLINE)) {
+				break;
+			}
+
+			// Check for binary operators on the same line
+			const currentToken = this.peek();
+			if (currentToken.line !== switchLine) {
+				break;
+			}
+
+			// Handle binary operators
+			if (
+				this.match(
+					TokenType.PLUS,
+					TokenType.MINUS,
+					TokenType.MULTIPLY,
+					TokenType.DIVIDE,
+					TokenType.MODULO,
+				)
+			) {
+				const operator = this.previous().value;
+				const right = this.unary();
+				expr = {
+					type: "BinaryExpression",
+					operator,
+					left: expr,
+					right,
+					line: expr.line,
+					column: expr.column,
+				};
+			} else if (this.match(TokenType.COMPARE)) {
+				const operator = this.previous().value;
+				const right = this.unary();
+				expr = {
+					type: "BinaryExpression",
+					operator,
+					left: expr,
+					right,
+					line: expr.line,
+					column: expr.column,
+				};
+			} else if (this.check(TokenType.KEYWORD)) {
+				const keyword = this.peek().value;
+				if (keyword === "and" || keyword === "or") {
+					this.advance();
+					const right = this.unary();
+					expr = {
+						type: "BinaryExpression",
+						operator: keyword,
+						left: expr,
+						right,
+						line: expr.line,
+						column: expr.column,
+					};
+				} else {
+					break;
+				}
+			} else {
+				break;
+			}
+		}
+
+		return expr;
+	}
+
+	/**
+	 * Parse an expression restricted to a single line.
+	 * This is used for switch case results to prevent parsing across newlines.
+	 */
+	private parseSingleLineExpression(line: number): AST.Expression {
+		// First parse using the discriminant parser (which handles binary ops on same line)
+		let expr = this.parseSwitchDiscriminant(line);
+
+		// Also handle ternary operator on the same line
+		if (
+			!this.check(TokenType.NEWLINE) &&
+			!this.isAtEnd() &&
+			this.peek().line === line &&
+			this.match(TokenType.TERNARY)
+		) {
+			const consequent = this.parseSingleLineExpression(line);
+			this.consume(TokenType.COLON, 'Expected ":" in ternary expression');
+			const alternate = this.parseSingleLineExpression(line);
+			expr = {
+				type: "TernaryExpression",
+				condition: expr,
+				consequent,
+				alternate,
+				line: expr.line,
+				column: expr.column,
+			};
+		}
+
+		return expr;
+	}
+
+	/**
 	 * Parse switch case body (single-line expression or multi-line block)
 	 * For multi-line case bodies like:
 	 *     condition =>
@@ -1203,7 +1287,9 @@ export class Parser {
 		// Check if there's content on the same line as =>
 		if (!this.check(TokenType.NEWLINE) && !this.isAtEnd()) {
 			// Single-line case: condition => expression
-			return this.expression();
+			// Use restricted parsing to avoid continuing across newlines.
+			// This prevents "=> expr\n    -1 => ..." from being parsed as "expr - 1".
+			return this.parseSingleLineExpression(arrowToken.line);
 		}
 
 		// Multi-line case body: parse statements until indentation decreases
