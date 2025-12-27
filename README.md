@@ -2,6 +2,8 @@
 
 Pine Script v6 support for VS Code. Syntax highlighting, IntelliSense, diagnostics.
 
+Also contains a pinescript LSP, pinescript MCP, CLI pinescript linter, and other tools.
+
 ## Requirements
 
 - VS Code 1.108+
